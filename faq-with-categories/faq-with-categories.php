@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: FAQ and Answers
+Plugin Name: FAQ with categories
 Plugin URI: https://github.com/joerivanveen/faq-with-categories
 Description: Simple faq and answer plugin.
 Version: 0.0.1
@@ -22,7 +22,7 @@ register_activation_hook(__FILE__, 'ruigehond010_install');
 register_deactivation_hook(__FILE__, 'ruigehond010_deactivate');
 register_uninstall_hook(__FILE__, 'ruigehond010_uninstall');
 // Startup the plugin
-add_action('init', array(new ruigehond010\ruigehond010('FAQ and Answers'), 'initialize'));
+add_action('init', array(new ruigehond010\ruigehond010('FAQ with categories'), 'initialize'));
 /*
  * setup ajax for admin interface, ajax call javascript needs to call whatever
  * comes after wp_ajax_ (so in this case: ruigehond010_handle_input)
