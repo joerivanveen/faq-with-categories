@@ -112,11 +112,25 @@ namespace ruigehond010 {
                 // load the posts, will return row data: ID = id of the post, exclusive = meta value for exclusive (null when none)
                 // term = category: this will multiply rows if multiple categories are attached,
                 // post_title = question, post_content = answer, post_date = the date
-                $posts = $this->getPosts($chosen_term, $chosen_exclusive);
+                $posts = $this->getPosts($chosen_exclusive);
                 ob_start();
-                echo '<pre>';
-                var_dump($posts);
-                echo '</pre>';
+                echo '<ul id="ruigehond010_faq" class="ruigehond010 faq posts ';
+                if ($chosen_exclusive) echo strtolower(htmlentities($chosen_exclusive));
+                echo '">';
+                foreach ($posts as $index => $post) {
+                    echo '<li class="post ';
+                    echo strtolower(implode(' ', $post->terms));
+                    if ($post->exclusive) {
+                        echo '" data-exclusive="';
+                        echo $post->exclusive;
+                    }
+                    echo '"><h4>';
+                    echo $post->post_title;
+                    echo '</h4>';
+                    echo $post->post_content;
+                    echo '</li>';
+                }
+                echo '</ul>';
                 $str = ob_get_contents();
                 ob_end_clean();
 
@@ -149,15 +163,10 @@ namespace ruigehond010 {
         }
 
         /**
-         * If you supply a term it will return all the posts that have that term attached, regardless of exclusive
-         * if term = null but you supply exclusive, it returns the post where that exclusive is set in the meta
-         * otherwise it just returns all the posts, also the exclusive ones, so you need to filter out the posts
-         * without terms attached for non-admin views (admin should see all posts of course)
-         * @param string|null $term
          * @param string|null $exclusive
          * @returns \stdClass the rows from the db as object in an indexed array
          */
-        private function getPosts($term = null, $exclusive = null)
+        private function getPosts($exclusive = null)
         {
             $sql = 'select p.ID, p.post_title, p.post_content, p.post_date, t.name AS term, pm.meta_value AS exclusive from ' .
                 $this->wpdb->prefix . 'posts p left outer join ' .
@@ -166,15 +175,28 @@ namespace ruigehond010 {
                 $this->wpdb->prefix . 'terms t on t.term_id = tt.term_id left outer join ' .
                 $this->wpdb->prefix . 'postmeta pm on pm.post_id = p.ID and pm.meta_key = \'_ruigehond010_exclusive\' ' .
                 'where p.post_type = \'ruigehond010_faq\'';
-            // setup the where condition regarding term and exclusive....
-            if (!is_null($term)) {
-                $sql .= ' and t.name = \'' . addslashes(sanitize_text_field($term)) . '\'';
-            } elseif (!is_null($exclusive)) {
+            // setup the where condition regarding exclusive....
+            if (!is_null($exclusive)) {
                 $sql .= ' and pm.meta_value = \'' . addslashes(sanitize_text_field($exclusive)) . '\'';
             }
             $sql .= ' order by p.post_date desc';
+            $rows = $this->wpdb->get_results($sql, OBJECT);
+            $return_arr = array();
+            $current_id = 0;
+            foreach ($rows as $index => $row) {
+                if ($row->ID === $current_id) { // add the category to the current return value
+                    $return_arr[count($return_arr) - 1]->terms[] = $row->term;
+                } else { // add the row
+                    $term = $row->term;
+                    $row->terms = array($term);
+                    unset($row->term);
+                    $return_arr[] = $row;
+                    $current_id = $row->ID;
+                }
+            }
+            unset($rows);
 
-            return $this->wpdb->get_results($sql, OBJECT);
+            return $return_arr;
         }
 
         public function handle_input($post)

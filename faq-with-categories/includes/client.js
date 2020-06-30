@@ -14,13 +14,15 @@ function ruigehond010_filter(select) {
     console.log(select);
     if (null === select) { // only display the parent, this is already done by php as well, but just to be sure
         ruigehond010_hideChildLists();
+        // todo set the first list to 'choose', mozilla tends to pre-select something else if it wants to, without the 'onchange'
     } else {
         ruigehond010_hideChildLists();
-        // display a child list of the selected option option if it exists
+        // display a child list of the selected option if it exists
         if (select.selectedIndex > 0 && (option = select.options[select.selectedIndex])) {
             if (option.hasAttribute('data-ruigehond010_term_taxonomy_id')) {
                 parent_id = option.getAttribute('data-ruigehond010_term_taxonomy_id');
                 if ((list = document.querySelector('.ruigehond010[data-parent="' + parent_id + '"]'))) {
+                    list.selectedIndex = 0;
                     list.style.display = 'block';
                 }
             }
@@ -50,7 +52,7 @@ function ruigehond010_filter(select) {
 }
 
 function ruigehond010_start() {
-    var options, option, i, len, parent_id, list, lists, lists_by_parent = {}, selected_list = null;
+    var options, option, i, len, parent_id, list, lists, lists_by_parent = {}, selected_list = null, maybe_done;
     // sort the select lists also, from parent to child to grandchild etc.
     if ((lists = document.getElementsByClassName('ruigehond010 choose-category'))) {
         for (i = 0, len = lists.length; i < len; ++i) {
@@ -60,20 +62,25 @@ function ruigehond010_start() {
         }
     }
     if ((options = ruigehond_cloneShallow(document.querySelectorAll('[data-ruigehond010_term_taxonomy_id]')))) {
-        // sort the lists
-        for (i in options){
-            if ((list = lists_by_parent[(parent_id = options[i].getAttribute('data-ruigehond010_term_taxonomy_id'))])) {
-                console.warn('ordering');
-                console.log(list);
-                // put the list after the list this option is in
-                document.querySelector('[data-ruigehond010_term_taxonomy_id="' + parent_id + '"]').parentElement.insertAdjacentElement('afterend', list);
+        // sort the lists // todo keep sorting until it's all sorted
+        while (true) {
+            maybe_done = true; // until proven otherwise
+            for (i in options) {
+                if ((list = lists_by_parent[(parent_id = options[i].getAttribute('data-ruigehond010_term_taxonomy_id'))])) {
+                    // put the list after the list this option is in, only if it's not already later in the DOM, in which case all is ok
+                    if ((option = document.querySelector('[data-parent="' + parent_id + '"] ~ select > [data-ruigehond010_term_taxonomy_id="' + parent_id + '"]'))) {
+                        option.parentElement.insertAdjacentElement('afterend', list);
+                        maybe_done = false;
+                    }
+                }
             }
+            if (maybe_done) break;
         }
     }
     ruigehond010_filter(selected_list);
 }
 
-/* ponyfills :-) */
+/* ponyfills */
 function ruigehond_isInt(value) {
     var x;
     if (isNaN(value)) {
