@@ -2,7 +2,7 @@
 /*
 Plugin Name: FAQ with categories
 Plugin URI: https://github.com/joerivanveen/faq-with-categories
-Description: Simple faq and answer plugin.
+Description: Easy to maintain FAQ and answer plugin with categories.
 Version: 0.0.1
 Author: Ruige hond
 Author URI: https://ruigehond.nl
