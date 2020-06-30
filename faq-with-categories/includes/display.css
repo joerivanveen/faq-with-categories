@@ -1,3 +1,6 @@
 .ruigehond010.choose-category {
     display: none; /* until proven otherwise (by javascript) */
 }
+#ruigehond010_faq .ruigehond010_post:nth-child(n + 4) { /* overview page only shows 3 as standard */
+    display: none;
+}

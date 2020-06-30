@@ -27,7 +27,7 @@ namespace ruigehond010 {
             $this->database_version = $this->getOption('database_version', '0.0.0');
             $this->taxonomies = $this->getOption('taxonomy', 'category');
             $this->slug = $this->getOption('slug', 'faq');
-            $this->choose_option = $this->getOption('choose_option', __('Kies', 'faq-with-categories'));
+            $this->choose_option = $this->getOption('choose_option', __('Choose option', 'faq-with-categories'));
             $this->exclude_from_search = $this->getOption('exclude_from_search', true);
             $this->queue_frontend_css = $this->getOption('queue_frontend_css', true);
         }
@@ -62,6 +62,7 @@ namespace ruigehond010 {
                 add_action('wp_head', array($this, 'outputSchema'), 2);
                 add_shortcode('faq-with-categories', array($this, 'getHtmlForFrontend'));
                 add_shortcode('faq-with-categories-filter', array($this, 'getHtmlForFrontend'));
+                add_shortcode('faq-with-categories-search', array($this, 'getHtmlForFrontend'));
             }
         }
 
@@ -105,6 +106,12 @@ namespace ruigehond010 {
                 }
                 $str = ob_get_contents();
                 ob_end_clean();
+
+                return $str;
+            } elseif ($short_code === 'faq-with-categories-search') {
+                $str = '<input type="text" name="search" class="search-field ruigehond010 faq" id="ruigehond010_search" placeholder="';
+                $str .= $this->getOption('search_faqs', __('Search faqs', 'faq-with-categories'));
+                $str .= '"/>';
 
                 return $str;
             } else { // 2) all the posts, filtered by 'exclusive' or 'term'

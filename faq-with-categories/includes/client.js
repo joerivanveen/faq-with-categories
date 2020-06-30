@@ -1,3 +1,21 @@
+function ruigehond010_showDomElement(element) {
+    element.style.display = 'block';
+}
+function ruigehond010_hideDomElement(element) {
+    element.style.display = 'none';
+}
+
+function ruigehond010_resetLists() {
+    var list;
+    ruigehond010_hideSubLists();
+    // set the first list to 'choose'
+    if ((list = document.querySelector('[data-ruigehond010_parent="0"]'))) list.selectedIndex = 0;
+}
+function ruigehond010_resetSearch() {
+    var search_input;
+    if ((search_input = document.getElementById('ruigehond010_search'))) search_input.value = '';
+}
+
 function ruigehond010_hideSubLists() {
     var lists, list, i, len;
     if ((lists = document.getElementsByClassName('ruigehond010 choose-category'))) {
@@ -17,7 +35,7 @@ function ruigehond010_getAllOptionValues(list) {
         // if this option has a sublist, get all those options as well
         if (option.hasAttribute('data-ruigehond010_term_taxonomy_id')) {
             parent_id = option.getAttribute('data-ruigehond010_term_taxonomy_id')
-            if ((sub_list = document.querySelector('[data-ruigehond010_parent="'+parent_id+'"]'))) {
+            if ((sub_list = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"]'))) {
                 arr = arr.concat(ruigehond010_getAllOptionValues(sub_list));
             }
         }
@@ -27,11 +45,9 @@ function ruigehond010_getAllOptionValues(list) {
 
 function ruigehond010_filter(select) {
     var list, options, option, parent_id, i, len, terms, posts, post;
-    //console.log(select);
+    ruigehond010_resetSearch();
     if (null === select) { // only display the parent and set it to first option (which is hidden)
-        ruigehond010_hideSubLists();
-        // set the first list to 'choose', mozilla tends to pre-select something else if it wants to, without firing the 'onchange' event
-        if ((list = document.querySelector('[data-ruigehond010_parent="0"]'))) list.selectedIndex = 0;
+        ruigehond010_resetLists();
     } else {
         ruigehond010_hideSubLists();
         // display a child list of the selected option if it exists
@@ -41,7 +57,7 @@ function ruigehond010_filter(select) {
                 parent_id = option.getAttribute('data-ruigehond010_term_taxonomy_id');
                 if ((list = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"]'))) {
                     list.selectedIndex = 0;
-                    list.style.display = 'block';
+                    ruigehond010_showDomElement(list);
                     terms = terms.concat(ruigehond010_getAllOptionValues(list));
                 }
             }
@@ -49,13 +65,13 @@ function ruigehond010_filter(select) {
         // travel up the chain making the lists visible until you reach data-ruigehond010_parent="0"
         while (select.hasAttribute('data-ruigehond010_parent') &&
         (parent_id = select.getAttribute('data-ruigehond010_parent')) !== '0') {
-            select.style.display = 'block';
+            ruigehond010_showDomElement(select);
             if ((option = document.querySelector('[data-ruigehond010_term_taxonomy_id="' + parent_id + '"]'))) {
                 select = option.parentElement;
                 for (i = 0, len = (options = select.options).length; i < len; ++i) {
                     if (options[i] === option) {
                         select.selectedIndex = i;
-                        select.style.display = 'block';
+                        ruigehond010_showDomElement(select);
                         break;
                     }
                 }
@@ -73,12 +89,12 @@ function ruigehond010_filter(select) {
                 class_names = post.className;
                 // check if there are overlapping classes
                 // todo make it animatable / nicer or something
-               if (terms.filter(function(n) {
+                if (terms.filter(function (n) {
                     return class_names.indexOf(n) !== -1;
                 }).length > 0) {
-                    post.style.display = 'block';
+                    ruigehond010_showDomElement(post);
                 } else {
-                    post.style.display = 'none';
+                    ruigehond010_hideDomElement(post);
                 }
             }
         } else {
@@ -89,8 +105,11 @@ function ruigehond010_filter(select) {
 }
 
 function ruigehond010_start() {
-    var options, option, i, len, parent_id, list, lists, lists_by_parent = {}, selected_list = null, maybe_done;
-    // sort the select lists also, from parent to child to grandchild etc.
+    var options, option, i, len, parent_id, list, lists, lists_by_parent = {}, selected_list = null, maybe_done,
+        search_input;
+    /**
+     * first get the lists in order: sort them from parent to child and remember if any is pre-checked by php
+     */
     if ((lists = document.getElementsByClassName('ruigehond010 choose-category'))) {
         for (i = 0, len = lists.length; i < len; ++i) {
             list = lists[i];
@@ -99,7 +118,7 @@ function ruigehond010_start() {
         }
     }
     if ((options = ruigehond_cloneShallow(document.querySelectorAll('[data-ruigehond010_term_taxonomy_id]')))) {
-        // sort the lists // todo keep sorting until it's all sorted
+        // sort the lists
         while (true) {
             maybe_done = true; // until proven otherwise
             for (i in options) {
@@ -114,7 +133,29 @@ function ruigehond010_start() {
             if (maybe_done) break;
         }
     }
+    // run the filter for the first time
     ruigehond010_filter(selected_list);
+    /**
+     * setup the search field
+     */
+    if ((search_input = document.getElementById('ruigehond010_search'))) {
+        search_input.addEventListener('keyup', function () {
+            var post, posts, search_string = this.value.toLowerCase(), i, len;
+            if ((posts = document.getElementById('ruigehond010_faq'))) {
+                posts = posts.getElementsByClassName('ruigehond010_post');
+                for (i = 0, len = posts.length; i < len; ++i) {
+                    if ((post = posts[i]).innerText.toLowerCase().indexOf(search_string) !== -1) {
+                        ruigehond010_showDomElement(post);
+                    } else {
+                        ruigehond010_hideDomElement(post);
+                    }
+                }
+            }
+        });
+        search_input.addEventListener('focus', function() {
+            ruigehond010_resetLists();
+        });
+    }
 }
 
 /* ponyfills */
