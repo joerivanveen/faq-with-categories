@@ -83,7 +83,7 @@ namespace ruigehond010 {
                 // write the html lists
                 ob_start();
                 foreach ($rows as $parent => $options) {
-                    echo '<select class="ruigehond010 faq choose-category" data-parent="';
+                    echo '<select class="ruigehond010 faq choose-category" data-ruigehond010_parent="';
                     echo $parent;
                     if ($parent === 0) {
                         echo '" style="display: block'; // to prevent repainting in default situation
@@ -118,7 +118,7 @@ namespace ruigehond010 {
                 if ($chosen_exclusive) echo strtolower(htmlentities($chosen_exclusive));
                 echo '">';
                 foreach ($posts as $index => $post) {
-                    echo '<li class="post ';
+                    echo '<li class="ruigehond010_post ';
                     echo strtolower(implode(' ', $post->terms));
                     if ($post->exclusive) {
                         echo '" data-exclusive="';
@@ -186,7 +186,7 @@ namespace ruigehond010 {
             foreach ($rows as $index => $row) {
                 if ($row->ID === $current_id) { // add the category to the current return value
                     $return_arr[count($return_arr) - 1]->terms[] = $row->term;
-                } else { // add the row
+                } else { // add the row, when not exclusive is requested posts without terms will be filtered out
                     $term = $row->term;
                     $row->terms = array($term);
                     unset($row->term);

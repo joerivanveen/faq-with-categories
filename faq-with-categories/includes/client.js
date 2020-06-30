@@ -1,35 +1,54 @@
-function ruigehond010_hideChildLists() {
+function ruigehond010_hideSubLists() {
     var lists, list, i, len;
     if ((lists = document.getElementsByClassName('ruigehond010 choose-category'))) {
         for (i = 0, len = lists.length; i < len; ++i) {
             (list = lists[i]).style.display =
-                (list.hasAttribute('data-parent') &&
-                    list.getAttribute('data-parent') === '0') ? 'block' : 'none';
+                (list.hasAttribute('data-ruigehond010_parent') &&
+                    list.getAttribute('data-ruigehond010_parent') === '0') ? 'block' : 'none';
         }
     }
 }
 
+function ruigehond010_getAllOptionValues(list) {
+    var arr = [], i, len, options, option, parent_id, sub_list;
+    // start at i = 1 because you can skip the hidden 'choose' entry
+    for (i = 1, len = (options = list.options).length; i < len; ++i) {
+        arr.push((option = options[i]).value.toLowerCase());
+        // if this option has a sublist, get all those options as well
+        if (option.hasAttribute('data-ruigehond010_term_taxonomy_id')) {
+            parent_id = option.getAttribute('data-ruigehond010_term_taxonomy_id')
+            if ((sub_list = document.querySelector('[data-ruigehond010_parent="'+parent_id+'"]'))) {
+                arr = arr.concat(ruigehond010_getAllOptionValues(sub_list));
+            }
+        }
+    }
+    return arr;
+}
+
 function ruigehond010_filter(select) {
-    var lists, list, options, option, parent_id, i, len;
-    console.log(select);
-    if (null === select) { // only display the parent, this is already done by php as well, but just to be sure
-        ruigehond010_hideChildLists();
-        // todo set the first list to 'choose', mozilla tends to pre-select something else if it wants to, without the 'onchange'
+    var list, options, option, parent_id, i, len, terms, posts, post;
+    //console.log(select);
+    if (null === select) { // only display the parent and set it to first option (which is hidden)
+        ruigehond010_hideSubLists();
+        // set the first list to 'choose', mozilla tends to pre-select something else if it wants to, without firing the 'onchange' event
+        if ((list = document.querySelector('[data-ruigehond010_parent="0"]'))) list.selectedIndex = 0;
     } else {
-        ruigehond010_hideChildLists();
+        ruigehond010_hideSubLists();
         // display a child list of the selected option if it exists
         if (select.selectedIndex > 0 && (option = select.options[select.selectedIndex])) {
             if (option.hasAttribute('data-ruigehond010_term_taxonomy_id')) {
+                terms = [option['value'].toLowerCase()];
                 parent_id = option.getAttribute('data-ruigehond010_term_taxonomy_id');
-                if ((list = document.querySelector('.ruigehond010[data-parent="' + parent_id + '"]'))) {
+                if ((list = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"]'))) {
                     list.selectedIndex = 0;
                     list.style.display = 'block';
+                    terms = terms.concat(ruigehond010_getAllOptionValues(list));
                 }
             }
         }
-        // travel up the chain making the lists visible until you reach data-parent="0"
-        while (select.hasAttribute('data-parent') &&
-        (parent_id = select.getAttribute('data-parent')) !== '0') {
+        // travel up the chain making the lists visible until you reach data-ruigehond010_parent="0"
+        while (select.hasAttribute('data-ruigehond010_parent') &&
+        (parent_id = select.getAttribute('data-ruigehond010_parent')) !== '0') {
             select.style.display = 'block';
             if ((option = document.querySelector('[data-ruigehond010_term_taxonomy_id="' + parent_id + '"]'))) {
                 select = option.parentElement;
@@ -41,12 +60,30 @@ function ruigehond010_filter(select) {
                     }
                 }
             } else {
-                console.error('ruigehond010: something is wrong with the lists');
+                console.error('faq-with-categories: something is wrong with the select lists');
                 break;
             }
         }
-        // filter the faqs by the most specific term
-
+        // filter the faqs
+        if ((posts = document.getElementById('ruigehond010_faq'))) {
+            posts = posts.getElementsByClassName('ruigehond010_post');
+            var class_names;
+            for (i = 0, len = posts.length; i < len; ++i) {
+                post = posts[i];
+                class_names = post.className;
+                // check if there are overlapping classes
+                // todo make it animatable / nicer or something
+               if (terms.filter(function(n) {
+                    return class_names.indexOf(n) !== -1;
+                }).length > 0) {
+                    post.style.display = 'block';
+                } else {
+                    post.style.display = 'none';
+                }
+            }
+        } else {
+            console.error('faq-with-categories: #ruigehond010_faq not found for filtering...');
+        }
     }
 
 }
@@ -57,7 +94,7 @@ function ruigehond010_start() {
     if ((lists = document.getElementsByClassName('ruigehond010 choose-category'))) {
         for (i = 0, len = lists.length; i < len; ++i) {
             list = lists[i];
-            lists_by_parent[list.getAttribute('data-parent')] = list;
+            lists_by_parent[list.getAttribute('data-ruigehond010_parent')] = list;
             if ((option = list.querySelector('[selected]'))) selected_list = option.parentElement;
         }
     }
@@ -68,7 +105,7 @@ function ruigehond010_start() {
             for (i in options) {
                 if ((list = lists_by_parent[(parent_id = options[i].getAttribute('data-ruigehond010_term_taxonomy_id'))])) {
                     // put the list after the list this option is in, only if it's not already later in the DOM, in which case all is ok
-                    if ((option = document.querySelector('[data-parent="' + parent_id + '"] ~ select > [data-ruigehond010_term_taxonomy_id="' + parent_id + '"]'))) {
+                    if ((option = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"] ~ select > [data-ruigehond010_term_taxonomy_id="' + parent_id + '"]'))) {
                         option.parentElement.insertAdjacentElement('afterend', list);
                         maybe_done = false;
                     }
