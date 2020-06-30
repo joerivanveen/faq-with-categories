@@ -22,10 +22,9 @@ namespace ruigehond010 {
         {
             parent::__construct('ruigehond010');
             $this->name = __CLASS__;
-            $this->table = $this->wpdb->prefix . 'ruigehond010_faq';
             // set some options
             $this->database_version = $this->getOption('database_version', '0.0.0');
-            $this->taxonomies = $this->getOption('taxonomy', 'category');
+            $this->taxonomies = $this->getOption('taxonomies', 'category');
             $this->slug = $this->getOption('slug', 'faq');
             $this->choose_option = $this->getOption('choose_option', __('Choose option', 'faq-with-categories'));
             $this->exclude_from_search = $this->getOption('exclude_from_search', true);
@@ -34,6 +33,10 @@ namespace ruigehond010 {
 
         public function initialize()
         {
+            /*if (current_user_can('administrator')) {
+                error_reporting(E_ALL);
+                ini_set('display_errors', 1);
+            }*/
             $this->load_translations('faq-with-categories');
             /**
              * register custom post type for faqs
@@ -213,10 +216,107 @@ namespace ruigehond010 {
             return $r;
         }
 
+        public function settingspage()
+        {
+            // check user capabilities
+            if (false === current_user_can('manage_options')) return;
+            echo '<div class="wrap"><h1>';
+            echo esc_html(get_admin_page_title());
+            echo '</h1><form action="options.php" method="post">';
+            // output security fields for the registered setting
+            settings_fields('ruigehond010');
+            // output setting sections and their fields
+            do_settings_sections('ruigehond010');
+            // output save settings button
+            submit_button(__('Save Settings', 'faq-with-categories'));
+            echo '</form></div>';
+        }
+
         public function settings()
         {
-            if (\false === $this->onSettingsPage('faq-with-categories')) return;
-            if (\false === current_user_can('manage_options')) return;
+            if (false === $this->onSettingsPage('faq-with-categories')) return;
+            if (false === current_user_can('manage_options')) return;
+            register_setting('ruigehond010', 'ruigehond010', array($this, 'settings_validate'));
+            // register a new section in the page
+            add_settings_section(
+                'global_settings', // section id
+                __('Options', 'faq-with-categories'), // title
+                function () {
+                }, //callback
+                'ruigehond010' // page id
+            );
+            $labels = array(
+                'queue_frontend_css' => __('By default a small css-file is output to the frontend to format the entries. Uncheck to handle the css yourself.', 'faq-with-categories'),
+                'taxonomies' => __('Type the taxonomy you want to use for the categories.', 'faq-with-categories'),
+                'slug' => __('Slug for the individual faq entries (optional).', 'faq-with-categories'),
+                'choose_option' => __('The ‘choose’ option in select lists without a selected option.', 'faq-with-categories'),
+                'exclude_from_search' => __('Will exclude the faq posts from site search queries.', 'faq-with-categories'),
+            );
+            foreach (
+                array(
+                    'queue_frontend_css',
+                    'taxonomies',
+                    'slug',
+                    'choose_option',
+                    'exclude_from_search',
+                ) as $index => $setting_name
+            ) {
+                add_settings_field(
+                    $setting_name . $index, // id, As of WP 4.6 this value is used only internally
+                    $setting_name, // title
+                    array($this, 'echo_settings_field'), // callback
+                    'ruigehond010', // page id
+                    'global_settings',
+                    [
+                        'setting_name' => $setting_name,
+                        'label_for' => $labels[$setting_name],
+                        'class_name' => 'ruigehond010',
+                    ] // args
+                );
+            }
+        }
+
+        public function echo_settings_field($args)
+        {
+            $setting_name = $args['setting_name'];
+            $str = '';
+            switch ($setting_name) {
+                case 'queue_frontend_css':
+                case 'exclude_from_search': // make checkbox that transmits 1 or 0, depending on status
+                    $str .= '<label><input type="hidden" name="ruigehond010[' . $setting_name . ']" value="' .
+                        (($this->$setting_name) ? '1' : '0') . '"><input type="checkbox"';
+                    if ($this->$setting_name) {
+                        $str .= ' checked="checked"';
+                    }
+                    $str .= ' onclick="this.previousSibling.value=1-this.previousSibling.value" class="' .
+                        $args['class_name'] . '"/>' . $args['label_for'] . '</label>';
+                    break;
+                default: // make text input
+                    $str .= '<input type="text" name="ruigehond010[' . $setting_name . ']" value="';
+                    $str .= htmlentities($this->$setting_name);
+                    $str .= '" style="width: 162px" class="' . $args['class_name'] . '"/> <label>' . $args['label_for'] . '</label>';
+            }
+            echo $str;
+        }
+
+        public function settings_validate($input)
+        {
+            $options = (array)get_option('ruigehond010');
+            foreach ($input as $key => $value) {
+                switch ($key) {
+                    // on / off flags (1 vs 0 on form submit, true / false otherwise
+                    case 'queue_frontend_css':
+                    case 'exclude_from_search':
+                        $options[$key] = ($value === '1' or $value === true);
+                        break;
+                    case 'taxonomies': // TODO check if it's an existing taxonomy?
+                    // by default just accept the value
+                    default:
+                        $options[$key] = $input[$key];
+                }
+            }
+
+            return $options;
         }
 
         public function menuitem()
@@ -228,7 +328,7 @@ namespace ruigehond010 {
                 'FAQ with categories',
                 'manage_options',
                 'faq-with-categories',
-                array($this, 'settings') // function
+                array($this, 'settingspage') // function
             );
         }
 

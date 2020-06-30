@@ -5,7 +5,8 @@ function ruigehond010_showDomElement(element) {
 }
 function ruigehond010_hideDomElement(element) {
     //element.style.display = 'none';
-    element.style.position = 'absolute';
+    element.style.top = element.getBoundingClientRect().top.toString() + 'px';
+    element.style.position = 'fixed';
     (function($){ $(element).fadeOut(); })(jQuery);
 }
 
