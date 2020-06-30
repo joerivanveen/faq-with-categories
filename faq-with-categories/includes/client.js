@@ -1,8 +1,12 @@
 function ruigehond010_showDomElement(element) {
-    element.style.display = 'block';
+    //element.style.display = 'block';
+    element.style.position = 'inherit';
+    (function($){ $(element).fadeIn('slow'); })(jQuery);
 }
 function ruigehond010_hideDomElement(element) {
-    element.style.display = 'none';
+    //element.style.display = 'none';
+    element.style.position = 'absolute';
+    (function($){ $(element).fadeOut(); })(jQuery);
 }
 
 function ruigehond010_resetLists() {
