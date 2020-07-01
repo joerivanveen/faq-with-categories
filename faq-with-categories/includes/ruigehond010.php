@@ -69,6 +69,8 @@ namespace ruigehond010 {
             if (is_admin()) {
                 add_action('admin_init', array($this, 'settings'));
                 add_action('admin_menu', array($this, 'menuitem'));
+                add_action('add_meta_boxes', array($this, 'meta_box_add')); // in the box the user set the exclusive value
+                add_action('save_post', array($this, 'meta_box_save'));
             } else {
                 wp_enqueue_script('ruigehond010_javascript', plugin_dir_url(__FILE__) . 'client.js', array('jquery'));
                 if ($this->queue_frontend_css) { // only output css when necessary
@@ -251,6 +253,49 @@ namespace ruigehond010 {
 
             return $r;
         }
+        /**
+         * https://developer.wordpress.org/reference/functions/add_meta_box/
+         * @param null $post_type
+         */
+        function meta_box_add($post_type = null)
+        {
+            if (!$post_id = get_the_ID()) {
+                return;
+            }
+            if ($post_type === 'ruigehond010_faq') {
+                add_meta_box( // WP function.
+                    'ruigehond010', // Unique ID
+                    'FAQ with categories', // Box title
+                    array($this,'meta_box'), // Content callback, must be of type callable
+                    'ruigehond010_faq',
+                    'normal',
+                    'low',
+                    array('exclusive' => get_post_meta($post_id, '_ruigehond010_exclusive', true))
+                );
+            }
+        }
+        function meta_box($post, $obj)
+        {
+            wp_nonce_field('ruigehond010_save', 'ruigehond010_nonce');
+            echo '<input type="text" id="ruigehond010_exclusive" name="ruigehond010_exclusive" value="';
+            echo $obj['args']['exclusive'];
+            echo '"/> <label for="ruigehond010_exclusive">';
+            echo __('The tag this FAQ entry is exclusive to, use it in a shortcut to summon the entry. Note that it will still be displayed for the taxonomies that are checked.', 'faq-with-categories');
+            echo '</label>';
+        }
+
+        function meta_box_save($post_id)
+        {
+            if (!isset($_POST['ruigehond010_nonce']) || !wp_verify_nonce($_POST['ruigehond010_nonce'], 'ruigehond010_save'))
+                return;
+            if (!current_user_can('edit_post', $post_id))
+                return;
+            delete_post_meta($post_id, '_ruigehond010_exclusive');
+            if (isset($_POST['ruigehond010_exclusive'])) {
+                add_post_meta($post_id, '_ruigehond010_exclusive',
+                    sanitize_title($_POST['ruigehond010_exclusive']), true);
+            }
+        }
 
         public function settingspage()
         {
@@ -286,17 +331,17 @@ namespace ruigehond010 {
                 'taxonomies' => __('Type the taxonomy you want to use for the categories.', 'faq-with-categories'),
                 'slug' => __('Slug for the individual faq entries (optional).', 'faq-with-categories'),
                 'choose_option' => __('The ‘choose’ option in select lists without a selected option.', 'faq-with-categories'),
-                'exclude_from_search' => __('Will exclude the faq posts from site search queries.', 'faq-with-categories'),
+                'exclude_from_search' => __('Will exclude the FAQ posts from site search queries.', 'faq-with-categories'),
                 'exclude_from_count' => __('FAQ posts will not count towards total posts in taxonomies.', 'faq-with-categories'),
             );
             foreach (
                 array(
-                    'queue_frontend_css',
                     'taxonomies',
                     'slug',
                     'choose_option',
                     'exclude_from_search',
                     'exclude_from_count',
+                    'queue_frontend_css',
                 ) as $index => $setting_name
             ) {
                 add_settings_field(
@@ -392,8 +437,6 @@ namespace ruigehond010 {
             // remove the post_meta entries
             //delete_post_meta_by_key('_ruigehond010_exclusive');
             // TODO remove the posts
-
         }
-
     }
 }
