@@ -14,7 +14,7 @@ namespace ruigehond010 {
 
     class ruigehond010 extends ruigehond_0_3_4
     {
-        private $name, $table, $database_version, $taxonomies, $slug, $choose_option, $exclude_from_search, $queue_frontend_css;
+        private $name, $database_version, $taxonomies, $slug, $choose_option, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
         // variables that hold cached items
         private $terms;
 
@@ -28,7 +28,18 @@ namespace ruigehond010 {
             $this->slug = $this->getOption('slug', 'faq');
             $this->choose_option = $this->getOption('choose_option', __('Choose option', 'faq-with-categories'));
             $this->exclude_from_search = $this->getOption('exclude_from_search', true);
+            $this->exclude_from_count = $this->getOption('exclude_from_count', true);
             $this->queue_frontend_css = $this->getOption('queue_frontend_css', true);
+            // Add custom callback for taxonomy counter, if we do not want the faq posts to be counted towards the total
+            if (true === $this->exclude_from_count) {
+                add_filter('register_taxonomy_args', function ($args, $name) {
+                    if ($name === $this->taxonomies) {
+                        $args['update_count_callback'] = array($this, 'update_count_callback');
+                    }
+
+                    return $args;
+                }, 20, 2);
+            }
         }
 
         public function initialize()
@@ -54,6 +65,7 @@ namespace ruigehond010 {
                     'rewrite' => array('slug' => $this->slug), // remember to flush_rewrite_rules(); when this changes
                 )
             );
+            // regular stuff
             if (is_admin()) {
                 add_action('admin_init', array($this, 'settings'));
                 add_action('admin_menu', array($this, 'menuitem'));
@@ -67,6 +79,30 @@ namespace ruigehond010 {
                 add_shortcode('faq-with-categories-filter', array($this, 'getHtmlForFrontend'));
                 add_shortcode('faq-with-categories-search', array($this, 'getHtmlForFrontend'));
             }
+        }
+
+        public function update_count_callback($terms, $taxonomy)
+        {
+            // got from: https://ivanpaulin.com/exclude-pages-taxonomy-counter-wordpress/
+            // https://codex.wordpress.org/Function_Reference/register_taxonomy -> update_count_callback
+            unregister_taxonomy_for_object_type($this->taxonomies, 'ruigehond010_faq');
+            // you can't call wp_update_term_count, because that will call the current function, resulting in a loop
+            // so we just duplicate the code here, classy right
+            // https://developer.wordpress.org/reference/functions/wp_update_term_count_now/
+            $object_types = (array)$taxonomy->object_type;
+            foreach ($object_types as &$object_type) {
+                if (0 === strpos($object_type, 'attachment:'))
+                    list($object_type) = explode(':', $object_type);
+            }
+            if ($object_types == array_filter($object_types, 'post_type_exists')) {
+                // Only post types are attached to this taxonomy
+                _update_post_term_count($terms, $taxonomy);
+            } else {
+                // Default count updater
+                _update_generic_term_count($terms, $taxonomy);
+            }
+            // re-register the taxonomy for this post type
+            register_taxonomy_for_object_type($this->taxonomies, 'ruigehond010_faq');
         }
 
         public function outputSchema()
@@ -251,6 +287,7 @@ namespace ruigehond010 {
                 'slug' => __('Slug for the individual faq entries (optional).', 'faq-with-categories'),
                 'choose_option' => __('The ‘choose’ option in select lists without a selected option.', 'faq-with-categories'),
                 'exclude_from_search' => __('Will exclude the faq posts from site search queries.', 'faq-with-categories'),
+                'exclude_from_count' => __('FAQ posts will not count towards total posts in taxonomies.', 'faq-with-categories'),
             );
             foreach (
                 array(
@@ -259,6 +296,7 @@ namespace ruigehond010 {
                     'slug',
                     'choose_option',
                     'exclude_from_search',
+                    'exclude_from_count',
                 ) as $index => $setting_name
             ) {
                 add_settings_field(
@@ -282,6 +320,7 @@ namespace ruigehond010 {
             $str = '';
             switch ($setting_name) {
                 case 'queue_frontend_css':
+                case 'exclude_from_count':
                 case 'exclude_from_search': // make checkbox that transmits 1 or 0, depending on status
                     $str .= '<label><input type="hidden" name="ruigehond010[' . $setting_name . ']" value="' .
                         (($this->$setting_name) ? '1' : '0') . '"><input type="checkbox"';
@@ -307,6 +346,7 @@ namespace ruigehond010 {
                     // on / off flags (1 vs 0 on form submit, true / false otherwise
                     case 'queue_frontend_css':
                     case 'exclude_from_search':
+                    case 'exclude_from_count':
                         $options[$key] = ($value === '1' or $value === true);
                         break;
                     case 'slug':
@@ -314,7 +354,7 @@ namespace ruigehond010 {
                         break;
                     case 'taxonomies': // TODO check if it's an existing taxonomy?
                         if (false === taxonomy_exists($value)) $value = 'category';
-                        // intentional fall through, just validated the value
+                    // intentional fall through, just validated the value
                     // by default just accept the value
                     default:
                         $options[$key] = $value;
@@ -341,12 +381,19 @@ namespace ruigehond010 {
         {
         }
 
-        public function uninstall()
-        {
-        }
-
         public function deactivate()
         {
         }
+
+        public function uninstall()
+        {
+            // remove settings
+            //delete_option('ruigehond010');
+            // remove the post_meta entries
+            //delete_post_meta_by_key('_ruigehond010_exclusive');
+            // TODO remove the posts
+
+        }
+
     }
 }
