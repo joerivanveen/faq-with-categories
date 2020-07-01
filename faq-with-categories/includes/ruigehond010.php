@@ -109,7 +109,36 @@ namespace ruigehond010 {
 
         public function outputSchema()
         {
-            echo '<!-- ruigehond010 does not output schema yet -->';
+            if (!$post_id = get_the_ID()) return;
+            global $post;
+            //$pattern = '\[(\[?)(faq\-with\-categories)(?![\w-])([^\]\/]*(?:\/(?!\])[^\]\/]*)*?)(?:(\/)\]|\](?:([^\[]*+(?:\[(?!\/\2\])[^\[]*+)*+)\[\/\2\])?)(\]?)';
+            $pattern = '\[[faq\-with\-categories][^\]]*\]';
+            if (preg_match_all('/' . $pattern . '/s', $post->post_content, $matches) and isset($matches[0])) {
+                foreach ($matches[0] as $index => $match) {
+                    if ($match === '[faq-with-categories]') {
+                        //echo '<!-- schema output for faqs -->';
+                        echo $this->getSchemaFromPosts($this->getPosts());
+                        return;
+                    } elseif (($pos = strpos(strtolower($match), 'exclusive')) > 0) { // extract exclusive value from it when present
+                        $exclusive = trim(substr($match, $pos + 10), ' ]"\'');
+                        //echo '<!-- schema output for faqs ‘' . $exclusive . '’ -->';
+                        echo $this->getSchemaFromPosts($this->getPosts($exclusive));
+                        return;
+                    }
+                }
+            }
+        }
+        public function getSchemaFromPosts($posts) {
+            ob_start();
+            echo '<script id="ruigehond010_faq_schema">';
+            foreach ($posts as $index=>$post) {
+                echo $index . ':  ' . $post->post_title . PHP_EOL;
+            }
+            echo '</script>';
+            $str = ob_get_contents();
+            ob_end_clean();
+
+            return $str;
         }
 
         public function getHtmlForFrontend($attributes = [], $content = null, $short_code = 'faq-with-categories')
@@ -253,6 +282,7 @@ namespace ruigehond010 {
 
             return $r;
         }
+
         /**
          * https://developer.wordpress.org/reference/functions/add_meta_box/
          * @param null $post_type
@@ -266,7 +296,7 @@ namespace ruigehond010 {
                 add_meta_box( // WP function.
                     'ruigehond010', // Unique ID
                     'FAQ with categories', // Box title
-                    array($this,'meta_box'), // Content callback, must be of type callable
+                    array($this, 'meta_box'), // Content callback, must be of type callable
                     'ruigehond010_faq',
                     'normal',
                     'low',
@@ -274,6 +304,7 @@ namespace ruigehond010 {
                 );
             }
         }
+
         function meta_box($post, $obj)
         {
             wp_nonce_field('ruigehond010_save', 'ruigehond010_nonce');
