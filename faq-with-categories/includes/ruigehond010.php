@@ -309,10 +309,15 @@ namespace ruigehond010 {
                     case 'exclude_from_search':
                         $options[$key] = ($value === '1' or $value === true);
                         break;
+                    case 'slug':
+                        $options[$key] = sanitize_title($value);
+                        break;
                     case 'taxonomies': // TODO check if it's an existing taxonomy?
+                        if (false === taxonomy_exists($value)) $value = 'category';
+                        // intentional fall through, just validated the value
                     // by default just accept the value
                     default:
-                        $options[$key] = $input[$key];
+                        $options[$key] = $value;
                 }
             }
 
