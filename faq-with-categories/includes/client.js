@@ -1,13 +1,57 @@
+var ruigehond010_i;
+
 function ruigehond010_showDomElement(element) {
     //element.style.display = 'block';
     element.style.position = 'inherit';
-    (function($){ $(element).fadeIn('slow'); })(jQuery);
+    (function ($) {
+        $(element).fadeIn('slow');
+    })(jQuery);
 }
+
 function ruigehond010_hideDomElement(element) {
     //element.style.display = 'none';
     element.style.top = element.getBoundingClientRect().top.toString() + 'px';
     element.style.position = 'fixed';
-    (function($){ $(element).fadeOut(); })(jQuery);
+    (function ($) {
+        $(element).fadeOut();
+    })(jQuery);
+    if (ruigehond010_i) clearTimeout(ruigehond010_i);
+    ruigehond010_i = setTimeout(ruigehond010_toggleFirst, 500);
+}
+
+function ruigehond010_toggleFirst() {
+    var posts = document.getElementById('ruigehond010_faq').querySelectorAll('.ruigehond010_post'),
+        i, len, post, rect;
+    for (i = 0, len = posts.length; i < len; ++i) {
+        if ((rect = (post = posts[i]).getBoundingClientRect()).top > 0 && rect.left > 0) {
+            ruigehond010_toggle(post);
+            return;
+        }
+    }
+}
+
+function ruigehond010_toggle(li) {
+    // walk through all the elements to close them, only open this one
+    var faq = document.getElementById('ruigehond010_faq'),
+        posts = faq.querySelectorAll('.ruigehond010_post'),
+        i, len, post, has_more = false;
+    for (i = 0, len = posts.length; i < len; ++i) {
+        if ((post = posts[i]) === li) {
+            post.classList.add('open');
+        } else {
+            post.classList.remove('open');
+        }
+        if (false === has_more && post.style.display !== 'none' // if the element is not displayed due to stylesheet it is hidden for more
+            && getComputedStyle(post).getPropertyValue('display') === 'none') {
+            console.log(getComputedStyle(post).getPropertyValue('display'));
+            has_more = true;
+        }
+    }
+    if (true === has_more) {
+        faq.setAttribute('data-has_more', 'yes');
+    } else {
+        faq.removeAttribute('data-has_more');
+    }
 }
 
 function ruigehond010_resetLists() {
@@ -16,6 +60,7 @@ function ruigehond010_resetLists() {
     // set the first list to 'choose'
     if ((list = document.querySelector('[data-ruigehond010_parent="0"]'))) list.selectedIndex = 0;
 }
+
 function ruigehond010_resetSearch() {
     var search_input;
     if ((search_input = document.getElementById('ruigehond010_search'))) search_input.value = '';
@@ -135,7 +180,7 @@ function ruigehond010_start() {
                     }
                 }
             }
-            if (maybe_done) break;
+            if (maybe_done) break; // yeah, we’re definitely done
         }
     }
     // run the filter for the first time
@@ -157,9 +202,25 @@ function ruigehond010_start() {
                 }
             }
         });
-        search_input.addEventListener('focus', function() {
+        search_input.addEventListener('focus', function () {
             ruigehond010_resetLists();
         });
+    }
+    /**
+     * setup the accordion
+     */
+    if ((list = document.getElementById('ruigehond010_faq'))) {
+        if ((lists = list.querySelectorAll('.ruigehond010_post'))) {
+            for (i = 0, len = lists.length; i < len; ++i) {
+                lists[i].querySelector('h4').addEventListener('click', function () {
+                    ruigehond010_toggle(this.parentElement);
+                });
+            }
+        }
+        // and the show more button
+        list.insertAdjacentHTML('beforeend', '<button class="show_more_button" onclick="document.getElementById(\'ruigehond010_faq\').classList.add(\'show_more\');"></button>');
+        // show the first entry
+        ruigehond010_toggleFirst();
     }
 }
 

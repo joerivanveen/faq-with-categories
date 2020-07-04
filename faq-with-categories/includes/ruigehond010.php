@@ -25,7 +25,7 @@ namespace ruigehond010 {
             // set some options
             $this->database_version = $this->getOption('database_version', '0.0.0');
             $this->taxonomies = $this->getOption('taxonomies', 'category');
-            $this->slug = $this->getOption('slug', 'faq');
+            $this->slug = $this->getOption('slug', 'ruigehond010_faq'); // standard the post_type is used by WP
             $this->choose_option = $this->getOption('choose_option', __('Choose option', 'faq-with-categories'));
             $this->exclude_from_search = $this->getOption('exclude_from_search', true);
             $this->exclude_from_count = $this->getOption('exclude_from_count', true);
@@ -63,6 +63,8 @@ namespace ruigehond010 {
                     'taxonomies' => array($this->taxonomies),
                     'exclude_from_search' => $this->exclude_from_search,
                     'rewrite' => array('slug' => $this->slug), // remember to flush_rewrite_rules(); when this changes
+                    'show_in_menu' => false,
+                    'show_in_admin_bar' => true,
                 )
             );
             // regular stuff
@@ -118,20 +120,24 @@ namespace ruigehond010 {
                     if ($match === '[faq-with-categories]') {
                         //echo '<!-- schema output for faqs -->';
                         echo $this->getSchemaFromPosts($this->getPosts());
+
                         return;
                     } elseif (($pos = strpos(strtolower($match), 'exclusive')) > 0) { // extract exclusive value from it when present
                         $exclusive = trim(substr($match, $pos + 10), ' ]"\'');
                         //echo '<!-- schema output for faqs ‘' . $exclusive . '’ -->';
                         echo $this->getSchemaFromPosts($this->getPosts($exclusive));
+
                         return;
                     }
                 }
             }
         }
-        public function getSchemaFromPosts($posts) {
+
+        public function getSchemaFromPosts($posts)
+        {
             ob_start();
             echo '<script id="ruigehond010_faq_schema">';
-            foreach ($posts as $index=>$post) {
+            foreach ($posts as $index => $post) {
                 echo $index . ':  ' . $post->post_title . PHP_EOL;
             }
             echo '</script>';
@@ -332,6 +338,12 @@ namespace ruigehond010 {
         {
             // check user capabilities
             if (false === current_user_can('manage_options')) return;
+            // if the slug for the faq posts just changed, flush rewrite rules as a service
+            if ( get_option( 'ruigehond010_flag_flush_rewrite_rules' ) ) {
+                delete_option( 'ruigehond010_flag_flush_rewrite_rules' );
+                flush_rewrite_rules();
+            }
+            // start the page
             echo '<div class="wrap"><h1>';
             echo esc_html(get_admin_page_title());
             echo '</h1><form action="options.php" method="post">';
@@ -426,7 +438,11 @@ namespace ruigehond010 {
                         $options[$key] = ($value === '1' or $value === true);
                         break;
                     case 'slug':
-                        $options[$key] = sanitize_title($value);
+                        if (($value = sanitize_title($value)) !== $options['slug']) {
+                            $options['slug'] = $value;
+                            // flag for flush_rewrite_rules upon reload of the settings page
+                            update_option( 'ruigehond010_flag_flush_rewrite_rules', 'yes', true );
+                        }
                         break;
                     case 'taxonomies': // TODO check if it's an existing taxonomy?
                         if (false === taxonomy_exists($value)) $value = 'category';
@@ -440,7 +456,7 @@ namespace ruigehond010 {
             return $options;
         }
 
-        public function menuitem()
+        public function menuitem_()
         {
             // add management page under admin menu settings
             // https://premium.wpmudev.org/blog/creating-wordpress-admin-pages/
@@ -452,6 +468,53 @@ namespace ruigehond010 {
                 array($this, 'settingspage') // function
             );
         }
+
+        public function menuitem()
+        {
+            // add top level page
+            add_menu_page(
+                'FAQ',
+                'FAQ',
+                'manage_options',
+                'faq-with-categories',
+                array($this, 'redirect_to_entries'), // callback
+                'dashicons-lightbulb',
+                27 // just under comments / reacties
+            );
+            add_submenu_page(
+                'faq-with-categories',
+                __('Settings', 'faq-with-categories'), // page_title
+                __('FAQ Entries', 'faq-with-categories'), // menu_title
+                'manage_options',
+                'faq-with-categories',
+                array($this, 'redirect_to_entries') // callback
+            );
+            add_submenu_page(
+                'faq-with-categories',
+                __('Settings', 'faq-with-categories'), // page_title
+                __('FAQ Settings', 'faq-with-categories'), // menu_title
+                'manage_options',
+                'faq-with-categories-settings',
+                array($this, 'settingspage') // callback
+            );
+            global $submenu; // make the first entry go to the edit page of the faq post_type
+            $submenu['faq-with-categories'][0] = array(
+                __('FAQ Entries', 'faq-with-categories'),
+                'manage_options',
+                'edit.php?post_type=ruigehond010_faq',
+                'blub' // WHOA
+            );
+/*            echo '<pre>';
+            var_dump($submenu);
+            echo '</pre>';
+            die('opa');
+            $submenu['faq-with-categories'][] = array(
+                __('FAQ Entries', 'faq-with-categories'),
+                'manage_options',
+                'edit.php?post_type=ruigehond010_faq'
+            );*/
+        }
+
 
         public function install()
         {
