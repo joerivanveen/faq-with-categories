@@ -1,6 +1,9 @@
 .ruigehond010.choose-category {
     display: none; /* until proven otherwise (by javascript) */
 }
+#ruigehond010_faq {
+    margin-left:0;
+}
 #ruigehond010_faq .ruigehond010_post {
     height: auto;
     overflow: hidden;
@@ -21,15 +24,12 @@
 #ruigehond010_faq .ruigehond010_post.open h4:after {
     content: '';
 }
-#ruigehond010_faq:not(.show_more) .ruigehond010_post:nth-child(n + 4) { /* overview page only shows 3 as standard */
-    display: none;
-}
 .show_more_button {
     display: none;
 }
 .show_more_button:after {
-    content: 'Meer tonen';
+    content: 'Toon meer vragen & antwoorden';
 }
-#ruigehond010_faq[data-has_more]:not(.show_more) .show_more_button {
+#ruigehond010_faq[data-has_more] .show_more_button {
     display: block;
 }

@@ -6,13 +6,15 @@ function ruigehond010_showDomElement(element) {
     (function ($) {
         $(element).fadeIn('slow');
     })(jQuery);
+    if (ruigehond010_i) clearTimeout(ruigehond010_i);
+    ruigehond010_i = setTimeout(ruigehond010_toggleFirst, 500);
 }
 
 function ruigehond010_hideDomElement(element) {
     //element.style.display = 'none';
     element.style.top = element.getBoundingClientRect().top.toString() + 'px';
     element.style.position = 'fixed';
-    (function ($) {
+   (function ($) {
         $(element).fadeOut();
     })(jQuery);
     if (ruigehond010_i) clearTimeout(ruigehond010_i);
@@ -31,23 +33,18 @@ function ruigehond010_toggleFirst() {
 }
 
 function ruigehond010_toggle(li) {
-    // walk through all the elements to close them, only open this one
+    // walk through all the elements to close them, only open the chosen one (li)
     var faq = document.getElementById('ruigehond010_faq'),
         posts = faq.querySelectorAll('.ruigehond010_post'),
-        i, len, post, has_more = false;
+        count = 0, i, len, post;
     for (i = 0, len = posts.length; i < len; ++i) {
         if ((post = posts[i]) === li) {
             post.classList.add('open');
         } else {
             post.classList.remove('open');
         }
-        if (false === has_more && post.style.display !== 'none' // if the element is not displayed due to stylesheet it is hidden for more
-            && getComputedStyle(post).getPropertyValue('display') === 'none') {
-            console.log(getComputedStyle(post).getPropertyValue('display'));
-            has_more = true;
-        }
     }
-    if (true === has_more) {
+    if (count > 3) {
         faq.setAttribute('data-has_more', 'yes');
     } else {
         faq.removeAttribute('data-has_more');
@@ -218,7 +215,7 @@ function ruigehond010_start() {
             }
         }
         // and the show more button
-        list.insertAdjacentHTML('beforeend', '<button class="show_more_button" onclick="document.getElementById(\'ruigehond010_faq\').classList.add(\'show_more\');"></button>');
+        list.insertAdjacentHTML('beforeend', '<button class="show_more_button"></button>');
         // show the first entry
         ruigehond010_toggleFirst();
     }
