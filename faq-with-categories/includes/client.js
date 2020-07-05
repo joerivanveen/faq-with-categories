@@ -44,6 +44,7 @@ function ruigehond010_toggle(li) {
             post.classList.remove('open');
         }
     }
+
     if (count > 3) {
         faq.setAttribute('data-has_more', 'yes');
     } else {
@@ -80,8 +81,8 @@ function ruigehond010_getAllOptionValues(list) {
     for (i = 1, len = (options = list.options).length; i < len; ++i) {
         arr.push((option = options[i]).value.toLowerCase());
         // if this option has a sublist, get all those options as well
-        if (option.hasAttribute('data-ruigehond010_term_taxonomy_id')) {
-            parent_id = option.getAttribute('data-ruigehond010_term_taxonomy_id')
+        if (option.hasAttribute('data-ruigehond010_term_id')) {
+            parent_id = option.getAttribute('data-ruigehond010_term_id')
             if ((sub_list = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"]'))) {
                 arr = arr.concat(ruigehond010_getAllOptionValues(sub_list));
             }
@@ -91,7 +92,7 @@ function ruigehond010_getAllOptionValues(list) {
 }
 
 function ruigehond010_filter(select) {
-    var list, options, option, parent_id, i, len, terms, posts, post;
+    var list, options, option, parent_id, i, len, terms, posts, post, class_names;
     ruigehond010_resetSearch();
     if (null === select) { // only display the parent and set it to first option (which is hidden)
         ruigehond010_resetLists();
@@ -99,9 +100,9 @@ function ruigehond010_filter(select) {
         ruigehond010_hideSubLists();
         // display a child list of the selected option if it exists
         if (select.selectedIndex > 0 && (option = select.options[select.selectedIndex])) {
-            if (option.hasAttribute('data-ruigehond010_term_taxonomy_id')) {
+            if (option.hasAttribute('data-ruigehond010_term_id')) {
                 terms = [option['value'].toLowerCase()];
-                parent_id = option.getAttribute('data-ruigehond010_term_taxonomy_id');
+                parent_id = option.getAttribute('data-ruigehond010_term_id');
                 if ((list = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"]'))) {
                     list.selectedIndex = 0;
                     ruigehond010_showDomElement(list);
@@ -113,7 +114,7 @@ function ruigehond010_filter(select) {
         while (select.hasAttribute('data-ruigehond010_parent') &&
         (parent_id = select.getAttribute('data-ruigehond010_parent')) !== '0') {
             ruigehond010_showDomElement(select);
-            if ((option = document.querySelector('[data-ruigehond010_term_taxonomy_id="' + parent_id + '"]'))) {
+            if ((option = document.querySelector('[data-ruigehond010_term_id="' + parent_id + '"]'))) {
                 select = option.parentElement;
                 for (i = 0, len = (options = select.options).length; i < len; ++i) {
                     if (options[i] === option) {
@@ -130,12 +131,10 @@ function ruigehond010_filter(select) {
         // filter the faqs
         if ((posts = document.getElementById('ruigehond010_faq'))) {
             posts = posts.getElementsByClassName('ruigehond010_post');
-            var class_names;
             for (i = 0, len = posts.length; i < len; ++i) {
                 post = posts[i];
                 class_names = post.className;
                 // check if there are overlapping classes
-                // todo make it animatable / nicer or something
                 if (terms.filter(function (n) {
                     return class_names.indexOf(n) !== -1;
                 }).length > 0) {
@@ -164,14 +163,14 @@ function ruigehond010_start() {
             if ((option = list.querySelector('[selected]'))) selected_list = option.parentElement;
         }
     }
-    if ((options = ruigehond_cloneShallow(document.querySelectorAll('[data-ruigehond010_term_taxonomy_id]')))) {
+    if ((options = ruigehond_cloneShallow(document.querySelectorAll('[data-ruigehond010_term_id]')))) {
         // sort the lists
         while (true) {
             maybe_done = true; // until proven otherwise
             for (i in options) {
-                if ((list = lists_by_parent[(parent_id = options[i].getAttribute('data-ruigehond010_term_taxonomy_id'))])) {
+                if ((list = lists_by_parent[(parent_id = options[i].getAttribute('data-ruigehond010_term_id'))])) {
                     // put the list after the list this option is in, only if it's not already later in the DOM, in which case all is ok
-                    if ((option = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"] ~ select > [data-ruigehond010_term_taxonomy_id="' + parent_id + '"]'))) {
+                    if ((option = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"] ~ select > [data-ruigehond010_term_id="' + parent_id + '"]'))) {
                         option.parentElement.insertAdjacentElement('afterend', list);
                         maybe_done = false;
                     }

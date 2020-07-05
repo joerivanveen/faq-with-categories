@@ -14,7 +14,8 @@ namespace ruigehond010 {
 
     class ruigehond010 extends ruigehond_0_3_4
     {
-        private $name, $database_version, $taxonomies, $slug, $choose_option, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
+        private $name, $database_version, $taxonomies, $slug, $choose_option, $search_faqs,
+            $exclude_from_search, $exclude_from_count, $queue_frontend_css;
         // variables that hold cached items
         private $terms;
 
@@ -27,6 +28,7 @@ namespace ruigehond010 {
             $this->taxonomies = $this->getOption('taxonomies', 'category');
             $this->slug = $this->getOption('slug', 'ruigehond010_faq'); // standard the post_type is used by WP
             $this->choose_option = $this->getOption('choose_option', __('Choose option', 'faq-with-categories'));
+            $this->search_faqs = $this->getOption('search_faqs', __('Search faqs', 'faq-with-categories'));
             $this->exclude_from_search = $this->getOption('exclude_from_search', true);
             $this->exclude_from_count = $this->getOption('exclude_from_count', true);
             $this->queue_frontend_css = $this->getOption('queue_frontend_css', true);
@@ -154,7 +156,7 @@ namespace ruigehond010 {
             // several types of html can be got with this
             // 1) the select boxes for the filter (based on term)
             if ($short_code === 'faq-with-categories-filter') {
-                // ->getTerms() = fills by sql SELECT term_taxonomy_id, parent, count, term FROM etc.
+                // ->getTerms() = fills by sql SELECT term_id, parent, count, term FROM etc.
                 $rows = $this->getTerms();
                 if (!is_null($chosen_term)) $chosen_term = strtolower($chosen_term);
                 // write the html lists
@@ -169,11 +171,12 @@ namespace ruigehond010 {
                     echo $this->choose_option;
                     echo '</option>';
                     foreach ($options as $index => $option) {
-                        echo '<option data-ruigehond010_term_taxonomy_id="';
-                        echo $option['term_taxonomy_id'];
-                        echo '" value="';
-                        echo htmlentities($term = $option['term']);
-                        if (strtolower($term) === $chosen_term) echo '" selected="selected';
+                        echo '<option data-ruigehond010_term_id="';
+                        echo $option['term_id'];
+                        echo '" value="term-';
+                        echo $option['term_id'];
+                        //echo htmlentities($term = $option['term']);
+                        if (strtolower(($term = $option['term'])) === $chosen_term) echo '" selected="selected';
                         echo '">';
                         echo $term;
                         echo '</option>';
@@ -186,7 +189,7 @@ namespace ruigehond010 {
                 return $str;
             } elseif ($short_code === 'faq-with-categories-search') {
                 $str = '<input type="text" name="search" class="search-field ruigehond010 faq" id="ruigehond010_search" placeholder="';
-                $str .= $this->getOption('search_faqs', __('Search faqs', 'faq-with-categories'));
+                $str .= $this->search_faqs;
                 $str .= '"/>';
 
                 return $str;
@@ -201,8 +204,8 @@ namespace ruigehond010 {
                 if ($chosen_exclusive) echo strtolower(htmlentities($chosen_exclusive));
                 echo '">';
                 foreach ($posts as $index => $post) {
-                    echo '<li class="ruigehond010_post ';
-                    echo strtolower(implode(' ', $post->terms));
+                    echo '<li class="ruigehond010_post term-';
+                    echo strtolower(implode(' term-', $post->term_ids));
                     if ($post->exclusive) {
                         echo '" data-exclusive="';
                         echo $post->exclusive;
@@ -226,7 +229,7 @@ namespace ruigehond010 {
             if (isset($this->terms)) return $this->terms; // return cached value if available
             // get the terms for this registered taxonomies from the db
             $taxonomies = sanitize_text_field($this->taxonomies); // just for the h#ck of it
-            $sql = 'select tt.term_taxonomy_id, tt.parent, tt.count, t.name as term from ' .
+            $sql = 'select t.term_id, tt.parent, tt.count, t.name as term from ' .
                 $this->wpdb->prefix . 'term_taxonomy tt inner join ' .
                 $this->wpdb->prefix . 'terms t on t.term_id = tt.term_id where tt.taxonomy = \'' .
                 addslashes($taxonomies) . '\' order by t.name asc';
@@ -235,7 +238,7 @@ namespace ruigehond010 {
             foreach ($rows as $key => $row) {
                 if (!isset($terms[$parent = intval($row->parent)])) $terms[$parent] = array();
                 $terms[$parent][] = array(
-                    'term_taxonomy_id' => intval($row->term_taxonomy_id),
+                    'term_id' => intval($row->term_id),
                     'count' => intval($row->count),
                     'term' => $row->term,
                 );
@@ -251,7 +254,7 @@ namespace ruigehond010 {
          */
         private function getPosts($exclusive = null)
         {
-            $sql = 'select p.ID, p.post_title, p.post_content, p.post_date, t.name AS term, pm.meta_value AS exclusive from ' .
+            $sql = 'select p.ID, p.post_title, p.post_content, p.post_date, t.term_id, pm.meta_value AS exclusive from ' .
                 $this->wpdb->prefix . 'posts p left outer join ' .
                 $this->wpdb->prefix . 'term_relationships tr on tr.object_id = p.ID left outer join ' .
                 $this->wpdb->prefix . 'term_taxonomy tt on tt.term_taxonomy_id = tr.term_taxonomy_id left outer join ' .
@@ -268,13 +271,14 @@ namespace ruigehond010 {
             $current_id = 0;
             foreach ($rows as $index => $row) {
                 if ($row->ID === $current_id) { // add the category to the current return value
-                    $return_arr[count($return_arr) - 1]->terms[] = $row->term;
-                } else { // add the row, when not exclusive is requested posts without terms will be filtered out
-                    $term = $row->term;
-                    $row->terms = array($term);
-                    unset($row->term);
-                    $return_arr[] = $row;
-                    $current_id = $row->ID;
+                    $return_arr[count($return_arr) - 1]->term_ids[] = $row->term_id;
+                } else { // add the row, when not exclusive is requested posts without terms must be filtered out
+                    if (($term_id = $row->term_id) or $exclusive) {
+                        $row->term_ids = array($term_id);
+                        unset($row->term_id);
+                        $return_arr[] = $row;
+                        $current_id = $row->ID;
+                    }
                 }
             }
             unset($rows);
@@ -374,6 +378,7 @@ namespace ruigehond010 {
                 'taxonomies' => __('Type the taxonomy you want to use for the categories.', 'faq-with-categories'),
                 'slug' => __('Slug for the individual faq entries (optional).', 'faq-with-categories'),
                 'choose_option' => __('The ‘choose’ option in select lists without a selected option.', 'faq-with-categories'),
+                'search_faqs' => __('The placeholder in the search bar for the faqs.', 'faq-with-categories'),
                 'exclude_from_search' => __('Will exclude the FAQ posts from site search queries.', 'faq-with-categories'),
                 'exclude_from_count' => __('FAQ posts will not count towards total posts in taxonomies.', 'faq-with-categories'),
             );
@@ -382,6 +387,7 @@ namespace ruigehond010 {
                     'taxonomies',
                     'slug',
                     'choose_option',
+                    'search_faqs',
                     'exclude_from_search',
                     'exclude_from_count',
                     'queue_frontend_css',
