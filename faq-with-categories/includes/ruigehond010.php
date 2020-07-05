@@ -233,6 +233,11 @@ namespace ruigehond010 {
                 $this->wpdb->prefix . 'term_taxonomy tt inner join ' .
                 $this->wpdb->prefix . 'terms t on t.term_id = tt.term_id where tt.taxonomy = \'' .
                 addslashes($taxonomies) . '\' order by t.name asc';
+            /*select t.term_id, t.name, tt.taxonomy from wp_terms t inner join wp_term_taxonomy tt
+on t.term_id = tt.term_id left outer join wp_ruigehond010_taxonomy_o o
+on o.term_id = t.term_id
+where tt.taxonomy = 'project-type'
+order by o.o, term.name*/
             $rows = $this->wpdb->get_results($sql, OBJECT);
             $terms = array();
             foreach ($rows as $key => $row) {
