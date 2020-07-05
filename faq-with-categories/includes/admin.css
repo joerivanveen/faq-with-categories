@@ -1,0 +1,10 @@
+.ruigehond010-order-term {
+    font-size: 125%;
+    padding: .2em .5em;
+}
+.ruigehond010-order-term .sortable-handle {
+    cursor: grab;
+}
+.ruigehond010 .unsaved {
+    background-color: rgba(255, 0, 0, .2);
+}

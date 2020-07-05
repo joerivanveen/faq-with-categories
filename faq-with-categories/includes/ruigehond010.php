@@ -14,7 +14,7 @@ namespace ruigehond010 {
 
     class ruigehond010 extends ruigehond_0_3_4
     {
-        private $name, $database_version, $taxonomies, $slug, $choose_option, $search_faqs,
+        private $name, $database_version, $taxonomies, $slug, $choose_option, $search_faqs, $order_table,
             $exclude_from_search, $exclude_from_count, $queue_frontend_css;
         // variables that hold cached items
         private $terms;
@@ -23,6 +23,7 @@ namespace ruigehond010 {
         {
             parent::__construct('ruigehond010');
             $this->name = __CLASS__;
+            $this->order_table = $this->wpdb->prefix . 'ruigehond010_taxonomy_o';
             // set some options
             $this->database_version = $this->getOption('database_version', '0.0.0');
             $this->taxonomies = $this->getOption('taxonomies', 'category');
@@ -229,22 +230,17 @@ namespace ruigehond010 {
             if (isset($this->terms)) return $this->terms; // return cached value if available
             // get the terms for this registered taxonomies from the db
             $taxonomies = sanitize_text_field($this->taxonomies); // just for the h#ck of it
-            $sql = 'select t.term_id, tt.parent, tt.count, t.name as term from ' .
-                $this->wpdb->prefix . 'term_taxonomy tt inner join ' .
-                $this->wpdb->prefix . 'terms t on t.term_id = tt.term_id where tt.taxonomy = \'' .
-                addslashes($taxonomies) . '\' order by t.name asc';
-            /*select t.term_id, t.name, tt.taxonomy from wp_terms t inner join wp_term_taxonomy tt
-on t.term_id = tt.term_id left outer join wp_ruigehond010_taxonomy_o o
-on o.term_id = t.term_id
-where tt.taxonomy = 'project-type'
-order by o.o, term.name*/
+            $sql = 'select t.term_id, tt.parent, t.name as term from ' .
+                $this->wpdb->prefix . 'terms t inner join ' .
+                $this->wpdb->prefix . 'term_taxonomy tt on t.term_id = tt.term_id left outer join ' .
+                $this->order_table . ' o on o.term_id = t.term_id where tt.taxonomy = \'' .
+                addslashes($taxonomies) . '\' order by o.o, t.name';
             $rows = $this->wpdb->get_results($sql, OBJECT);
             $terms = array();
             foreach ($rows as $key => $row) {
                 if (!isset($terms[$parent = intval($row->parent)])) $terms[$parent] = array();
                 $terms[$parent][] = array(
                     'term_id' => intval($row->term_id),
-                    'count' => intval($row->count),
                     'term' => $row->term,
                 );
             }
@@ -291,10 +287,22 @@ order by o.o, term.name*/
             return $return_arr;
         }
 
-        public function handle_input($post)
+        public function handle_input($args)
         {
             $r = $this->getReturnObject();
-
+            if (isset($args['handle']) and $args['handle'] === 'order_taxonomy') {
+                if (isset($args['order']) and is_array($args['order'])) {
+                    $this->wpdb->query('truncate table ' . $this->order_table);
+                    $rows = $args['order'];
+                    foreach ($rows as $term_id => $o) {
+                        $this->wpdb->insert($this->order_table,
+                            array('o' => $o, 'term_id' => $term_id)
+                        );
+                    }
+                    $r->set_success(true);
+                    $r->set_data($args);
+                }
+            }
             return $r;
         }
 
@@ -343,13 +351,44 @@ order by o.o, term.name*/
             }
         }
 
+        public function ordertaxonomypage()
+        {
+            wp_enqueue_script('ruigehond010_admin_javascript', plugin_dir_url(__FILE__) . 'admin.js', array(
+                'jquery-ui-droppable',
+                'jquery-ui-sortable',
+                'jquery'
+            ), RUIGEHOND010_VERSION);
+            //wp_enqueue_script( 'jquery-ui-accordion' );
+            wp_enqueue_style('ruigehond010_admin_stylesheet', plugin_dir_url(__FILE__) . 'admin.css', [], RUIGEHOND008_VERSION);
+            wp_enqueue_style('wp-jquery-ui-dialog');
+            echo '<div class="wrap ruigehond010"><h1>';
+            echo esc_html(get_admin_page_title());
+            echo '</h1><p>';
+            echo __('This page only concerns itself with the order. The hierarchy is determined by the taxonomy itself.', 'faq-with-categories');
+            echo '</p><section class="rows-sortable">';
+            $terms = $this->getTerms(); // these are ordered to the best of the knowlede of the system already
+            foreach ($terms as $index => $sub_terms) {
+                foreach ($sub_terms as $o => $term) {
+                    echo '<div class="ruigehond010-order-term" data-id="';
+                    echo $term['term_id'];
+                    echo '" data-inferred_order="';
+                    echo $o;
+                    echo '">';
+                    echo '<div class="sortable-handle">';
+                    echo $term['term'];
+                    echo '</div></div>';
+                }
+            }
+            echo '</section></div>';
+        }
+
         public function settingspage()
         {
             // check user capabilities
             if (false === current_user_can('manage_options')) return;
             // if the slug for the faq posts just changed, flush rewrite rules as a service
-            if ( get_option( 'ruigehond010_flag_flush_rewrite_rules' ) ) {
-                delete_option( 'ruigehond010_flag_flush_rewrite_rules' );
+            if (get_option('ruigehond010_flag_flush_rewrite_rules')) {
+                delete_option('ruigehond010_flag_flush_rewrite_rules');
                 flush_rewrite_rules();
             }
             // start the page
@@ -452,7 +491,7 @@ order by o.o, term.name*/
                         if (($value = sanitize_title($value)) !== $options['slug']) {
                             $options['slug'] = $value;
                             // flag for flush_rewrite_rules upon reload of the settings page
-                            update_option( 'ruigehond010_flag_flush_rewrite_rules', 'yes', true );
+                            update_option('ruigehond010_flag_flush_rewrite_rules', 'yes', true);
                         }
                         break;
                     case 'taxonomies': // TODO check if it's an existing taxonomy?
@@ -508,6 +547,14 @@ order by o.o, term.name*/
                 'faq-with-categories-settings',
                 array($this, 'settingspage') // callback
             );
+            add_submenu_page(
+                'faq-with-categories',
+                __('Order taxonomy', 'faq-with-categories'), // page_title
+                __('Order taxonomy', 'faq-with-categories'), // menu_title
+                'manage_options',
+                'faq-with-categories-order-taxonomy',
+                array($this, 'ordertaxonomypage') // callback
+            );
             global $submenu; // make the first entry go to the edit page of the faq post_type
             $submenu['faq-with-categories'][0] = array(
                 __('FAQ Entries', 'faq-with-categories'),
@@ -515,20 +562,30 @@ order by o.o, term.name*/
                 'edit.php?post_type=ruigehond010_faq',
                 'blub' // WHOA
             );
-/*            echo '<pre>';
-            var_dump($submenu);
-            echo '</pre>';
-            die('opa');
-            $submenu['faq-with-categories'][] = array(
-                __('FAQ Entries', 'faq-with-categories'),
-                'manage_options',
-                'edit.php?post_type=ruigehond010_faq'
-            );*/
+            /*            echo '<pre>';
+                        var_dump($submenu);
+                        echo '</pre>';
+                        die('opa');
+                        $submenu['faq-with-categories'][] = array(
+                            __('FAQ Entries', 'faq-with-categories'),
+                            'manage_options',
+                            'edit.php?post_type=ruigehond010_faq'
+                        );*/
         }
 
 
         public function install()
         {
+            $table_name = $this->order_table;
+            if ($this->wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+                $sql = 'CREATE TABLE ' . $table_name . ' (
+						term_id INT NOT NULL,
+						o INT NOT NULL DEFAULT 1)
+					';
+                $this->wpdb->query($sql);
+            }
+            // register the current version
+            $this->setOption('version', RUIGEHOND010_VERSION);
         }
 
         public function deactivate()
