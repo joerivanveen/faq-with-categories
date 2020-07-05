@@ -26,4 +26,8 @@ Install the plugin by clicking 'Install now' below, or the 'Download' button, an
 
 == Changelog ==
 
+0.3.1: fixed something but forgot what it was
+
+0.3.0: most things work as planned
+
 0.0.1: setup boilerplate

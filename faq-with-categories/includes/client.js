@@ -13,8 +13,8 @@ function ruigehond010_showDomElement(element) {
 function ruigehond010_hideDomElement(element) {
     //element.style.display = 'none';
     element.style.top = element.getBoundingClientRect().top.toString() + 'px';
-    element.style.position = 'fixed';
-   (function ($) {
+    //element.style.position = 'fixed';
+    (function ($) {
         $(element).fadeOut();
     })(jQuery);
     if (ruigehond010_i) clearTimeout(ruigehond010_i);
