@@ -1,4 +1,4 @@
-var ruigehond010_i;
+var ruigehond010_i, ruigehond010_o;
 
 function ruigehond010_showDomElement(element) {
     //element.style.display = 'block';
@@ -52,7 +52,9 @@ function ruigehond010_resetLists() {
     var list;
     ruigehond010_hideSubLists();
     // set the first list to 'choose'
-    if ((list = document.querySelector('[data-ruigehond010_parent="0"]'))) list.selectedIndex = 0;
+    if ((list = document.querySelector('[data-ruigehond010_parent="0"]'))) {
+        list.selectedIndex = 0;
+    }
 }
 
 function ruigehond010_resetSearch() {
@@ -90,12 +92,12 @@ function ruigehond010_getAllOptionValues(list) {
 function ruigehond010_filter(select) {
     var list, options, option, parent_id, i, len, terms, posts, post, class_names;
     ruigehond010_resetSearch();
-    if (null === select) { // only display the parent and set it to first option (which is hidden)
+    if (null === select) { // only display the parent and set it to first option
         ruigehond010_resetLists();
     } else {
         ruigehond010_hideSubLists();
         // display a child list of the selected option if it exists
-        if (select.selectedIndex > 0 && (option = select.options[select.selectedIndex])) {
+        if ((option = select.options[select.selectedIndex])) {
             if (option.hasAttribute('data-ruigehond010_term_id')) {
                 terms = [option['value'].toLowerCase()];
                 parent_id = option.getAttribute('data-ruigehond010_term_id');
@@ -104,6 +106,8 @@ function ruigehond010_filter(select) {
                     ruigehond010_showDomElement(list);
                     terms = terms.concat(ruigehond010_getAllOptionValues(list));
                 }
+            } else {
+                terms = ruigehond010_getAllOptionValues(select)
             }
         }
         // travel up the chain making the lists visible until you reach data-ruigehond010_parent="0"
@@ -158,6 +162,9 @@ function ruigehond010_start() {
     if ((lists = document.getElementsByClassName('ruigehond010 choose-category'))) {
         for (i = 0, len = lists.length; i < len; ++i) {
             list = lists[i];
+            list.addEventListener('change', function() {
+                ruigehond010_filter(this);
+            });
             lists_by_parent[list.getAttribute('data-ruigehond010_parent')] = list;
             if ((option = list.querySelector('[selected]'))) selected_list = option.parentElement;
         }

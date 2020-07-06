@@ -14,7 +14,7 @@ namespace ruigehond010 {
 
     class ruigehond010 extends ruigehond_0_3_4
     {
-        private $name, $database_version, $taxonomies, $slug, $choose_option, $search_faqs, $order_table,
+        private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $order_table,
             $exclude_from_search, $exclude_from_count, $queue_frontend_css;
         // variables that hold cached items
         private $terms;
@@ -29,6 +29,7 @@ namespace ruigehond010 {
             $this->taxonomies = $this->getOption('taxonomies', 'category');
             $this->slug = $this->getOption('slug', 'ruigehond010_faq'); // standard the post_type is used by WP
             $this->choose_option = $this->getOption('choose_option', __('Choose option', 'faq-with-categories'));
+            $this->choose_all = $this->getOption('choose_all', __('All', 'faq-with-categories'));
             $this->search_faqs = $this->getOption('search_faqs', __('Search faqs', 'faq-with-categories'));
             $this->exclude_from_search = $this->getOption('exclude_from_search', true);
             $this->exclude_from_count = $this->getOption('exclude_from_count', true);
@@ -58,8 +59,8 @@ namespace ruigehond010 {
             register_post_type('ruigehond010_faq',
                 array(
                     'labels' => array(
-                        'name' => __('FAQ entry', 'faq-with-categories'),
-                        'singular_name' => __('FAQ entries', 'faq-with-categories'),
+                        'name' => __('FAQ entries', 'faq-with-categories'),
+                        'singular_name' => __('FAQ entry', 'faq-with-categories'),
                     ),
                     'public' => true,
                     'has_archive' => true,
@@ -157,10 +158,12 @@ namespace ruigehond010 {
                     echo '<select class="ruigehond010 faq choose-category" data-ruigehond010_parent="';
                     echo $parent;
                     if ($parent === 0) {
-                        echo '" style="display: block'; // to prevent repainting in default situation
+                        echo '" style="display: block"><option>'; // display block to prevent repainting default situation
+                        echo $this->choose_option;
+                    } else {
+                        echo '"><option>';
+                        echo $this->choose_all;
                     }
-                    echo '" onchange="ruigehond010_filter(this);"><option hidden="hidden">';
-                    echo $this->choose_option;
                     echo '</option>';
                     foreach ($options as $index => $option) {
                         echo '<option data-ruigehond010_term_id="';
@@ -203,7 +206,6 @@ namespace ruigehond010 {
                 } else {
                     $on = [$post_id=>true];
                 }
-                var_dump($on);
                 $this->setOption('post_ids', $on);
                 // [faq-with-categories exclusive="homepage"], or /url?category=blah (if category is the term)
                 // load the posts, will return row data: ID = id of the post, exclusive = meta value for exclusive (null when none)
@@ -431,7 +433,8 @@ namespace ruigehond010 {
                 'queue_frontend_css' => __('By default a small css-file is output to the frontend to format the entries. Uncheck to handle the css yourself.', 'faq-with-categories'),
                 'taxonomies' => __('Type the taxonomy you want to use for the categories.', 'faq-with-categories'),
                 'slug' => __('Slug for the individual faq entries (optional).', 'faq-with-categories'),
-                'choose_option' => __('The ‘choose’ option in select lists without a selected option.', 'faq-with-categories'),
+                'choose_option' => __('The ‘choose / show all’ option in top most select list.', 'faq-with-categories'),
+                'choose_all' => __('The ‘choose / show all’ option in subsequent select lists.', 'faq-with-categories'),
                 'search_faqs' => __('The placeholder in the search bar for the faqs.', 'faq-with-categories'),
                 'exclude_from_search' => __('Will exclude the FAQ posts from site search queries.', 'faq-with-categories'),
                 'exclude_from_count' => __('FAQ posts will not count towards total posts in taxonomies.', 'faq-with-categories'),
@@ -441,6 +444,7 @@ namespace ruigehond010 {
                     'taxonomies',
                     'slug',
                     'choose_option',
+                    'choose_all',
                     'search_faqs',
                     'exclude_from_search',
                     'exclude_from_count',
