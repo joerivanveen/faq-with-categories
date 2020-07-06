@@ -26,7 +26,11 @@ Install the plugin by clicking 'Install now' below, or the 'Download' button, an
 
 == Changelog ==
 
-0.3.1: fixed something but forgot what it was
+0.3.3: selection / filtering more robust
+
+0.3.2: outputSchema FAQ snippets in the head als ld+json
+
+0.3.1: fixed some minor issues
 
 0.3.0: most things work as planned
 
