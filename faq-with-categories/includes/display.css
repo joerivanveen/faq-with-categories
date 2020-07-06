@@ -8,7 +8,7 @@
     height: auto;
     overflow: hidden;
     max-height: 2em; /* the height of the h4 */
-    transition: max-height .6s;
+    transition: max-height .6s ease-in-out;
 }
 #ruigehond010_faq .ruigehond010_post.open {
     height: auto;

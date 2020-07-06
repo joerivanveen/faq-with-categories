@@ -81,7 +81,7 @@ namespace ruigehond010 {
                 if ($this->queue_frontend_css) { // only output css when necessary
                     wp_enqueue_style('ruigehond010_stylesheet_display', plugin_dir_url(__FILE__) . 'display.css', [], RUIGEHOND010_VERSION);
                 }
-                add_action('wp_head', array($this, 'outputSchema'), 2);
+                add_action('wp_head', array($this, 'outputSchema'));
                 add_shortcode('faq-with-categories', array($this, 'getHtmlForFrontend'));
                 add_shortcode('faq-with-categories-filter', array($this, 'getHtmlForFrontend'));
                 add_shortcode('faq-with-categories-search', array($this, 'getHtmlForFrontend'));
@@ -115,24 +115,8 @@ namespace ruigehond010 {
         public function outputSchema()
         {
             if (!$post_id = get_the_ID()) return;
-            global $post;
-            //$pattern = '\[(\[?)(faq\-with\-categories)(?![\w-])([^\]\/]*(?:\/(?!\])[^\]\/]*)*?)(?:(\/)\]|\](?:([^\[]*+(?:\[(?!\/\2\])[^\[]*+)*+)\[\/\2\])?)(\]?)';
-            $pattern = '\[[faq\-with\-categories][^\]]*\]';
-            if (preg_match_all('/' . $pattern . '/s', $post->post_content, $matches) and isset($matches[0])) {
-                foreach ($matches[0] as $index => $match) {
-                    if ($match === '[faq-with-categories]') {
-                        //echo '<!-- schema output for faqs -->';
-                        echo $this->getSchemaFromPosts($this->getPosts());
-
-                        return;
-                    } elseif (($pos = strpos(strtolower($match), 'exclusive')) > 0) { // extract exclusive value from it when present
-                        $exclusive = trim(substr($match, $pos + 10), ' ]"\'');
-                        //echo '<!-- schema output for faqs ‘' . $exclusive . '’ -->';
-                        echo $this->getSchemaFromPosts($this->getPosts($exclusive));
-
-                        return;
-                    }
-                }
+            if (($on = $this->getOption('post_ids')) and isset($on[$post_id])) {
+                echo $this->getSchemaFromPosts($this->getPosts($on[$post_id]));
             }
         }
 
@@ -158,6 +142,7 @@ namespace ruigehond010 {
 
         public function getHtmlForFrontend($attributes = [], $content = null, $short_code = 'faq-with-categories')
         {
+            if (!$post_id = get_the_ID()) return '';
             $chosen_exclusive = isset($attributes['exclusive']) ? $attributes['exclusive'] : null;
             $chosen_term = isset($attributes['category']) ? $attributes['category'] : isset($_GET['category']) ? $_GET['category'] : null;
             // several types of html can be got with this
@@ -201,6 +186,25 @@ namespace ruigehond010 {
 
                 return $str;
             } else { // 2) all the posts, filtered by 'exclusive' or 'term'
+                // register the shortcode being used here, for outputSchema method :-)
+                $register = (is_string($chosen_exclusive))?$chosen_exclusive:true;
+                if (($on = $this->getOption('post_ids'))) {
+                    if (false === isset($on[$post_id])) {
+                        // remove the original id if any
+                        foreach ($on as $key=>$value) {
+                            if ($value === $register) {
+                                unset($on[$key]);
+                                break;
+                            }
+                        }
+                    }
+                    // register this id (also updates if e.g. the exclusive value changes
+                    $on[$post_id] = $register;
+                } else {
+                    $on = [$post_id=>true];
+                }
+                var_dump($on);
+                $this->setOption('post_ids', $on);
                 // [faq-with-categories exclusive="homepage"], or /url?category=blah (if category is the term)
                 // load the posts, will return row data: ID = id of the post, exclusive = meta value for exclusive (null when none)
                 // term = category: this will multiply rows if multiple categories are attached,
@@ -269,7 +273,7 @@ namespace ruigehond010 {
                 $this->wpdb->prefix . 'postmeta pm on pm.post_id = p.ID and pm.meta_key = \'_ruigehond010_exclusive\' ' .
                 'where p.post_type = \'ruigehond010_faq\'';
             // setup the where condition regarding exclusive....
-            if (!is_null($exclusive)) {
+            if (is_string($exclusive)) {
                 $sql .= ' and pm.meta_value = \'' . addslashes(sanitize_text_field($exclusive)) . '\'';
             }
             $sql .= ' order by p.post_date desc';

@@ -4,10 +4,8 @@ function ruigehond010_showDomElement(element) {
     //element.style.display = 'block';
     element.style.position = 'inherit';
     (function ($) {
-        $(element).fadeIn('slow');
+        $(element).fadeIn();
     })(jQuery);
-    if (ruigehond010_i) clearTimeout(ruigehond010_i);
-    ruigehond010_i = setTimeout(ruigehond010_toggleFirst, 500);
 }
 
 function ruigehond010_hideDomElement(element) {
@@ -17,8 +15,6 @@ function ruigehond010_hideDomElement(element) {
     (function ($) {
         $(element).fadeOut();
     })(jQuery);
-    if (ruigehond010_i) clearTimeout(ruigehond010_i);
-    ruigehond010_i = setTimeout(ruigehond010_toggleFirst, 500);
 }
 
 function ruigehond010_toggleFirst() {
@@ -146,6 +142,9 @@ function ruigehond010_filter(select) {
         } else {
             console.error('faq-with-categories: #ruigehond010_faq not found for filtering...');
         }
+        // open the first faq item
+        if (ruigehond010_i) clearTimeout(ruigehond010_i);
+        ruigehond010_i = setTimeout(ruigehond010_toggleFirst, 500);
     }
 
 }
@@ -196,6 +195,11 @@ function ruigehond010_start() {
                         ruigehond010_hideDomElement(post);
                     }
                 }
+                // open the first faq item
+                setTimeout(function () {
+                    if (ruigehond010_i) clearTimeout(ruigehond010_i);
+                    ruigehond010_i = setTimeout(ruigehond010_toggleFirst, 500);
+                }, 500); // wait for the showDomElement and hideDomElement to finish
             }
         });
         search_input.addEventListener('focus', function () {
