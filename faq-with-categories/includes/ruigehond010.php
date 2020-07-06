@@ -139,11 +139,17 @@ namespace ruigehond010 {
         public function getSchemaFromPosts($posts)
         {
             ob_start();
-            echo '<script id="ruigehond010_faq_schema">';
+            $last_index = count($posts) - 1;
+            echo '<script type="application/ld+json" id="ruigehond010_faq_schema">{"@context": "https://schema.org","@type": "FAQPage","mainEntity": [';
             foreach ($posts as $index => $post) {
-                echo $index . ':  ' . $post->post_title . PHP_EOL;
+                echo '{"@type":"Question","name":';
+                echo json_encode($post->post_title);
+                echo ',"acceptedAnswer":{"@type":"Answer","text":';
+                echo json_encode($post->post_content);
+                echo '}}';
+                if ($index < $last_index) echo ',';
             }
-            echo '</script>';
+            echo ']}</script>';
             $str = ob_get_contents();
             ob_end_clean();
 
