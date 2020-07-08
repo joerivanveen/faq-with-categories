@@ -322,6 +322,24 @@ namespace ruigehond010 {
          */
         private function getPosts($exclusive = null, $term = null)
         {
+            $term_ids = null;
+            if (is_string($term)) {
+                $sql = 'select term_id from ' .
+                    $this->wpdb->prefix . 'terms t where lower(t.name) = \'' .
+                    addslashes($term) . '\';';
+                // now for as long as rows with term_ids are returned, keep building the array
+                while ($rows = $this->wpdb->get_results($sql)) {
+                    foreach ($rows as $index=>$row) {
+                        $term_ids[] = $row->term_id;
+                    }
+                    // new sql selects all the children from the term_ids that are in the array
+                    $sql = 'select term_id from ' .
+                        $this->wpdb->prefix . 'term_taxonomy tt where tt.parent in (' .
+                        implode(',', $term_ids) . ') and term_id not in (' .
+                        implode(',', $term_ids) . ');'; // excluding the term_ids already in the arry
+                    // so it returns no rows if there are no more children, ending the while loop
+                }
+            }
             $sql = 'select p.ID, p.post_title, p.post_content, p.post_date, p.post_name, t.term_id, pm.meta_value AS exclusive from ' .
                 $this->wpdb->prefix . 'posts p left outer join ' .
                 $this->wpdb->prefix . 'term_relationships tr on tr.object_id = p.ID left outer join ' .
@@ -330,8 +348,8 @@ namespace ruigehond010 {
                 $this->wpdb->prefix . 'postmeta pm on pm.post_id = p.ID and pm.meta_key = \'_ruigehond010_exclusive\' ' .
                 'where p.post_type = \'ruigehond010_faq\'';
             // setup the where condition regarding exclusive and term....
-            if (is_string($term)) {
-                $sql .= ' and lower(t.name) = \'' . addslashes($term) . '\'';
+            if (is_array($term_ids)) {
+                $sql .= ' and t.term_id IN (' . implode(',', $term_ids) . ')';
             } elseif (is_string($exclusive)) {
                 $sql .= ' and pm.meta_value = \'' . addslashes(sanitize_text_field($exclusive)) . '\'';
             }
