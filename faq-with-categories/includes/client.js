@@ -1,4 +1,4 @@
-var ruigehond010_i, ruigehond010_o;
+var ruigehond010_i, ruigehond010_q = false;
 
 function ruigehond010_showDomElement(element) {
     //element.style.display = 'block';
@@ -20,8 +20,9 @@ function ruigehond010_hideDomElement(element) {
 function ruigehond010_toggleFirst() {
     var posts = document.getElementById('ruigehond010_faq').querySelectorAll('.ruigehond010_post'),
         i, len, post, rect, src, pos, post_id;
-    // it opens the first visible post, or when a post_id is in the querystring, it will open that one
-    if ((pos = (src = document.location.search).indexOf('post_id=')) > -1) {
+    // when a post_id is in the querystring, it will first open that one, but otherwise and subsequently open the first visible post
+    if (false === ruigehond010_q && (pos = (src = document.location.search).indexOf('post_id=')) > -1) {
+        ruigehond010_q = true;
         post_id = parseInt(src.substr(pos + 8));
         if ((post = document.getElementById('ruigehond010_faq').querySelector('[data-post_id="'+post_id.toString()+'"]'))) {
             ruigehond010_toggle(post);
@@ -118,6 +119,10 @@ function ruigehond010_filter(select) {
                 }
             } else {
                 terms = ruigehond010_getAllOptionValues(select)
+                // add the parent term id as well
+                if ((parent_id = select.getAttribute('data-ruigehond010_parent')) > 0) {
+                    terms.push('term-' + parent_id.toString());
+                }
             }
         }
         // travel up the chain making the lists visible until you reach data-ruigehond010_parent="0"
