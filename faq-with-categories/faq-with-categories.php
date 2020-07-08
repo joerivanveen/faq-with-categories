@@ -39,8 +39,8 @@ function ruigehond010_handle_input()
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'ruigehond010_settingslink'); // settings link on plugins page
 function ruigehond010_settingslink($links)
 {
-    $url = get_admin_url() . 'options-general.php?page=faq-with-categories';
-    $settings_link = '<a href="' . $url . '">' . __('Settings', 'faq-with-categories') . '</a>';
+    $url = 'edit.php?post_type=ruigehond010_faq';
+    $settings_link = '<a href="' . $url . '">' . __('FAQ', 'faq-with-categories') . '</a>';
     array_unshift($links, $settings_link);
 
     return $links;

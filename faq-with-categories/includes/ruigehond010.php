@@ -230,7 +230,7 @@ namespace ruigehond010 {
                 // post_title = question, post_content = answer, post_date = the date
                 $posts = $this->getPosts($chosen_exclusive, $chosen_term);
                 ob_start();
-                // prepare the link TODO make a setting: link to single FAQ page or link to complete FAQ page (now default)
+                // prepare the link
                 if (true === $title_only) {
                     if (true === $this->title_links_to_overview) {
                         $slug = $this->getOption('faq_page_slug');
@@ -322,7 +322,7 @@ namespace ruigehond010 {
          */
         private function getPosts($exclusive = null, $term = null)
         {
-            $term_ids = null;
+            $term_ids = null; // we are going to collect all the term_ids that fall under the requested $term
             if (is_string($term)) {
                 $sql = 'select term_id from ' .
                     $this->wpdb->prefix . 'terms t where lower(t.name) = \'' .
@@ -626,19 +626,6 @@ namespace ruigehond010 {
             return $options;
         }
 
-        public function menuitem_()
-        {
-            // add management page under admin menu settings
-            // https://premium.wpmudev.org/blog/creating-wordpress-admin-pages/
-            add_options_page(
-                'FAQ with categories',
-                'FAQ with categories',
-                'manage_options',
-                'faq-with-categories',
-                array($this, 'settingspage') // function
-            );
-        }
-
         public function menuitem()
         {
             // add top level page
@@ -704,19 +691,25 @@ namespace ruigehond010 {
                 $this->wpdb->query($sql);
             }
             // register the current version
-            $this->setOption('version', RUIGEHOND010_VERSION);
+            $this->setOption('database_version', RUIGEHOND010_VERSION);
         }
 
         public function deactivate()
         {
+            // nothing to do here
         }
 
         public function uninstall()
         {
-            // remove settings
-            //delete_option('ruigehond010');
+            // remove the ordering table
+            if ( $this->wpdb->get_var( "SHOW TABLES LIKE '$this->order_table'" ) == $this->order_table ) {
+                $sql = 'DROP TABLE ' . $this->order_table;
+                $this->wpdb->query( $sql );
+            }
             // remove the post_meta entries
-            //delete_post_meta_by_key('_ruigehond010_exclusive');
+            delete_post_meta_by_key('_ruigehond010_exclusive');
+            // remove settings
+            delete_option('ruigehond010');
             // TODO remove the posts
         }
     }

@@ -19,23 +19,15 @@ Joeri (ruige hond)
 
 == Installation ==
 
-Install the plugin by clicking 'Install now' below, or the 'Download' button, and put the faq-with-categories folder in your plugins folder. Don't forget to activate it.
+Install the plugin by clicking ‘Install now’ below, or the ‘Download’ button, and put the faq-with-categories folder in your plugins folder. Don’t forget to activate it.
 
 == Screenshots ==
 1. Settings screen
 
 == Changelog ==
 
-0.3.5: small bugfixes
 
-0.3.4: possibility to link a faq rather than display it, either to its own page or to itself on the faq page
 
-0.3.3: selection / filtering more robust
+1.0.1: short_code ‘category’ now selects posts the same way as querystring (specifically also all the posts belonging to children)
 
-0.3.2: outputSchema FAQ snippets in the head als ld+json
-
-0.3.1: fixed some minor issues
-
-0.3.0: most things work as planned
-
-0.0.1: setup boilerplate
+1.0.0: Release
