@@ -26,6 +26,10 @@ Install the plugin by clicking 'Install now' below, or the 'Download' button, an
 
 == Changelog ==
 
+0.3.5: small bugfixes
+
+0.3.4: possibility to link a faq rather than display it, either to its own page or to itself on the faq page
+
 0.3.3: selection / filtering more robust
 
 0.3.2: outputSchema FAQ snippets in the head als ld+json

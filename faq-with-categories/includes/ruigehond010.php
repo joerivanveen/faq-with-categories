@@ -213,7 +213,7 @@ namespace ruigehond010 {
                     }
                     $this->setOption('post_ids', $on);
                     if ($register === true) {
-                        $this->setOption('faq_page_slug', get_post_field( 'post_name', $post_id ));
+                        $this->setOption('faq_page_slug', get_post_field('post_name', $post_id));
                     }
                 }
                 // [faq-with-categories exclusive="homepage"], or /url?category=blah
@@ -456,7 +456,27 @@ namespace ruigehond010 {
             // start the page
             echo '<div class="wrap"><h1>';
             echo esc_html(get_admin_page_title());
-            echo '</h1><form action="options.php" method="post">';
+            echo '</h1><p>';
+            echo __('FAQS are always sorted by post-date descending, so newest entries are first. By default they are output as an accordion list with the first one opened.', 'faq-with-categories');
+            echo '<br/>';
+            echo __('You may use the following shortcuts, of course certain combinations do not make sense and may produce erratic behaviour.', 'faq-with-categories');
+            echo '<br/>';
+            echo sprintf(__('%s produces the default list with all the faqs and outputs FAQ snippets schema in the head.', 'faq-with-categories'), '[faq-with-categories]');
+            echo '<br/>';
+            echo sprintf(__('%s produces a filter menu according to the chosen taxonomy using the specified order.', 'faq-with-categories'), '[faq-with-categories-filter]');
+            echo '<br/>';
+            echo sprintf(__('%s produces a search box that will perform client-side lookup through the faqs.', 'faq-with-categories'), '[faq-with-categories-search]');
+            echo '<br/>';
+            echo sprintf(__('%s limits the quantity of the faqs to 5, or use another number*.', 'faq-with-categories'), '[faq-with-categories quantity="5"]');
+            echo '<br/>';
+            echo sprintf(__('%s display only faqs for the specified category (case insensitive)*. This will NOT output FAQ snippets schema in the head.', 'faq-with-categories'), '[faq-with-categories category="category name"]');
+            echo '<br/>';
+            echo sprintf(__('%s any tag you specified under a faq entry in the box, will gather all faqs with that tag for display*.', 'faq-with-categories'), '[faq-with-categories exclusive="your tag"]');
+            echo '<br/>';
+            echo sprintf(__('%s outputs the list as links rather than as an accordion.', 'faq-with-categories'), '[faq-with-categories title-only="any value"]');
+            echo '<br/><em>';
+            echo __('* NOTE: only a limited number of faqs will be present on the page so search and filter will not work.', 'faq-with-categories');
+            echo '</em></p><form action="options.php" method="post">';
             // output security fields for the registered setting
             settings_fields('ruigehond010');
             // output setting sections and their fields

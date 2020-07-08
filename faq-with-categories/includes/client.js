@@ -27,7 +27,7 @@ function ruigehond010_toggleFirst() {
             ruigehond010_toggle(post);
             return;
         } else {
-            console.warn('Requested post_id not found in faqs list.');
+            console.warn('faq-with-categories: requested post_id not found in faqs list.');
         }
     }
     for (i = 0, len = posts.length; i < len; ++i) {
@@ -164,8 +164,9 @@ function ruigehond010_filter(select) {
 }
 
 function ruigehond010_start() {
-    var options, option, i, len, parent_id, list, lists, lists_by_parent = {}, selected_list = null, maybe_done,
-        search_input;
+    var options, option, i, len, parent_id, list, lists, maybe_done, search_input, h4,
+        lists_by_parent = {}, selected_list = null;
+
     /**
      * first get the lists in order: sort them from parent to child and remember if any is pre-checked by php
      */
@@ -229,9 +230,11 @@ function ruigehond010_start() {
     if ((list = document.getElementById('ruigehond010_faq'))) {
         if ((lists = list.querySelectorAll('.ruigehond010_post'))) {
             for (i = 0, len = lists.length; i < len; ++i) {
-                lists[i].querySelector('h4').addEventListener('click', function () {
-                    ruigehond010_toggle(this.parentElement);
-                });
+                if ((h4 = lists[i].querySelector('h4'))) {
+                    h4.addEventListener('click', function () {
+                        ruigehond010_toggle(this.parentElement);
+                    });
+                }
             }
         }
         // and the show more button
