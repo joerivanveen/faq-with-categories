@@ -193,6 +193,7 @@ namespace ruigehond010 {
                 return $str;
             } else { // 2) all the posts, filtered by 'exclusive' or 'term'
                 // only register exclusive displays and the full faq page
+                // TODO optimize this somewhat
                 if (is_null($chosen_term)) {
                     // register the shortcode being used here, for outputSchema method :-)
                     $register = (is_string($chosen_exclusive)) ? $chosen_exclusive : true;
@@ -214,6 +215,13 @@ namespace ruigehond010 {
                     $this->setOption('post_ids', $on);
                     if ($register === true) {
                         $this->setOption('faq_page_slug', get_post_field('post_name', $post_id));
+                    }
+                } else {
+                    if (($on = $this->getOption('post_ids'))) {
+                        if (isset($on[$post_id])) {
+                            unset($on[$post_id]);
+                            $this->setOption('post_ids', $on);
+                        }
                     }
                 }
                 // [faq-with-categories exclusive="homepage"], or /url?category=blah
@@ -263,7 +271,7 @@ namespace ruigehond010 {
                         echo '</h4>';
                         echo $post->post_content;
                     } else {
-                        echo '<a href="';
+                        echo '<a class="title-only h4" href="';
                         if (true === $this->title_links_to_overview) {
                             echo sprintf($slug, $post->ID);
                         } else {
@@ -398,7 +406,7 @@ namespace ruigehond010 {
             echo '<input type="text" id="ruigehond010_exclusive" name="ruigehond010_exclusive" value="';
             echo $obj['args']['exclusive'];
             echo '"/> <label for="ruigehond010_exclusive">';
-            echo __('The tag this FAQ entry is exclusive to, use it in a shortcut to summon the entry. Note that it will still be displayed for the taxonomies that are checked.', 'faq-with-categories');
+            echo __('The tag this FAQ entry is exclusive to, use it in a shortcode to summon the entry. Note that it will still be displayed for the taxonomies that are checked.', 'faq-with-categories');
             echo '</label>';
         }
 
@@ -463,21 +471,23 @@ namespace ruigehond010 {
             echo '</h1><p>';
             echo __('FAQS are always sorted by post-date descending, so newest entries are first. By default they are output as an accordion list with the first one opened.', 'faq-with-categories');
             echo '<br/>';
-            echo __('You may use the following shortcuts, of course certain combinations do not make sense and may produce erratic behaviour.', 'faq-with-categories');
+            echo sprintf(__('You can link to your general faq page with a category in the querystring (e.g. %s) to pre-filter the faqs.', 'faq-with-categories'), '?category=test%20category');
             echo '<br/>';
-            echo sprintf(__('%s produces the default list with all the faqs and outputs FAQ snippets schema in the head.', 'faq-with-categories'), '[faq-with-categories]');
+            echo __('You may use the following shortcodes, of course certain combinations do not make sense and may produce erratic behaviour.', 'faq-with-categories');
             echo '<br/>';
-            echo sprintf(__('%s produces a filter menu according to the chosen taxonomy using the specified order.', 'faq-with-categories'), '[faq-with-categories-filter]');
+            echo sprintf(__('%s produces the default list with all the faqs and outputs FAQ snippets schema in the head.', 'faq-with-categories'), '<strong>[faq-with-categories]</strong>');
             echo '<br/>';
-            echo sprintf(__('%s produces a search box that will perform client-side lookup through the faqs.', 'faq-with-categories'), '[faq-with-categories-search]');
+            echo sprintf(__('%s produces a filter menu according to the chosen taxonomy using the specified order.', 'faq-with-categories'), '<strong>[faq-with-categories-filter]</strong>');
             echo '<br/>';
-            echo sprintf(__('%s limits the quantity of the faqs to 5, or use another number*.', 'faq-with-categories'), '[faq-with-categories quantity="5"]');
+            echo sprintf(__('%s produces a search box that will perform client-side lookup through the faqs.', 'faq-with-categories'), '<strong>[faq-with-categories-search]</strong>');
             echo '<br/>';
-            echo sprintf(__('%s display only faqs for the specified category (case insensitive)*. This will NOT output FAQ snippets schema in the head.', 'faq-with-categories'), '[faq-with-categories category="category name"]');
+            echo sprintf(__('%s limits the quantity of the faqs to 5, or use another number*.', 'faq-with-categories'), '[faq-with-categories <strong>quantity="5"</strong>]');
             echo '<br/>';
-            echo sprintf(__('%s any tag you specified under a faq entry in the box, will gather all faqs with that tag for display*.', 'faq-with-categories'), '[faq-with-categories exclusive="your tag"]');
+            echo sprintf(__('%s display only faqs for the specified category (case insensitive)*. This will NOT output FAQ snippets schema in the head.', 'faq-with-categories'), '[faq-with-categories <strong>category="category name"</strong>]');
             echo '<br/>';
-            echo sprintf(__('%s outputs the list as links rather than as an accordion.', 'faq-with-categories'), '[faq-with-categories title-only="any value"]');
+            echo sprintf(__('%s any tag you specified under a faq entry in the box, will gather all faqs with that tag for display*.', 'faq-with-categories'), '[faq-with-categories <strong>exclusive="your tag"</strong>]');
+            echo '<br/>';
+            echo sprintf(__('%s outputs the list as links rather than as an accordion.', 'faq-with-categories'), '[faq-with-categories <strong>title-only="any value"</strong>]');
             echo '<br/><em>';
             echo __('* NOTE: only a limited number of faqs will be present on the page so search and filter will not work.', 'faq-with-categories');
             echo '</em></p><form action="options.php" method="post">';
@@ -507,7 +517,7 @@ namespace ruigehond010 {
                 'queue_frontend_css' => __('By default a small css-file is output to the frontend to format the entries. Uncheck to handle the css yourself.', 'faq-with-categories'),
                 'taxonomies' => __('Type the taxonomy you want to use for the categories.', 'faq-with-categories'),
                 'slug' => __('Slug for the individual faq entries (optional).', 'faq-with-categories'),
-                'title_links_to_overview' => __('When using title-only in shortcuts, link to the overview rather than individual FAQ page.', 'faq-with-categories'),
+                'title_links_to_overview' => __('When using title-only in shortcodes, link to the overview rather than individual FAQ page.', 'faq-with-categories'),
                 'choose_option' => __('The ‘choose / show all’ option in top most select list.', 'faq-with-categories'),
                 'choose_all' => __('The ‘choose / show all’ option in subsequent select lists.', 'faq-with-categories'),
                 'search_faqs' => __('The placeholder in the search bar for the faqs.', 'faq-with-categories'),

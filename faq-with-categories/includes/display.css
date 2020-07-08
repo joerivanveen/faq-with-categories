@@ -1,35 +1,49 @@
 .ruigehond010.choose-category {
     display: none; /* until proven otherwise (by javascript) */
 }
+
 #ruigehond010_faq {
-    margin-left:0;
+    margin-left: 0;
 }
+
 #ruigehond010_faq .ruigehond010_post {
     height: auto;
     overflow: hidden;
     max-height: 2em; /* the height of the h4 */
     transition: max-height .6s ease-in-out;
 }
+
 #ruigehond010_faq .ruigehond010_post.open {
     height: auto;
     max-height: 300px;
 }
+
 #ruigehond010_faq .ruigehond010_post:not(.open) h4 {
     cursor: pointer;
 }
+
 #ruigehond010_faq .ruigehond010_post h4:after {
     content: '+';
     float: right;
 }
+
 #ruigehond010_faq .ruigehond010_post.open h4:after {
     content: '';
 }
+
+#ruigehond010_faq .ruigehond010_post .h4 {
+    font-size: 125%;
+    color: #333;
+}
+
 .show_more_button {
     display: none;
 }
+
 .show_more_button:after {
     content: 'Toon meer vragen & antwoorden';
 }
+
 #ruigehond010_faq[data-has_more] .show_more_button {
     display: block;
 }
