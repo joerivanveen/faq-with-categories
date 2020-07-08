@@ -19,7 +19,17 @@ function ruigehond010_hideDomElement(element) {
 
 function ruigehond010_toggleFirst() {
     var posts = document.getElementById('ruigehond010_faq').querySelectorAll('.ruigehond010_post'),
-        i, len, post, rect;
+        i, len, post, rect, src, pos, post_id;
+    // it opens the first visible post, or when a post_id is in the querystring, it will open that one
+    if ((pos = (src = document.location.search).indexOf('post_id=')) > -1) {
+        post_id = parseInt(src.substr(pos + 8));
+        if ((post = document.getElementById('ruigehond010_faq').querySelector('[data-post_id="'+post_id.toString()+'"]'))) {
+            ruigehond010_toggle(post);
+            return;
+        } else {
+            console.warn('Requested post_id not found in faqs list.');
+        }
+    }
     for (i = 0, len = posts.length; i < len; ++i) {
         if ((rect = (post = posts[i]).getBoundingClientRect()).top > 0 && rect.left > 0) {
             ruigehond010_toggle(post);

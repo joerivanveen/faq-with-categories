@@ -15,7 +15,7 @@ namespace ruigehond010 {
     class ruigehond010 extends ruigehond_0_3_4
     {
         private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $order_table,
-            $exclude_from_search, $exclude_from_count, $queue_frontend_css;
+            $title_links_to_overview, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
         // variables that hold cached items
         private $terms;
 
@@ -28,6 +28,7 @@ namespace ruigehond010 {
             $this->database_version = $this->getOption('database_version', '0.0.0');
             $this->taxonomies = $this->getOption('taxonomies', 'category');
             $this->slug = $this->getOption('slug', 'ruigehond010_faq'); // standard the post_type is used by WP
+            $this->title_links_to_overview = $this->getOption('title_links_to_overview', false);
             $this->choose_option = $this->getOption('choose_option', __('Choose option', 'faq-with-categories'));
             $this->choose_all = $this->getOption('choose_all', __('All', 'faq-with-categories'));
             $this->search_faqs = $this->getOption('search_faqs', __('Search faqs', 'faq-with-categories'));
@@ -59,8 +60,8 @@ namespace ruigehond010 {
             register_post_type('ruigehond010_faq',
                 array(
                     'labels' => array(
-                        'name' => __('FAQ entries', 'faq-with-categories'),
-                        'singular_name' => __('FAQ entry', 'faq-with-categories'),
+                        'name' => __('FAQ', 'faq-with-categories'),
+                        'singular_name' => __('FAQ', 'faq-with-categories'),
                     ),
                     'public' => true,
                     'has_archive' => true,
@@ -145,13 +146,15 @@ namespace ruigehond010 {
         {
             if (!$post_id = get_the_ID()) return '';
             $chosen_exclusive = isset($attributes['exclusive']) ? $attributes['exclusive'] : null;
-            $chosen_term = isset($attributes['category']) ? $attributes['category'] : isset($_GET['category']) ? $_GET['category'] : null;
+            $chosen_term = isset($attributes['category']) ? strtolower($attributes['category']) : null;
+            $filter_term = isset($_GET['category']) ? strtolower($_GET['category']) : null;
+            $quantity = isset($attributes['quantity']) ? intval($attributes['quantity']) : null;
+            $title_only = isset($attributes['title-only']); // no matter the value, when set we do title only
             // several types of html can be got with this
             // 1) the select boxes for the filter (based on term)
             if ($short_code === 'faq-with-categories-filter') {
                 // ->getTerms() = fills by sql SELECT term_id, parent, count, term FROM etc.
                 $rows = $this->getTerms();
-                if (!is_null($chosen_term)) $chosen_term = strtolower($chosen_term);
                 // write the html lists
                 ob_start();
                 foreach ($rows as $parent => $options) {
@@ -171,7 +174,7 @@ namespace ruigehond010 {
                         echo '" value="term-';
                         echo $option['term_id'];
                         //echo htmlentities($term = $option['term']);
-                        if (strtolower(($term = $option['term'])) === $chosen_term) echo '" selected="selected';
+                        if (strtolower(($term = $option['term'])) === $filter_term) echo '" selected="selected';
                         echo '">';
                         echo $term;
                         echo '</option>';
@@ -189,44 +192,87 @@ namespace ruigehond010 {
 
                 return $str;
             } else { // 2) all the posts, filtered by 'exclusive' or 'term'
-                // register the shortcode being used here, for outputSchema method :-)
-                $register = (is_string($chosen_exclusive))?$chosen_exclusive:true;
-                if (($on = $this->getOption('post_ids'))) {
-                    if (false === isset($on[$post_id])) {
-                        // remove the original id if any
-                        foreach ($on as $key=>$value) {
-                            if ($value === $register) {
-                                unset($on[$key]);
-                                break;
+                // only register exclusive displays and the full faq page
+                if (is_null($chosen_term)) {
+                    // register the shortcode being used here, for outputSchema method :-)
+                    $register = (is_string($chosen_exclusive)) ? $chosen_exclusive : true;
+                    if (($on = $this->getOption('post_ids'))) {
+                        if (false === isset($on[$post_id])) {
+                            // remove the original id if any
+                            foreach ($on as $key => $value) {
+                                if ($value === $register) {
+                                    unset($on[$key]);
+                                    break;
+                                }
                             }
                         }
+                        // register this id (also updates if e.g. the exclusive value changes
+                        $on[$post_id] = $register;
+                    } else {
+                        $on = [$post_id => true];
                     }
-                    // register this id (also updates if e.g. the exclusive value changes
-                    $on[$post_id] = $register;
-                } else {
-                    $on = [$post_id=>true];
+                    $this->setOption('post_ids', $on);
+                    if ($register === true) {
+                        $this->setOption('faq_page_slug', get_post_field( 'post_name', $post_id ));
+                    }
                 }
-                $this->setOption('post_ids', $on);
-                // [faq-with-categories exclusive="homepage"], or /url?category=blah (if category is the term)
+                // [faq-with-categories exclusive="homepage"], or /url?category=blah
                 // load the posts, will return row data: ID = id of the post, exclusive = meta value for exclusive (null when none)
                 // term = category: this will multiply rows if multiple categories are attached,
                 // post_title = question, post_content = answer, post_date = the date
-                $posts = $this->getPosts($chosen_exclusive);
+                $posts = $this->getPosts($chosen_exclusive, $chosen_term);
                 ob_start();
+                // prepare the link TODO make a setting: link to single FAQ page or link to complete FAQ page (now default)
+                if (true === $title_only) {
+                    if (true === $this->title_links_to_overview) {
+                        $slug = $this->getOption('faq_page_slug');
+                        if (is_null($slug)) {
+                            echo '<span class="notice">';
+                            echo __('Please visit the FAQ page once so the plugin knows where to link to.', 'faq-with-categories');
+                            echo '</span>';
+                        } else {
+                            if (strpos($slug, '?') === false) {
+                                $slug = $slug . '?post_id=%s';
+                            } else {
+                                $slug = $slug . '&post_id=%s';
+                            }
+                        }
+                    } else {
+                        $slug = $this->slug;
+                    }
+                } else {
+                    $slug = '%s';
+                }
                 echo '<ul id="ruigehond010_faq" class="ruigehond010 faq posts ';
                 if ($chosen_exclusive) echo strtolower(htmlentities($chosen_exclusive));
                 echo '">';
                 foreach ($posts as $index => $post) {
+                    if ($index === $quantity) break;
                     echo '<li class="ruigehond010_post term-';
                     echo strtolower(implode(' term-', $post->term_ids));
                     if ($post->exclusive) {
                         echo '" data-exclusive="';
                         echo $post->exclusive;
                     }
-                    echo '"><h4>';
-                    echo $post->post_title;
-                    echo '</h4>';
-                    echo $post->post_content;
+                    echo '" data-post_id="';
+                    echo $post->ID;
+                    echo '">';
+                    if (false === $title_only) {
+                        echo '<h4>';
+                        echo $post->post_title;
+                        echo '</h4>';
+                        echo $post->post_content;
+                    } else {
+                        echo '<a href="';
+                        if (true === $this->title_links_to_overview) {
+                            echo sprintf($slug, $post->ID);
+                        } else {
+                            echo '/' . $slug . '/' . $post->post_name;
+                        }
+                        echo '">';
+                        echo $post->post_title;
+                        echo '</a>';
+                    }
                     echo '</li>';
                 }
                 echo '</ul>';
@@ -263,19 +309,22 @@ namespace ruigehond010 {
 
         /**
          * @param string|null $exclusive
-         * @returns \stdClass the rows from the db as object in an indexed array
+         * @param null $term
+         * @return array the rows from db as \stdClasses in an indexed array
          */
-        private function getPosts($exclusive = null)
+        private function getPosts($exclusive = null, $term = null)
         {
-            $sql = 'select p.ID, p.post_title, p.post_content, p.post_date, t.term_id, pm.meta_value AS exclusive from ' .
+            $sql = 'select p.ID, p.post_title, p.post_content, p.post_date, p.post_name, t.term_id, pm.meta_value AS exclusive from ' .
                 $this->wpdb->prefix . 'posts p left outer join ' .
                 $this->wpdb->prefix . 'term_relationships tr on tr.object_id = p.ID left outer join ' .
                 $this->wpdb->prefix . 'term_taxonomy tt on tt.term_taxonomy_id = tr.term_taxonomy_id left outer join ' .
                 $this->wpdb->prefix . 'terms t on t.term_id = tt.term_id left outer join ' .
                 $this->wpdb->prefix . 'postmeta pm on pm.post_id = p.ID and pm.meta_key = \'_ruigehond010_exclusive\' ' .
                 'where p.post_type = \'ruigehond010_faq\'';
-            // setup the where condition regarding exclusive....
-            if (is_string($exclusive)) {
+            // setup the where condition regarding exclusive and term....
+            if (is_string($term)) {
+                $sql .= ' and lower(t.name) = \'' . addslashes($term) . '\'';
+            } elseif (is_string($exclusive)) {
                 $sql .= ' and pm.meta_value = \'' . addslashes(sanitize_text_field($exclusive)) . '\'';
             }
             $sql .= ' order by p.post_date desc';
@@ -315,6 +364,7 @@ namespace ruigehond010 {
                     $r->set_data($args);
                 }
             }
+
             return $r;
         }
 
@@ -433,6 +483,7 @@ namespace ruigehond010 {
                 'queue_frontend_css' => __('By default a small css-file is output to the frontend to format the entries. Uncheck to handle the css yourself.', 'faq-with-categories'),
                 'taxonomies' => __('Type the taxonomy you want to use for the categories.', 'faq-with-categories'),
                 'slug' => __('Slug for the individual faq entries (optional).', 'faq-with-categories'),
+                'title_links_to_overview' => __('When using title-only in shortcuts, link to the overview rather than individual FAQ page.', 'faq-with-categories'),
                 'choose_option' => __('The ‘choose / show all’ option in top most select list.', 'faq-with-categories'),
                 'choose_all' => __('The ‘choose / show all’ option in subsequent select lists.', 'faq-with-categories'),
                 'search_faqs' => __('The placeholder in the search bar for the faqs.', 'faq-with-categories'),
@@ -443,6 +494,7 @@ namespace ruigehond010 {
                 array(
                     'taxonomies',
                     'slug',
+                    'title_links_to_overview',
                     'choose_option',
                     'choose_all',
                     'search_faqs',
@@ -473,6 +525,7 @@ namespace ruigehond010 {
             switch ($setting_name) {
                 case 'queue_frontend_css':
                 case 'exclude_from_count':
+                case 'title_links_to_overview':
                 case 'exclude_from_search': // make checkbox that transmits 1 or 0, depending on status
                     $str .= '<label><input type="hidden" name="ruigehond010[' . $setting_name . ']" value="' .
                         (($this->$setting_name) ? '1' : '0') . '"><input type="checkbox"';
@@ -498,6 +551,7 @@ namespace ruigehond010 {
                     // on / off flags (1 vs 0 on form submit, true / false otherwise
                     case 'queue_frontend_css':
                     case 'exclude_from_search':
+                    case 'title_links_to_overview':
                     case 'exclude_from_count':
                         $options[$key] = ($value === '1' or $value === true);
                         break;
@@ -548,7 +602,7 @@ namespace ruigehond010 {
             add_submenu_page(
                 'faq-with-categories',
                 __('Settings', 'faq-with-categories'), // page_title
-                __('FAQ Entries', 'faq-with-categories'), // menu_title
+                __('FAQ', 'faq-with-categories'), // menu_title
                 'manage_options',
                 'faq-with-categories',
                 array($this, 'redirect_to_entries') // callback
@@ -556,7 +610,7 @@ namespace ruigehond010 {
             add_submenu_page(
                 'faq-with-categories',
                 __('Settings', 'faq-with-categories'), // page_title
-                __('FAQ Settings', 'faq-with-categories'), // menu_title
+                __('Settings', 'faq-with-categories'), // menu_title
                 'manage_options',
                 'faq-with-categories-settings',
                 array($this, 'settingspage') // callback
@@ -571,7 +625,7 @@ namespace ruigehond010 {
             );
             global $submenu; // make the first entry go to the edit page of the faq post_type
             $submenu['faq-with-categories'][0] = array(
-                __('FAQ Entries', 'faq-with-categories'),
+                __('FAQ', 'faq-with-categories'),
                 'manage_options',
                 'edit.php?post_type=ruigehond010_faq',
                 'blub' // WHOA
@@ -586,7 +640,6 @@ namespace ruigehond010 {
                             'edit.php?post_type=ruigehond010_faq'
                         );*/
         }
-
 
         public function install()
         {

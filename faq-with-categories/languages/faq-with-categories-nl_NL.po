@@ -1,0 +1,108 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: faq-with-categories\n"
+"POT-Creation-Date: 2020-07-08 09:06+0200\n"
+"PO-Revision-Date: 2020-07-08 09:16+0200\n"
+"Last-Translator: \n"
+"Language-Team: ruige hond\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.3.1\n"
+"X-Poedit-Basepath: ..\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-KeywordsList: __\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: languages\n"
+
+#: faq-with-categories.php:43 includes/ruigehond010.php:550
+#: includes/ruigehond010.php:558 includes/ruigehond010.php:559
+msgid "Settings"
+msgstr "Instellingen"
+
+#: includes/ruigehond010.php:31
+msgid "Choose option"
+msgstr "Kies optie"
+
+#: includes/ruigehond010.php:32
+msgid "All"
+msgstr "Alle"
+
+#: includes/ruigehond010.php:33
+msgid "Search faqs"
+msgstr "Zoeken"
+
+#: includes/ruigehond010.php:62 includes/ruigehond010.php:63
+#: includes/ruigehond010.php:551 includes/ruigehond010.php:574
+msgid "FAQ"
+msgstr "Veelgestelde vragen"
+
+#: includes/ruigehond010.php:349
+msgid ""
+"The tag this FAQ entry is exclusive to, use it in a shortcut to summon the "
+"entry. Note that it will still be displayed for the taxonomies that are "
+"checked."
+msgstr ""
+"De tag waar deze Veelgestelde Vragen vermelding exclusief voor is, gebruik "
+"in een shortcut om de vermelding op te roepen. Let op dat hij ook nog wordt "
+"weergegeven bij aangevinkte taxonomieën."
+
+#: includes/ruigehond010.php:379
+msgid ""
+"This page only concerns itself with the order. The hierarchy is determined "
+"by the taxonomy itself."
+msgstr ""
+"Deze pagina bepaalt alleen de volgorde. De hiërarchie wordt bepaald door de "
+"taxonomy zelf."
+
+#: includes/ruigehond010.php:415
+msgid "Save Settings"
+msgstr "Instelligen opslaan"
+
+#: includes/ruigehond010.php:427
+msgid "Options"
+msgstr "Opties"
+
+#: includes/ruigehond010.php:433
+msgid ""
+"By default a small css-file is output to the frontend to format the entries. "
+"Uncheck to handle the css yourself."
+msgstr ""
+"Standaard wordt er een klein css bestand meegestuurd om de vragen vorm te "
+"geven. Vink uit als je de css zelf beheert."
+
+#: includes/ruigehond010.php:434
+msgid "Type the taxonomy you want to use for the categories."
+msgstr "Typ de taxonomy-naam die je wilt gebruiken voor de categorieën."
+
+#: includes/ruigehond010.php:435
+msgid "Slug for the individual faq entries (optional)."
+msgstr "Slug voor de losse veelgestelde vragen pagina (optioneel)."
+
+#: includes/ruigehond010.php:436
+msgid "The ‘choose / show all’ option in top most select list."
+msgstr "De ‘kies / toon alles’ optie in de eerste keuzelijst."
+
+#: includes/ruigehond010.php:437
+msgid "The ‘choose / show all’ option in subsequent select lists."
+msgstr "De ‘kies / toon alles’ optie in opvolgende keuzelijsten."
+
+#: includes/ruigehond010.php:438
+msgid "The placeholder in the search bar for the faqs."
+msgstr "De placeholder in de veelgestelde vragen zoekbalk."
+
+#: includes/ruigehond010.php:439
+msgid "Will exclude the FAQ posts from site search queries."
+msgstr ""
+"Sluit de Veelgestelde Vragen berichten uit van de standaard zoekfunctie."
+
+#: includes/ruigehond010.php:440
+msgid "FAQ posts will not count towards total posts in taxonomies."
+msgstr ""
+"Veelgestelde Vragen tellen niet mee in het totaal van de berichten bij een "
+"taxonomy."
+
+#: includes/ruigehond010.php:566 includes/ruigehond010.php:567
+msgid "Order taxonomy"
+msgstr "Rangschik taxonomy"
