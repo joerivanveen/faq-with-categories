@@ -353,9 +353,11 @@ namespace ruigehond010 {
             $r = $this->getReturnObject();
             if (isset($args['handle']) and $args['handle'] === 'order_taxonomy') {
                 if (isset($args['order']) and is_array($args['order'])) {
-                    $this->wpdb->query('truncate table ' . $this->order_table);
                     $rows = $args['order'];
                     foreach ($rows as $term_id => $o) {
+                        $this->wpdb->delete($this->order_table,
+                            array('term_id' => $term_id)
+                        );
                         $this->wpdb->insert($this->order_table,
                             array('o' => $o, 'term_id' => $term_id)
                         );
@@ -427,9 +429,10 @@ namespace ruigehond010 {
             echo esc_html(get_admin_page_title());
             echo '</h1><p>';
             echo __('This page only concerns itself with the order. The hierarchy is determined by the taxonomy itself.', 'faq-with-categories');
-            echo '</p><section class="rows-sortable">';
-            $terms = $this->getTerms(); // these are ordered to the best of the knowlede of the system already
+            echo '</p><hr/>';
+            $terms = $this->getTerms(); // these are ordered to the best of the knowledge of the system already, but with parents
             foreach ($terms as $index => $sub_terms) {
+                echo '<section class="rows-sortable">';
                 foreach ($sub_terms as $o => $term) {
                     echo '<div class="ruigehond010-order-term" data-id="';
                     echo $term['term_id'];
@@ -440,8 +443,9 @@ namespace ruigehond010 {
                     echo $term['term'];
                     echo '</div></div>';
                 }
+                echo '</section><hr/>';
             }
-            echo '</section></div>';
+            echo '</div>';
         }
 
         public function settingspage()
