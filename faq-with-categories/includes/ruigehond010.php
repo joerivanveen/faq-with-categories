@@ -6,6 +6,8 @@
  * and some other classes specific to this plugin.
  */
 
+// TODO if you put central faq short_code or any exclusive tag on multiple pages, the $on option keeps getting updated
+
 namespace ruigehond010 {
 
     use ruigehond_0_3_4;
