@@ -1,5 +1,6 @@
-var ruigehond010_i;
-
+var ruigehond010_i, // timeout to hold of toggleFirst during search and stuff
+    ruigehond010_m = false; // tracks whether show more is activated
+var min = 3, max = 5; //temp
 function ruigehond010_showDomElement(element) {
     //element.style.display = 'block';
     element.style.position = 'inherit';
@@ -32,19 +33,13 @@ function ruigehond010_toggle(li) {
     // walk through all the elements to close them, only open the chosen one (li)
     var faq = document.getElementById('ruigehond010_faq'),
         posts = faq.querySelectorAll('.ruigehond010_post'),
-        count = 0, i, len, post;
+        i, len, post;
     for (i = 0, len = posts.length; i < len; ++i) {
         if ((post = posts[i]) === li) {
             post.classList.add('open');
         } else {
             post.classList.remove('open');
         }
-    }
-
-    if (count > 3) {
-        faq.setAttribute('data-has_more', 'yes');
-    } else {
-        faq.removeAttribute('data-has_more');
     }
 }
 
@@ -90,7 +85,7 @@ function ruigehond010_getAllOptionValues(list) {
 }
 
 function ruigehond010_filter(select) {
-    var list, options, option, parent_id, i, len, terms, posts, post, class_names;
+    var list, options, option, parent_id, i, len, terms, posts, post, class_names, count = 0;
     ruigehond010_resetSearch();
     if (null === select) { // only display the parent and set it to first option
         ruigehond010_resetLists();
@@ -142,9 +137,21 @@ function ruigehond010_filter(select) {
                 if (terms.filter(function (n) {
                     return class_names.indexOf(n) !== -1;
                 }).length > 0) {
-                    ruigehond010_showDomElement(post);
+                    // duplicate code / same as in search (below)
+                    if (false === ruigehond010_m && count > max) {
+                        ruigehond010_hideDomElement(post);
+                    } else {
+                        ruigehond010_showDomElement(post);
+                    }
+                    ++count;
                 } else {
                     ruigehond010_hideDomElement(post);
+                }
+                // duplicate code / same as in search (below)
+                if (false === ruigehond010_m && count > max + 1) {
+                    ruigehond010_showDomElement(document.getElementById('ruigehond010_more'));
+                } else {
+                    ruigehond010_hideDomElement(document.getElementById('ruigehond010_more'));
                 }
             }
         } else {
@@ -159,7 +166,7 @@ function ruigehond010_filter(select) {
 
 function ruigehond010_start() {
     var options, option, i, len, parent_id, list, lists, maybe_done, search_input, h4, pos, post, post_id, src,
-        lists_by_parent = {}, selected_list = null;
+        lists_by_parent = {}, selected_list = null, more_btn;
 
     /**
      * first get the lists in order: sort them from parent to child and remember if any is pre-checked by php
@@ -190,21 +197,31 @@ function ruigehond010_start() {
             if (maybe_done) break; // yeah, we’re definitely done
         }
     }
-    // run the filter for the first time
-    ruigehond010_filter(selected_list);
     /**
      * setup the search field
      */
     if ((search_input = document.getElementById('ruigehond010_search'))) {
         search_input.addEventListener('keyup', function () {
-            var post, posts, search_string = this.value.toLowerCase(), i, len;
+            var post, posts, search_string = this.value.toLowerCase(), i, len, count = 0;
             if ((posts = document.getElementById('ruigehond010_faq'))) {
                 posts = posts.getElementsByClassName('ruigehond010_post');
                 for (i = 0, len = posts.length; i < len; ++i) {
                     if ((post = posts[i]).innerText.toLowerCase().indexOf(search_string) !== -1) {
-                        ruigehond010_showDomElement(post);
+                        // duplicate code / same as in filter
+                        if (false === ruigehond010_m && count > max) {
+                            ruigehond010_hideDomElement(post);
+                        } else {
+                            ruigehond010_showDomElement(post);
+                        }
+                        ++count;
                     } else {
                         ruigehond010_hideDomElement(post);
+                    }
+                    // duplicate code / same as in filter
+                    if (false === ruigehond010_m && count > max + 1) {
+                        ruigehond010_showDomElement(document.getElementById('ruigehond010_more'));
+                    } else {
+                        ruigehond010_hideDomElement(document.getElementById('ruigehond010_more'));
                     }
                 }
                 // open the first faq item
@@ -231,7 +248,26 @@ function ruigehond010_start() {
                 }
             }
             // and the show more button
-            list.insertAdjacentHTML('beforeend', '<button class="show_more_button"></button>');
+            more_btn = document.createElement('button');
+            more_btn.id = 'ruigehond010_more';
+            more_btn.addEventListener('click', function() {
+                ruigehond010_m = true;
+                // refilter / search immediately to take advantage of the new situation
+                if ((src = document.getElementById('ruigehond010_search')).value !== '') {
+                    src.dispatchEvent(new KeyboardEvent('keyup', {'key': 'Shift'}))
+                } else { // just filter the lowest / latest select list
+                    src = document.querySelectorAll('select.ruigehond010.choose-category');
+                    for (i = src.length - 1; i>0;--i) {
+                        if ((list = lists[i]).style.display !== 'none' && list.selectedIndex > 0){
+                            ruigehond010_filter(list);
+                            break;
+                        }
+                    }
+                }
+                ruigehond010_hideDomElement(this);
+            });
+            list.insertAdjacentElement('beforeend', more_btn);
+            //list.insertAdjacentHTML('beforeend', '<button id="ruigehond010_more" class="button"></button>');
             // when a post_id is in the querystring, open that one only
             if ((pos = (src = document.location.search).indexOf('post_id=')) > -1) {
                 post_id = parseInt(src.substr(pos + 8));
@@ -250,6 +286,8 @@ function ruigehond010_start() {
             // show the first entry (only if not a single entry is shown yet)
             if (-1 === pos) ruigehond010_toggleFirst();
         }
+        // run the filter for the first time
+        ruigehond010_filter(selected_list);
     }
 }
 

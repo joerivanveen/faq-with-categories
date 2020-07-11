@@ -36,14 +36,6 @@
     color: #333;
 }
 
-.show_more_button {
-    display: none;
-}
-
-.show_more_button:after {
+#ruigehond010_more:after {
     content: 'Toon meer vragen & antwoorden';
-}
-
-#ruigehond010_faq[data-has_more] .show_more_button {
-    display: block;
 }
