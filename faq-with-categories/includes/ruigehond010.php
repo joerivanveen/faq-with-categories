@@ -16,7 +16,8 @@ namespace ruigehond010 {
 
     class ruigehond010 extends ruigehond_0_3_4
     {
-        private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $order_table,
+        private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $more_button_text, $max,
+            $order_table,
             $title_links_to_overview, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
         // variables that hold cached items
         private $terms;
@@ -37,6 +38,9 @@ namespace ruigehond010 {
             $this->exclude_from_search = $this->getOption('exclude_from_search', true);
             $this->exclude_from_count = $this->getOption('exclude_from_count', true);
             $this->queue_frontend_css = $this->getOption('queue_frontend_css', true);
+            // more_button_text and max are only used in javascript, attach them to the ruigehond010_faq element as data
+            $this->more_button_text = $this->getOption('more_button_text', __('Show more', 'faq-with-categories'));
+            $this->max = $this->getOption('max',5);
             // Add custom callback for taxonomy counter, if we do not want the faq posts to be counted towards the total
             if (true === $this->exclude_from_count) {
                 add_filter('register_taxonomy_args', function ($args, $name) {
@@ -255,6 +259,10 @@ namespace ruigehond010 {
                 }
                 echo '<ul id="ruigehond010_faq" class="ruigehond010 faq posts ';
                 if ($chosen_exclusive) echo strtolower(htmlentities($chosen_exclusive));
+                echo '" data-max="';
+                echo $this->max;
+                echo '" data-more_button_text="';
+                echo htmlentities($this->more_button_text);
                 echo '">';
                 foreach ($posts as $index => $post) {
                     if ($index === $quantity) break;
@@ -451,7 +459,7 @@ namespace ruigehond010 {
                 'jquery'
             ), RUIGEHOND010_VERSION);
             //wp_enqueue_script( 'jquery-ui-accordion' );
-            wp_enqueue_style('ruigehond010_admin_stylesheet', plugin_dir_url(__FILE__) . 'admin.css', [], RUIGEHOND008_VERSION);
+            wp_enqueue_style('ruigehond010_admin_stylesheet', plugin_dir_url(__FILE__) . 'admin.css', [], RUIGEHOND010_VERSION);
             wp_enqueue_style('wp-jquery-ui-dialog');
             echo '<div class="wrap ruigehond010"><h1>';
             echo esc_html(get_admin_page_title());
@@ -534,15 +542,17 @@ namespace ruigehond010 {
                 'ruigehond010' // page id
             );
             $labels = array(
-                'queue_frontend_css' => __('By default a small css-file is output to the frontend to format the entries. Uncheck to handle the css yourself.', 'faq-with-categories'),
                 'taxonomies' => __('Type the taxonomy you want to use for the categories.', 'faq-with-categories'),
                 'slug' => __('Slug for the individual faq entries (optional).', 'faq-with-categories'),
                 'title_links_to_overview' => __('When using title-only in shortcodes, link to the overview rather than individual FAQ page.', 'faq-with-categories'),
                 'choose_option' => __('The ‘choose / show all’ option in top most select list.', 'faq-with-categories'),
                 'choose_all' => __('The ‘choose / show all’ option in subsequent select lists.', 'faq-with-categories'),
                 'search_faqs' => __('The placeholder in the search bar for the faqs.', 'faq-with-categories'),
+                'max' => __('Number of faqs shown before ‘Show more’ button.', 'faq-with-categories'),
+                'more_button_text' => __('The text on the ‘Show more’ button.', 'faq-with-categories'),
                 'exclude_from_search' => __('Will exclude the FAQ posts from site search queries.', 'faq-with-categories'),
                 'exclude_from_count' => __('FAQ posts will not count towards total posts in taxonomies.', 'faq-with-categories'),
+                'queue_frontend_css' => __('By default a small css-file is output to the frontend to format the entries. Uncheck to handle the css yourself.', 'faq-with-categories'),
             );
             foreach (
                 array(
@@ -552,6 +562,8 @@ namespace ruigehond010 {
                     'choose_option',
                     'choose_all',
                     'search_faqs',
+                    'max',
+                    'more_button_text',
                     'exclude_from_search',
                     'exclude_from_count',
                     'queue_frontend_css',
@@ -616,7 +628,10 @@ namespace ruigehond010 {
                             update_option('ruigehond010_flag_flush_rewrite_rules', 'yes', true);
                         }
                         break;
-                    case 'taxonomies': // TODO check if it's an existing taxonomy?
+                    case 'max':
+                        if (abs(intval($value)) > 0) $options[$key] = abs(intval($value));
+                        break;
+                    case 'taxonomies': // check if it's an existing taxonomy
                         if (false === taxonomy_exists($value)) $value = 'category';
                     // intentional fall through, just validated the value
                     // by default just accept the value

@@ -7,6 +7,7 @@
 }
 
 #ruigehond010_faq .ruigehond010_post {
+    display: none; /* by default to prevent flickering, will be set correctly by javascript */
     height: auto;
     overflow: hidden;
     max-height: 2em; /* the height of the h4 */
@@ -34,4 +35,7 @@
 #ruigehond010_faq .ruigehond010_post .h4 {
     font-size: 125%;
     color: #333;
+}
+#ruigehond010_more {
+    display: none;
 }

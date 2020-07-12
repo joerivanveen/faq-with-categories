@@ -1,4 +1,4 @@
-var FAQWC;
+var ruigehond010_FAQWC; // will hold the object when started
 
 function Ruigehond010(max_for_more, more_button_text) {
     this.max = (this.isInt(max_for_more))?parseInt(max_for_more):5;
@@ -10,8 +10,8 @@ function Ruigehond010(max_for_more, more_button_text) {
 }
 Ruigehond010.prototype.start = function() {
     var self = this,
-        options, option, i, len, parent_id, list, lists, maybe_done, search_input, h4, pos, post, post_id, src, more_btn,
-        lists_by_parent = {}, selected_list = null;
+        options, option, i, len, parent_id, list, lists, maybe_done, search_input, h4, pos, post, post_id, post_ids = [],
+        src, more_btn,  lists_by_parent = {}, selected_list = null;
     /**
      * first get the lists in order: sort them from parent to child and remember if any is pre-checked by php
      */
@@ -60,7 +60,9 @@ Ruigehond010.prototype.start = function() {
      */
     if ((list = document.getElementById('ruigehond010_faq'))) {
         if ((lists = list.querySelectorAll('.ruigehond010_post'))) {
+            // this activates the open / close links and collects the post_ids for displaying
             for (i = 0, len = lists.length; i < len; ++i) {
+                post_ids.push(lists[i].getAttribute('data-post_id'));
                 if ((h4 = lists[i].querySelector('h4'))) {
                     h4.addEventListener('click', function () {
                         self.toggle(this.parentElement);
@@ -79,6 +81,7 @@ Ruigehond010.prototype.start = function() {
             if ((pos = (src = document.location.search).indexOf('post_id=')) > -1) {
                 post_id = parseInt(src.substr(pos + 8));
                 if ((post = list.querySelector('[data-post_id="' + post_id.toString() + '"]'))) {
+                    self.showDomElement(post);
                     self.toggle(post);
                     for (i = 0, len = lists.length; i < len; ++i) {
                         if ((list = lists[i]) !== post) {
@@ -90,8 +93,10 @@ Ruigehond010.prototype.start = function() {
                     pos = -1;
                 }
             }
-            // show the first entry (only if not a single entry is shown yet)
-            if (-1 === pos) self.toggleFirst();
+            // show them (only if not a single entry is shown yet)
+            if (-1 === pos) {
+                self.showPostsById(post_ids);
+            }
         }
         // run the filter for the first time
         self.filter(selected_list);
@@ -112,7 +117,7 @@ Ruigehond010.prototype.search = function(search_string) {
     }
 
 }
-Ruigehond010.prototype.showPostsById = function(post_ids) {
+Ruigehond010.prototype.showPostsById = function(post_ids, leave_toggle_state_alone) {
     var post, posts, i, len, self = this, count = 0;
     this.post_ids = post_ids; // cache them
     if ((posts = document.getElementById('ruigehond010_faq'))) {
@@ -130,23 +135,25 @@ Ruigehond010.prototype.showPostsById = function(post_ids) {
             }
         }
     }
-    // TODO add the more button / functions
-    console.log(count + ' < ' + this.max);
     if (count <= this.max) {
         document.getElementById('ruigehond010_more').style.display = 'none';
     } else {
         this.showing_more = false;
         document.getElementById('ruigehond010_more').style.display = 'block';
     }
-    // open the first faq item
-    setTimeout(function () {
-        if (self.timeout) clearTimeout(self.timeout);
-        self.timeout = setTimeout(function() { self.toggleFirst(); }, 500);
-    }, 500); // wait for the showDomElement and hideDomElement to finish
+    if (!leave_toggle_state_alone) {
+        // open the first faq item
+        setTimeout(function () {
+            if (self.timeout) clearTimeout(self.timeout);
+            self.timeout = setTimeout(function () {
+                self.toggleFirst();
+            }, 500);
+        }, 500); // wait for the showDomElement and hideDomElement to finish
+    }
 }
 Ruigehond010.prototype.showMore = function() {
     this.showing_more = true;
-    this.showPostsById(this.post_ids);
+    this.showPostsById(this.post_ids, true); // true means don’t toggle the first one perse
     document.getElementById('ruigehond010_more').style.display = 'none';
 }
 
@@ -293,9 +300,6 @@ Ruigehond010.prototype.filter = function(select) {
         } else {
             console.error('faq-with-categories: #ruigehond010_faq not found for filtering...');
         }
-        // open the first faq item
-        //if (this.timeout) clearTimeout(this.timeout);
-        //this.timeout = setTimeout(function() { self.toggleFirst() }, 500);
     }
 }
 /* ponyfills */
@@ -316,8 +320,13 @@ Ruigehond010.prototype.cloneShallow = function(obj) {
     }
 }
 function ruigehond010_start() {
-    // TODO get the max_for_more and more_button_text from the plugin settings
-    FAQWC = new Ruigehond010(3, 'Meeerrrr');
+    var el;
+    if ((el = document.getElementById('ruigehond010_faq'))) {
+        ruigehond010_FAQWC = new Ruigehond010(
+            parseInt(el.getAttribute('data-max')),
+            el.getAttribute('data-more_button_text')
+        );
+    }
 }
 /* only after everything is locked and loaded we’re initialising */
 if (document.readyState === "complete") {
