@@ -65,6 +65,7 @@ Ruigehond010.prototype.start = function() {
                 post_ids.push(lists[i].getAttribute('data-post_id'));
                 if ((h4 = lists[i].querySelector('h4'))) {
                     h4.addEventListener('click', function () {
+                        if (self.timeout) clearTimeout(self.timeout);
                         self.toggle(this.parentElement);
                     });
                 }
@@ -143,7 +144,7 @@ Ruigehond010.prototype.showPostsById = function(post_ids, leave_toggle_state_alo
     }
     if (!leave_toggle_state_alone) {
         // open the first faq item
-        setTimeout(function () {
+        self.timeout = setTimeout(function () {
             if (self.timeout) clearTimeout(self.timeout);
             self.timeout = setTimeout(function () {
                 self.toggleFirst();

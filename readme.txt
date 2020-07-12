@@ -88,6 +88,10 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 
 == Changelog ==
 
+1.0.4: updated translations
+
+1.0.3: refactored javascript to OOP so it works more reliably with less code, you can specify button text + max in settings
+
 1.0.2: updated link on plugins page, updated readme
 
 1.0.1: short_code ‘category’ now selects posts the same way as querystring (specifically also all the posts belonging to children)
