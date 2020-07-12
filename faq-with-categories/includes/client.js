@@ -1,15 +1,16 @@
 var FAQWC;
-var ruigehond010_i, // timeout to hold of toggleFirst during search and stuff
-    ruigehond010_m = false; // tracks whether show more is activated
-var min = 3, max = 5; //temp
 
-function Ruigehond010() {
+function Ruigehond010(max_for_more, more_button_text) {
+    this.max = (this.isInt(max_for_more))?parseInt(max_for_more):5;
+    this.more_button_text = more_button_text || 'Show more';
+    this.timeout = null;
+    this.showing_more = false;
     this.start();
 }
 Ruigehond010.prototype.start = function() {
-    var options, option, i, len, parent_id, list, lists, maybe_done, search_input, h4, pos, post, post_id, src,
-        lists_by_parent = {}, selected_list = null, more_btn;
-var self = this;
+    var self = this,
+        options, option, i, len, parent_id, list, lists, maybe_done, search_input, h4, pos, post, post_id, src, more_btn,
+        lists_by_parent = {}, selected_list = null;
     /**
      * first get the lists in order: sort them from parent to child and remember if any is pre-checked by php
      */
@@ -44,41 +45,17 @@ var self = this;
      */
     if ((search_input = document.getElementById('ruigehond010_search'))) {
         search_input.addEventListener('keyup', function () {
-            var post, posts, search_string = this.value.toLowerCase(), i, len, count = 0;
-            if ((posts = document.getElementById('ruigehond010_faq'))) {
-                posts = posts.getElementsByClassName('ruigehond010_post');
-                for (i = 0, len = posts.length; i < len; ++i) {
-                    if ((post = posts[i]).innerText.toLowerCase().indexOf(search_string) !== -1) {
-                        // duplicate code / same as in filter
-                        if (false === ruigehond010_m && count > max) {
-                            self.hideDomElement(post);
-                        } else {
-                            self.showDomElement(post);
-                        }
-                        ++count;
-                    } else {
-                        self.hideDomElement(post);
-                    }
-                    // duplicate code / same as in filter
-                    if (false === ruigehond010_m && count > max + 1) {
-                        self.showDomElement(document.getElementById('ruigehond010_more'));
-                    } else {
-                        self.hideDomElement(document.getElementById('ruigehond010_more'));
-                    }
-                }
-                // open the first faq item
-                setTimeout(function () {
-                    if (ruigehond010_i) clearTimeout(ruigehond010_i);
-                    ruigehond010_i = setTimeout(function() { self.toggleFirst(); }, 500);
-                }, 500); // wait for the showDomElement and hideDomElement to finish
-            }
+            self.search(this.value);
+        });
+        search_input.addEventListener('change', function () {
+            self.search(this.value);
         });
         search_input.addEventListener('focus', function () {
             self.resetLists();
         });
     }
     /**
-     * setup the accordion
+     * setup the accordion, this includes the show_more button and the showing of a single post when requested
      */
     if ((list = document.getElementById('ruigehond010_faq'))) {
         if ((lists = list.querySelectorAll('.ruigehond010_post'))) {
@@ -92,8 +69,9 @@ var self = this;
             // and the show more button
             more_btn = document.createElement('button');
             more_btn.id = 'ruigehond010_more';
+            more_btn.innerText = this.more_button_text;
             more_btn.addEventListener('click', function() {
-                ruigehond010_m = true;
+                this.showing_more = true;
                 // refilter / search immediately to take advantage of the new situation
                 if ((src = document.getElementById('ruigehond010_search')).value !== '') {
                     src.dispatchEvent(new KeyboardEvent('keyup', {'key': 'Shift'}))
@@ -109,7 +87,6 @@ var self = this;
                 self.hideDomElement(this);
             });
             list.insertAdjacentElement('beforeend', more_btn);
-            //list.insertAdjacentHTML('beforeend', '<button id="ruigehond010_more" class="button"></button>');
             // when a post_id is in the querystring, open that one only
             if ((pos = (src = document.location.search).indexOf('post_id=')) > -1) {
                 post_id = parseInt(src.substr(pos + 8));
@@ -131,6 +108,38 @@ var self = this;
         // run the filter for the first time
         self.filter(selected_list);
     }
+}
+Ruigehond010.prototype.search = function(search_string) {
+    var post, posts, i, len, count = 0, self = this;
+    search_string = search_string.toLowerCase();
+    if ((posts = document.getElementById('ruigehond010_faq'))) {
+        posts = posts.getElementsByClassName('ruigehond010_post');
+        for (i = 0, len = posts.length; i < len; ++i) {
+            if ((post = posts[i]).innerText.toLowerCase().indexOf(search_string) !== -1) {
+                // duplicate code / same as in filter
+                if (false === this.showing_more && count > this.max) {
+                    this.hideDomElement(post);
+                } else {
+                    this.showDomElement(post);
+                }
+                ++count;
+            } else {
+                this.hideDomElement(post);
+            }
+            // duplicate code / same as in filter
+            if (false === this.showing_more && count > this.max + 1) {
+                this.showDomElement(document.getElementById('ruigehond010_more'));
+            } else {
+                this.hideDomElement(document.getElementById('ruigehond010_more'));
+            }
+        }
+        // open the first faq item
+        setTimeout(function () {
+            if (self.timeout) clearTimeout(self.timeout);
+            self.timeout = setTimeout(function() { self.toggleFirst(); }, 500);
+        }, 500); // wait for the showDomElement and hideDomElement to finish
+    }
+
 }
 Ruigehond010.prototype.showDomElement = function(element) {
     //element.style.display = 'block';
@@ -269,7 +278,7 @@ Ruigehond010.prototype.filter = function(select) {
                     return class_names.indexOf(n) !== -1;
                 }).length > 0) {
                     // duplicate code / same as in search (below)
-                    if (false === ruigehond010_m && count > max) {
+                    if (false === this.showing_more && count > this.max) {
                         this.hideDomElement(post);
                     } else {
                         this.showDomElement(post);
@@ -279,7 +288,7 @@ Ruigehond010.prototype.filter = function(select) {
                     this.hideDomElement(post);
                 }
                 // duplicate code / same as in search (below)
-                if (false === ruigehond010_m && count > max + 1) {
+                if (false === this.showing_more && count > this.max + 1) {
                     this.showDomElement(document.getElementById('ruigehond010_more'));
                 } else {
                     this.hideDomElement(document.getElementById('ruigehond010_more'));
@@ -289,10 +298,9 @@ Ruigehond010.prototype.filter = function(select) {
             console.error('faq-with-categories: #ruigehond010_faq not found for filtering...');
         }
         // open the first faq item
-        if (ruigehond010_i) clearTimeout(ruigehond010_i);
-        ruigehond010_i = setTimeout(function() { self.toggleFirst() }, 500);
+        if (this.timeout) clearTimeout(this.timeout);
+        this.timeout = setTimeout(function() { self.toggleFirst() }, 500);
     }
-
 }
 /* ponyfills */
 Ruigehond010.prototype.isInt = function(value) {
@@ -312,7 +320,8 @@ Ruigehond010.prototype.cloneShallow = function(obj) {
     }
 }
 function ruigehond010_start() {
-    FAQWC = new Ruigehond010();
+    // TODO get the max_for_more and more_button_text from the plugin settings
+    FAQWC = new Ruigehond010(3, 'Meeerrrr');
 }
 /* only after everything is locked and loaded we’re initialising */
 if (document.readyState === "complete") {
