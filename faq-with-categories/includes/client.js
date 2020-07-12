@@ -1,173 +1,15 @@
+var FAQWC;
 var ruigehond010_i, // timeout to hold of toggleFirst during search and stuff
     ruigehond010_m = false; // tracks whether show more is activated
 var min = 3, max = 5; //temp
-function ruigehond010_showDomElement(element) {
-    //element.style.display = 'block';
-    element.style.position = 'inherit';
-    (function ($) {
-        $(element).fadeIn();
-    })(jQuery);
+
+function Ruigehond010() {
+    this.start();
 }
-
-function ruigehond010_hideDomElement(element) {
-    //element.style.display = 'none';
-    element.style.top = element.getBoundingClientRect().top.toString() + 'px';
-    //element.style.position = 'fixed';
-    (function ($) {
-        $(element).fadeOut();
-    })(jQuery);
-}
-
-function ruigehond010_toggleFirst() {
-    var posts = document.getElementById('ruigehond010_faq').querySelectorAll('.ruigehond010_post'),
-        i, len, post, rect;
-    for (i = 0, len = posts.length; i < len; ++i) {
-        if ((rect = (post = posts[i]).getBoundingClientRect()).top > 0 && rect.left > 0) {
-            ruigehond010_toggle(post);
-            return;
-        }
-    }
-}
-
-function ruigehond010_toggle(li) {
-    // walk through all the elements to close them, only open the chosen one (li)
-    var faq = document.getElementById('ruigehond010_faq'),
-        posts = faq.querySelectorAll('.ruigehond010_post'),
-        i, len, post;
-    for (i = 0, len = posts.length; i < len; ++i) {
-        if ((post = posts[i]) === li) {
-            post.classList.add('open');
-        } else {
-            post.classList.remove('open');
-        }
-    }
-}
-
-function ruigehond010_resetLists() {
-    var list;
-    ruigehond010_hideSubLists();
-    // set the first list to 'choose'
-    if ((list = document.querySelector('[data-ruigehond010_parent="0"]'))) {
-        list.selectedIndex = 0;
-    }
-}
-
-function ruigehond010_resetSearch() {
-    var search_input;
-    if ((search_input = document.getElementById('ruigehond010_search'))) search_input.value = '';
-}
-
-function ruigehond010_hideSubLists() {
-    var lists, list, i, len;
-    if ((lists = document.getElementsByClassName('ruigehond010 choose-category'))) {
-        for (i = 0, len = lists.length; i < len; ++i) {
-            (list = lists[i]).style.display =
-                (list.hasAttribute('data-ruigehond010_parent') &&
-                    list.getAttribute('data-ruigehond010_parent') === '0') ? 'block' : 'none';
-        }
-    }
-}
-
-function ruigehond010_getAllOptionValues(list) {
-    var arr = [], i, len, options, option, parent_id, sub_list;
-    // start at i = 1 because you can skip the hidden 'choose' entry
-    for (i = 1, len = (options = list.options).length; i < len; ++i) {
-        arr.push((option = options[i]).value.toLowerCase());
-        // if this option has a sublist, get all those options as well
-        if (option.hasAttribute('data-ruigehond010_term_id')) {
-            parent_id = option.getAttribute('data-ruigehond010_term_id')
-            if ((sub_list = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"]'))) {
-                arr = arr.concat(ruigehond010_getAllOptionValues(sub_list));
-            }
-        }
-    }
-    return arr;
-}
-
-function ruigehond010_filter(select) {
-    var list, options, option, parent_id, i, len, terms, posts, post, class_names, count = 0;
-    ruigehond010_resetSearch();
-    if (null === select) { // only display the parent and set it to first option
-        ruigehond010_resetLists();
-    } else {
-        ruigehond010_hideSubLists();
-        // display a child list of the selected option if it exists
-        if ((option = select.options[select.selectedIndex])) {
-            if (option.hasAttribute('data-ruigehond010_term_id')) {
-                terms = [option['value'].toLowerCase()];
-                parent_id = option.getAttribute('data-ruigehond010_term_id');
-                if ((list = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"]'))) {
-                    list.selectedIndex = 0;
-                    ruigehond010_showDomElement(list);
-                    terms = terms.concat(ruigehond010_getAllOptionValues(list));
-                }
-            } else {
-                terms = ruigehond010_getAllOptionValues(select)
-                // add the parent term id as well
-                if ((parent_id = select.getAttribute('data-ruigehond010_parent')) > 0) {
-                    terms.push('term-' + parent_id.toString());
-                }
-            }
-        }
-        // travel up the chain making the lists visible until you reach data-ruigehond010_parent="0"
-        while (select.hasAttribute('data-ruigehond010_parent') &&
-        (parent_id = select.getAttribute('data-ruigehond010_parent')) !== '0') {
-            ruigehond010_showDomElement(select);
-            if ((option = document.querySelector('[data-ruigehond010_term_id="' + parent_id + '"]'))) {
-                select = option.parentElement;
-                for (i = 0, len = (options = select.options).length; i < len; ++i) {
-                    if (options[i] === option) {
-                        select.selectedIndex = i;
-                        ruigehond010_showDomElement(select);
-                        break;
-                    }
-                }
-            } else {
-                console.error('faq-with-categories: something is wrong with the select lists');
-                break;
-            }
-        }
-        // filter the faqs
-        if ((posts = document.getElementById('ruigehond010_faq'))) {
-            posts = posts.getElementsByClassName('ruigehond010_post');
-            for (i = 0, len = posts.length; i < len; ++i) {
-                post = posts[i];
-                class_names = post.className;
-                // check if there are overlapping classes
-                if (terms.filter(function (n) {
-                    return class_names.indexOf(n) !== -1;
-                }).length > 0) {
-                    // duplicate code / same as in search (below)
-                    if (false === ruigehond010_m && count > max) {
-                        ruigehond010_hideDomElement(post);
-                    } else {
-                        ruigehond010_showDomElement(post);
-                    }
-                    ++count;
-                } else {
-                    ruigehond010_hideDomElement(post);
-                }
-                // duplicate code / same as in search (below)
-                if (false === ruigehond010_m && count > max + 1) {
-                    ruigehond010_showDomElement(document.getElementById('ruigehond010_more'));
-                } else {
-                    ruigehond010_hideDomElement(document.getElementById('ruigehond010_more'));
-                }
-            }
-        } else {
-            console.error('faq-with-categories: #ruigehond010_faq not found for filtering...');
-        }
-        // open the first faq item
-        if (ruigehond010_i) clearTimeout(ruigehond010_i);
-        ruigehond010_i = setTimeout(ruigehond010_toggleFirst, 500);
-    }
-
-}
-
-function ruigehond010_start() {
+Ruigehond010.prototype.start = function() {
     var options, option, i, len, parent_id, list, lists, maybe_done, search_input, h4, pos, post, post_id, src,
         lists_by_parent = {}, selected_list = null, more_btn;
-
+var self = this;
     /**
      * first get the lists in order: sort them from parent to child and remember if any is pre-checked by php
      */
@@ -175,13 +17,13 @@ function ruigehond010_start() {
         for (i = 0, len = lists.length; i < len; ++i) {
             list = lists[i];
             list.addEventListener('change', function () {
-                ruigehond010_filter(this);
+                self.filter(this);
             });
             lists_by_parent[list.getAttribute('data-ruigehond010_parent')] = list;
             if ((option = list.querySelector('[selected]'))) selected_list = option.parentElement;
         }
     }
-    if ((options = ruigehond_cloneShallow(document.querySelectorAll('[data-ruigehond010_term_id]')))) {
+    if ((options = self.cloneShallow(document.querySelectorAll('[data-ruigehond010_term_id]')))) {
         // sort the lists
         while (true) {
             maybe_done = true; // until proven otherwise
@@ -209,30 +51,30 @@ function ruigehond010_start() {
                     if ((post = posts[i]).innerText.toLowerCase().indexOf(search_string) !== -1) {
                         // duplicate code / same as in filter
                         if (false === ruigehond010_m && count > max) {
-                            ruigehond010_hideDomElement(post);
+                            self.hideDomElement(post);
                         } else {
-                            ruigehond010_showDomElement(post);
+                            self.showDomElement(post);
                         }
                         ++count;
                     } else {
-                        ruigehond010_hideDomElement(post);
+                        self.hideDomElement(post);
                     }
                     // duplicate code / same as in filter
                     if (false === ruigehond010_m && count > max + 1) {
-                        ruigehond010_showDomElement(document.getElementById('ruigehond010_more'));
+                        self.showDomElement(document.getElementById('ruigehond010_more'));
                     } else {
-                        ruigehond010_hideDomElement(document.getElementById('ruigehond010_more'));
+                        self.hideDomElement(document.getElementById('ruigehond010_more'));
                     }
                 }
                 // open the first faq item
                 setTimeout(function () {
                     if (ruigehond010_i) clearTimeout(ruigehond010_i);
-                    ruigehond010_i = setTimeout(ruigehond010_toggleFirst, 500);
+                    ruigehond010_i = setTimeout(function() { self.toggleFirst(); }, 500);
                 }, 500); // wait for the showDomElement and hideDomElement to finish
             }
         });
         search_input.addEventListener('focus', function () {
-            ruigehond010_resetLists();
+            self.resetLists();
         });
     }
     /**
@@ -243,7 +85,7 @@ function ruigehond010_start() {
             for (i = 0, len = lists.length; i < len; ++i) {
                 if ((h4 = lists[i].querySelector('h4'))) {
                     h4.addEventListener('click', function () {
-                        ruigehond010_toggle(this.parentElement);
+                        self.toggle(this.parentElement);
                     });
                 }
             }
@@ -259,12 +101,12 @@ function ruigehond010_start() {
                     src = document.querySelectorAll('select.ruigehond010.choose-category');
                     for (i = src.length - 1; i>0;--i) {
                         if ((list = lists[i]).style.display !== 'none' && list.selectedIndex > 0){
-                            ruigehond010_filter(list);
+                            self.filter(list);
                             break;
                         }
                     }
                 }
-                ruigehond010_hideDomElement(this);
+                self.hideDomElement(this);
             });
             list.insertAdjacentElement('beforeend', more_btn);
             //list.insertAdjacentHTML('beforeend', '<button id="ruigehond010_more" class="button"></button>');
@@ -272,10 +114,10 @@ function ruigehond010_start() {
             if ((pos = (src = document.location.search).indexOf('post_id=')) > -1) {
                 post_id = parseInt(src.substr(pos + 8));
                 if ((post = list.querySelector('[data-post_id="' + post_id.toString() + '"]'))) {
-                    ruigehond010_toggle(post);
+                    self.toggle(post);
                     for (i = 0, len = lists.length; i < len; ++i) {
                         if ((list = lists[i]) !== post) {
-                            ruigehond010_hideDomElement(list);
+                            self.hideDomElement(list);
                         }
                     }
                 } else {
@@ -284,15 +126,176 @@ function ruigehond010_start() {
                 }
             }
             // show the first entry (only if not a single entry is shown yet)
-            if (-1 === pos) ruigehond010_toggleFirst();
+            if (-1 === pos) self.toggleFirst();
         }
         // run the filter for the first time
-        ruigehond010_filter(selected_list);
+        self.filter(selected_list);
+    }
+}
+Ruigehond010.prototype.showDomElement = function(element) {
+    //element.style.display = 'block';
+    element.style.position = 'inherit';
+    (function ($) {
+        $(element).fadeIn();
+    })(jQuery);
+}
+
+Ruigehond010.prototype.hideDomElement = function(element) {
+    //element.style.display = 'none';
+    element.style.top = element.getBoundingClientRect().top.toString() + 'px';
+    //element.style.position = 'fixed';
+    (function ($) {
+        $(element).fadeOut();
+    })(jQuery);
+}
+
+Ruigehond010.prototype.toggleFirst = function() {
+    var posts = document.getElementById('ruigehond010_faq').querySelectorAll('.ruigehond010_post'),
+        i, len, post, rect;
+    for (i = 0, len = posts.length; i < len; ++i) {
+        if ((rect = (post = posts[i]).getBoundingClientRect()).top > 0 && rect.left > 0) {
+            this.toggle(post);
+            return;
+        }
     }
 }
 
+Ruigehond010.prototype.toggle = function(li) {
+    // walk through all the elements to close them, only open the chosen one (li)
+    var faq = document.getElementById('ruigehond010_faq'),
+        posts = faq.querySelectorAll('.ruigehond010_post'),
+        i, len, post;
+    for (i = 0, len = posts.length; i < len; ++i) {
+        if ((post = posts[i]) === li) {
+            post.classList.add('open');
+        } else {
+            post.classList.remove('open');
+        }
+    }
+}
+
+Ruigehond010.prototype.resetLists = function() {
+    var list;
+    this.hideSubLists();
+    // set the first list to 'choose'
+    if ((list = document.querySelector('[data-ruigehond010_parent="0"]'))) {
+        list.selectedIndex = 0;
+    }
+}
+
+Ruigehond010.prototype.resetSearch = function() {
+    var search_input;
+    if ((search_input = document.getElementById('ruigehond010_search'))) search_input.value = '';
+}
+
+Ruigehond010.prototype.hideSubLists = function() {
+    var lists, list, i, len;
+    if ((lists = document.getElementsByClassName('ruigehond010 choose-category'))) {
+        for (i = 0, len = lists.length; i < len; ++i) {
+            (list = lists[i]).style.display =
+                (list.hasAttribute('data-ruigehond010_parent') &&
+                    list.getAttribute('data-ruigehond010_parent') === '0') ? 'block' : 'none';
+        }
+    }
+}
+
+Ruigehond010.prototype.getAllOptionValues = function(list) {
+    var arr = [], i, len, options, option, parent_id, sub_list;
+    // start at i = 1 because you can skip the hidden 'choose' entry
+    for (i = 1, len = (options = list.options).length; i < len; ++i) {
+        arr.push((option = options[i]).value.toLowerCase());
+        // if this option has a sublist, get all those options as well
+        if (option.hasAttribute('data-ruigehond010_term_id')) {
+            parent_id = option.getAttribute('data-ruigehond010_term_id')
+            if ((sub_list = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"]'))) {
+                arr = arr.concat(this.getAllOptionValues(sub_list));
+            }
+        }
+    }
+    return arr;
+}
+
+Ruigehond010.prototype.filter = function(select) {
+    var list, options, option, parent_id, i, len, terms, posts, post, class_names, count = 0, self = this;
+    this.resetSearch();
+    if (null === select) { // only display the parent and set it to first option
+        this.resetLists();
+    } else {
+        this.hideSubLists();
+        // display a child list of the selected option if it exists
+        if ((option = select.options[select.selectedIndex])) {
+            if (option.hasAttribute('data-ruigehond010_term_id')) {
+                terms = [option['value'].toLowerCase()];
+                parent_id = option.getAttribute('data-ruigehond010_term_id');
+                if ((list = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"]'))) {
+                    list.selectedIndex = 0;
+                    this.showDomElement(list);
+                    terms = terms.concat(this.getAllOptionValues(list));
+                }
+            } else {
+                terms = this.getAllOptionValues(select)
+                // add the parent term id as well
+                if ((parent_id = select.getAttribute('data-ruigehond010_parent')) > 0) {
+                    terms.push('term-' + parent_id.toString());
+                }
+            }
+        }
+        // travel up the chain making the lists visible until you reach data-ruigehond010_parent="0"
+        while (select.hasAttribute('data-ruigehond010_parent') &&
+        (parent_id = select.getAttribute('data-ruigehond010_parent')) !== '0') {
+            this.showDomElement(select);
+            if ((option = document.querySelector('[data-ruigehond010_term_id="' + parent_id + '"]'))) {
+                select = option.parentElement;
+                for (i = 0, len = (options = select.options).length; i < len; ++i) {
+                    if (options[i] === option) {
+                        select.selectedIndex = i;
+                        this.showDomElement(select);
+                        break;
+                    }
+                }
+            } else {
+                console.error('faq-with-categories: something is wrong with the select lists');
+                break;
+            }
+        }
+        // filter the faqs
+        if ((posts = document.getElementById('ruigehond010_faq'))) {
+            posts = posts.getElementsByClassName('ruigehond010_post');
+            for (i = 0, len = posts.length; i < len; ++i) {
+                post = posts[i];
+                class_names = post.className;
+                // check if there are overlapping classes
+                if (terms.filter(function (n) {
+                    return class_names.indexOf(n) !== -1;
+                }).length > 0) {
+                    // duplicate code / same as in search (below)
+                    if (false === ruigehond010_m && count > max) {
+                        this.hideDomElement(post);
+                    } else {
+                        this.showDomElement(post);
+                    }
+                    ++count;
+                } else {
+                    this.hideDomElement(post);
+                }
+                // duplicate code / same as in search (below)
+                if (false === ruigehond010_m && count > max + 1) {
+                    this.showDomElement(document.getElementById('ruigehond010_more'));
+                } else {
+                    this.hideDomElement(document.getElementById('ruigehond010_more'));
+                }
+            }
+        } else {
+            console.error('faq-with-categories: #ruigehond010_faq not found for filtering...');
+        }
+        // open the first faq item
+        if (ruigehond010_i) clearTimeout(ruigehond010_i);
+        ruigehond010_i = setTimeout(function() { self.toggleFirst() }, 500);
+    }
+
+}
 /* ponyfills */
-function ruigehond_isInt(value) {
+Ruigehond010.prototype.isInt = function(value) {
     var x;
     if (isNaN(value)) {
         return false;
@@ -301,14 +304,16 @@ function ruigehond_isInt(value) {
     return (x | 0) === x;
 }
 
-function ruigehond_cloneShallow(obj) {
+Ruigehond010.prototype.cloneShallow = function(obj) {
     try {
         return Object.assign({}, obj); // <-- way faster if it's available, even including the try / catch
     } catch (e) {
         return JSON.parse(JSON.stringify(obj));
     }
 }
-
+function ruigehond010_start() {
+    FAQWC = new Ruigehond010();
+}
 /* only after everything is locked and loaded we’re initialising */
 if (document.readyState === "complete") {
     ruigehond010_start();
