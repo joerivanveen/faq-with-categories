@@ -110,36 +110,38 @@ Ruigehond010.prototype.start = function() {
     }
 }
 Ruigehond010.prototype.search = function(search_string) {
-    var post, posts, i, len, count = 0, self = this;
+    var post, posts, i, len, post_ids = [];
     search_string = search_string.toLowerCase();
     if ((posts = document.getElementById('ruigehond010_faq'))) {
         posts = posts.getElementsByClassName('ruigehond010_post');
+        // collect the post_ids for displaying
         for (i = 0, len = posts.length; i < len; ++i) {
             if ((post = posts[i]).innerText.toLowerCase().indexOf(search_string) !== -1) {
-                // duplicate code / same as in filter
-                if (false === this.showing_more && count > this.max) {
-                    this.hideDomElement(post);
-                } else {
-                    this.showDomElement(post);
-                }
-                ++count;
-            } else {
-                this.hideDomElement(post);
-            }
-            // duplicate code / same as in filter
-            if (false === this.showing_more && count > this.max + 1) {
-                this.showDomElement(document.getElementById('ruigehond010_more'));
-            } else {
-                this.hideDomElement(document.getElementById('ruigehond010_more'));
+                post_ids.push(post.getAttribute('data-post_id'))
             }
         }
-        // open the first faq item
-        setTimeout(function () {
-            if (self.timeout) clearTimeout(self.timeout);
-            self.timeout = setTimeout(function() { self.toggleFirst(); }, 500);
-        }, 500); // wait for the showDomElement and hideDomElement to finish
+        this.showPostsById(post_ids);
     }
 
+}
+Ruigehond010.prototype.showPostsById = function(post_ids) {
+    var post, posts, i, len, self = this;
+    if ((posts = document.getElementById('ruigehond010_faq'))) {
+        posts = posts.getElementsByClassName('ruigehond010_post');
+        for (i = 0, len = posts.length; i < len; ++i) {
+            if (post_ids.indexOf((post = posts[i]).getAttribute('data-post_id')) === -1) {
+                this.hideDomElement(post);
+            } else {
+                this.showDomElement(post);
+            }
+        }
+    }
+    // TODO add the more button / functions
+    // open the first faq item
+    setTimeout(function () {
+        if (self.timeout) clearTimeout(self.timeout);
+        self.timeout = setTimeout(function() { self.toggleFirst(); }, 500);
+    }, 500); // wait for the showDomElement and hideDomElement to finish
 }
 Ruigehond010.prototype.showDomElement = function(element) {
     //element.style.display = 'block';
@@ -225,7 +227,7 @@ Ruigehond010.prototype.getAllOptionValues = function(list) {
 }
 
 Ruigehond010.prototype.filter = function(select) {
-    var list, options, option, parent_id, i, len, terms, posts, post, class_names, count = 0, self = this;
+    var list, options, option, parent_id, i, len, terms, posts, post, class_names, count = 0, self = this, post_ids = [];
     this.resetSearch();
     if (null === select) { // only display the parent and set it to first option
         this.resetLists();
@@ -277,29 +279,16 @@ Ruigehond010.prototype.filter = function(select) {
                 if (terms.filter(function (n) {
                     return class_names.indexOf(n) !== -1;
                 }).length > 0) {
-                    // duplicate code / same as in search (below)
-                    if (false === this.showing_more && count > this.max) {
-                        this.hideDomElement(post);
-                    } else {
-                        this.showDomElement(post);
-                    }
-                    ++count;
-                } else {
-                    this.hideDomElement(post);
-                }
-                // duplicate code / same as in search (below)
-                if (false === this.showing_more && count > this.max + 1) {
-                    this.showDomElement(document.getElementById('ruigehond010_more'));
-                } else {
-                    this.hideDomElement(document.getElementById('ruigehond010_more'));
+                    post_ids.push(post.getAttribute('data-post_id'));
                 }
             }
+            this.showPostsById(post_ids);
         } else {
             console.error('faq-with-categories: #ruigehond010_faq not found for filtering...');
         }
         // open the first faq item
-        if (this.timeout) clearTimeout(this.timeout);
-        this.timeout = setTimeout(function() { self.toggleFirst() }, 500);
+        //if (this.timeout) clearTimeout(this.timeout);
+        //this.timeout = setTimeout(function() { self.toggleFirst() }, 500);
     }
 }
 /* ponyfills */
