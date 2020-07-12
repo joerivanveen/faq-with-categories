@@ -5,6 +5,7 @@ function Ruigehond010(max_for_more, more_button_text) {
     this.more_button_text = more_button_text || 'Show more';
     this.timeout = null;
     this.showing_more = false;
+    this.post_ids = []; // caches the post_ids currently selected for display (used by method showMore());
     this.start();
 }
 Ruigehond010.prototype.start = function() {
@@ -71,20 +72,7 @@ Ruigehond010.prototype.start = function() {
             more_btn.id = 'ruigehond010_more';
             more_btn.innerText = this.more_button_text;
             more_btn.addEventListener('click', function() {
-                this.showing_more = true;
-                // refilter / search immediately to take advantage of the new situation
-                if ((src = document.getElementById('ruigehond010_search')).value !== '') {
-                    src.dispatchEvent(new KeyboardEvent('keyup', {'key': 'Shift'}))
-                } else { // just filter the lowest / latest select list
-                    src = document.querySelectorAll('select.ruigehond010.choose-category');
-                    for (i = src.length - 1; i>0;--i) {
-                        if ((list = lists[i]).style.display !== 'none' && list.selectedIndex > 0){
-                            self.filter(list);
-                            break;
-                        }
-                    }
-                }
-                self.hideDomElement(this);
+                self.showMore();
             });
             list.insertAdjacentElement('beforeend', more_btn);
             // when a post_id is in the querystring, open that one only
@@ -125,24 +113,43 @@ Ruigehond010.prototype.search = function(search_string) {
 
 }
 Ruigehond010.prototype.showPostsById = function(post_ids) {
-    var post, posts, i, len, self = this;
+    var post, posts, i, len, self = this, count = 0;
+    this.post_ids = post_ids; // cache them
     if ((posts = document.getElementById('ruigehond010_faq'))) {
         posts = posts.getElementsByClassName('ruigehond010_post');
         for (i = 0, len = posts.length; i < len; ++i) {
             if (post_ids.indexOf((post = posts[i]).getAttribute('data-post_id')) === -1) {
                 this.hideDomElement(post);
             } else {
-                this.showDomElement(post);
+                if (this.showing_more || count < this.max) {
+                    this.showDomElement(post);
+                } else {
+                    this.hideDomElement(post);
+                }
+                count++;
             }
         }
     }
     // TODO add the more button / functions
+    console.log(count + ' < ' + this.max);
+    if (count <= this.max) {
+        document.getElementById('ruigehond010_more').style.display = 'none';
+    } else {
+        this.showing_more = false;
+        document.getElementById('ruigehond010_more').style.display = 'block';
+    }
     // open the first faq item
     setTimeout(function () {
         if (self.timeout) clearTimeout(self.timeout);
         self.timeout = setTimeout(function() { self.toggleFirst(); }, 500);
     }, 500); // wait for the showDomElement and hideDomElement to finish
 }
+Ruigehond010.prototype.showMore = function() {
+    this.showing_more = true;
+    this.showPostsById(this.post_ids);
+    document.getElementById('ruigehond010_more').style.display = 'none';
+}
+
 Ruigehond010.prototype.showDomElement = function(element) {
     //element.style.display = 'block';
     element.style.position = 'inherit';
