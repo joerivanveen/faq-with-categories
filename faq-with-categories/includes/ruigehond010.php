@@ -285,8 +285,9 @@ namespace ruigehond010 {
                     if (false === $title_only) {
                         echo '<h4>';
                         echo $post->post_title;
-                        echo '</h4>';
+                        echo '</h4><div>';
                         echo $post->post_content;
+                        echo '</div>';
                     } else {
                         echo '<a class="title-only h4" href="';
                         if (true === $this->title_links_to_overview) {

@@ -5,16 +5,25 @@
 #ruigehond010_faq {
     margin-left: 0;
 }
+#ruigehond010_faq li {
+    list-style-type: none;
+}
 
 #ruigehond010_faq .ruigehond010_post {
     display: none; /* by default to prevent flickering, will be set correctly by javascript */
     height: auto;
+}
+#ruigehond010_faq .ruigehond010_post h4 {
+    margin-bottom: 0;
+}
+#ruigehond010_faq .ruigehond010_post h4+div {
+    height: auto;
+    max-height: 0;
     overflow: hidden;
-    max-height: 2em; /* the height of the h4 */
     transition: max-height .6s ease-in-out;
 }
 
-#ruigehond010_faq .ruigehond010_post.open {
+#ruigehond010_faq .ruigehond010_post.open h4+div {
     height: auto;
     max-height: 300px;
 }
@@ -23,13 +32,14 @@
     cursor: pointer;
 }
 
-#ruigehond010_faq .ruigehond010_post h4:after {
-    content: '+';
+#ruigehond010_faq .ruigehond010_post h4:before {
+    content: '⯆';
     float: right;
+    transition: all .4s;
 }
 
-#ruigehond010_faq .ruigehond010_post.open h4:after {
-    content: '';
+#ruigehond010_faq .ruigehond010_post.open h4:before {
+    transform: rotate(90deg);
 }
 
 #ruigehond010_faq .ruigehond010_post .h4 {
@@ -37,5 +47,6 @@
     color: #333;
 }
 #ruigehond010_more {
+    margin-top: 2em;
     display: none;
 }
