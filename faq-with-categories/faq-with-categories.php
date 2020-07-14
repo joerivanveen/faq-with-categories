@@ -3,7 +3,7 @@
 Plugin Name: FAQ with categories
 Plugin URI: https://github.com/joerivanveen/faq-with-categories
 Description: Easy to maintain FAQ and answer plugin with categories.
-Version: 1.0.4
+Version: 1.0.5
 Author: Ruige hond
 Author URI: https://ruigehond.nl
 License: GPL3
@@ -11,7 +11,7 @@ Text Domain: faq-with-categories
 Domain Path: /languages/
 */
 defined('ABSPATH') or die();
-define('RUIGEHOND010_VERSION', '1.0.4');
+define('RUIGEHOND010_VERSION', '1.0.5');
 // This is plugin nr. 10 by ruige hond. It identifies with: ruigehond010.
 if (!class_exists('ruigehond_0_3_4', false)) {
     include_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'ruigehond.php'); // base class

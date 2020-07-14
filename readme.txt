@@ -90,6 +90,8 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 
 == Changelog ==
 
+1.0.5: improved accordion, added option to only use the ‘more’ button on the central faq page, improved explanations + translations
+
 1.0.4: updated translations
 
 1.0.3: refactored javascript to OOP so it works more reliably with less code, you can specify button text + max in settings

@@ -505,27 +505,31 @@ namespace ruigehond010 {
             echo '<div class="wrap"><h1>';
             echo esc_html(get_admin_page_title());
             echo '</h1><p>';
-            echo __('FAQS are always sorted by post-date descending, so newest entries are first. By default they are output as an accordion list with the first one opened.', 'faq-with-categories');
+            echo __('FAQS are always sorted by published date descending, so newest entries are first. By default they are output as an accordion list with the first one opened.', 'faq-with-categories');
             echo '<br/>';
-            echo sprintf(__('You can link to your general faq page with a category in the querystring (e.g. %s) to pre-filter the faqs.', 'faq-with-categories'), '?category=test%20category');
+            // #TRANSLATORS: string inserted is an example of a querystring to pre-filter for a category
+            echo sprintf(__('You can link to your general faq page with a category in the querystring (e.g. %s) to pre-filter the faqs.', 'faq-with-categories'), '<strong>?category=test%20category</strong>');
             echo '<br/>';
             echo __('You may use the following shortcodes, of course certain combinations do not make sense and may produce erratic behaviour.', 'faq-with-categories');
             echo '<br/>';
-            echo sprintf(__('%s produces the default list with all the faqs and outputs FAQ snippets schema in the head.', 'faq-with-categories'), '<strong>[faq-with-categories]</strong>');
+            echo sprintf(__('%s produces the default list for the central FAQ page and outputs FAQ snippets schema in the head.', 'faq-with-categories'), '<strong>[faq-with-categories]</strong>');
             echo '<br/>';
             echo sprintf(__('%s produces a filter menu according to the chosen taxonomy using the specified order.', 'faq-with-categories'), '<strong>[faq-with-categories-filter]</strong>');
             echo '<br/>';
             echo sprintf(__('%s produces a search box that will perform client-side lookup through the faqs.', 'faq-with-categories'), '<strong>[faq-with-categories-search]</strong>');
             echo '<br/>';
-            echo sprintf(__('%s limits the quantity of the faqs to 5, or use another number*.', 'faq-with-categories'), '[faq-with-categories <strong>quantity="5"</strong>]');
+            // #TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
+            echo sprintf(__('%1$s %2$s limits the quantity of the faqs to 5, or use another number.', 'faq-with-categories'), '[faq-with-categories <strong>quantity="5"</strong>]', '<em>(*)</em>');
             echo '<br/>';
-            echo sprintf(__('%s display only faqs for the specified category (case insensitive)*. This will NOT output FAQ snippets schema in the head.', 'faq-with-categories'), '[faq-with-categories <strong>category="category name"</strong>]');
+            // #TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
+            echo sprintf(__('%1$s %2$s display only faqs for the specified category (case insensitive). This will NOT output FAQ snippets schema in the head.', 'faq-with-categories'), '[faq-with-categories <strong>category="category name"</strong>]', '<em>(*)</em>');
             echo '<br/>';
-            echo sprintf(__('%s any tag you specified under a faq entry in the box, will gather all faqs with that tag for display*.', 'faq-with-categories'), '[faq-with-categories <strong>exclusive="your tag"</strong>]');
+            // #TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
+            echo sprintf(__('%1$s %2$s any tag you specified under a faq entry in the box, will gather all faqs with that tag for display.', 'faq-with-categories'), '[faq-with-categories <strong>exclusive="your tag"</strong>]', '<em>(*)</em>');
             echo '<br/>';
             echo sprintf(__('%s outputs the list as links rather than as an accordion.', 'faq-with-categories'), '[faq-with-categories <strong>title-only="any value"</strong>]');
-            echo '<br/><em>';
-            echo __('* NOTE: only a limited number of faqs will be present on the page so search and filter will not work.', 'faq-with-categories');
+            echo '<br/><em>(*) ';
+            echo __('NOTE: only a limited number of faqs will be present on the page so search and filter will not work.', 'faq-with-categories');
             echo '</em></p><form action="options.php" method="post">';
             // output security fields for the registered setting
             settings_fields('ruigehond010');
@@ -557,7 +561,7 @@ namespace ruigehond010 {
                 'choose_all' => __('The ‘choose / show all’ option in subsequent select lists.', 'faq-with-categories'),
                 'search_faqs' => __('The placeholder in the search bar for the faqs.', 'faq-with-categories'),
                 'max' => __('Number of faqs shown before ‘Show more’ button.', 'faq-with-categories'),
-                'max_ignore_elsewhere' => __('Only use the more button on the central page, nowhere else.', 'faq-with-categories'),
+                'max_ignore_elsewhere' => __('Only use the more button on the central FAQ page, nowhere else.', 'faq-with-categories'),
                 'more_button_text' => __('The text on the ‘Show more’ button.', 'faq-with-categories'),
                 'exclude_from_search' => __('Will exclude the FAQ posts from site search queries.', 'faq-with-categories'),
                 'exclude_from_count' => __('FAQ posts will not count towards total posts in taxonomies.', 'faq-with-categories'),
