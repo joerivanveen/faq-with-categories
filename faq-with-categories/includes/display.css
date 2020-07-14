@@ -33,7 +33,7 @@
 }
 
 #ruigehond010_faq .ruigehond010_post h4:before {
-    content: '⯆';
+    content: '▼';
     float: right;
     transition: all .4s;
 }
