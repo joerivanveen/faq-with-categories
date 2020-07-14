@@ -16,7 +16,8 @@ namespace ruigehond010 {
 
     class ruigehond010 extends ruigehond_0_3_4
     {
-        private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $more_button_text, $max,
+        private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs,
+            $more_button_text, $max, $max_ignore_elsewhere,
             $order_table,
             $title_links_to_overview, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
         // variables that hold cached items
@@ -39,6 +40,7 @@ namespace ruigehond010 {
             $this->exclude_from_count = $this->getOption('exclude_from_count', true);
             $this->queue_frontend_css = $this->getOption('queue_frontend_css', true);
             // more_button_text and max are only used in javascript, attach them to the ruigehond010_faq element as data
+            $this->max_ignore_elsewhere = $this->getOption('max_ignore_elsewhere', false);
             $this->more_button_text = $this->getOption('more_button_text', __('Show more', 'faq-with-categories'));
             $this->max = $this->getOption('max',5);
             // Add custom callback for taxonomy counter, if we do not want the faq posts to be counted towards the total
@@ -233,7 +235,7 @@ namespace ruigehond010 {
                 // [faq-with-categories exclusive="homepage"], or /url?category=blah
                 // load the posts, will return row data: ID = id of the post, exclusive = meta value for exclusive (null when none)
                 // term = category: this will multiply rows if multiple categories are attached,
-                // post_title = question, post_content = answer, post_date = the date
+                // post_title = question, post_content = answer, post_date = the published date
                 $posts = $this->getPosts($chosen_exclusive, $chosen_term);
                 ob_start();
                 // prepare the link
@@ -259,6 +261,11 @@ namespace ruigehond010 {
                 }
                 echo '<ul id="ruigehond010_faq" class="ruigehond010 faq posts ';
                 if ($chosen_exclusive) echo strtolower(htmlentities($chosen_exclusive));
+                if (true === $this->max_ignore_elsewhere and
+                    (false === is_null($chosen_term) or false === is_null($chosen_exclusive))
+                ) {
+                    echo '" data-max_ignore="1'; // set the max to be ignored on pages that display subsets of the faq
+                }
                 echo '" data-max="';
                 echo $this->max;
                 echo '" data-more_button_text="';
@@ -549,6 +556,7 @@ namespace ruigehond010 {
                 'choose_all' => __('The ‘choose / show all’ option in subsequent select lists.', 'faq-with-categories'),
                 'search_faqs' => __('The placeholder in the search bar for the faqs.', 'faq-with-categories'),
                 'max' => __('Number of faqs shown before ‘Show more’ button.', 'faq-with-categories'),
+                'max_ignore_elsewhere' => __('Only use the more button on the central page, nowhere else.', 'faq-with-categories'),
                 'more_button_text' => __('The text on the ‘Show more’ button.', 'faq-with-categories'),
                 'exclude_from_search' => __('Will exclude the FAQ posts from site search queries.', 'faq-with-categories'),
                 'exclude_from_count' => __('FAQ posts will not count towards total posts in taxonomies.', 'faq-with-categories'),
@@ -563,6 +571,7 @@ namespace ruigehond010 {
                     'choose_all',
                     'search_faqs',
                     'max',
+                    'max_ignore_elsewhere',
                     'more_button_text',
                     'exclude_from_search',
                     'exclude_from_count',
@@ -592,6 +601,7 @@ namespace ruigehond010 {
                 case 'queue_frontend_css':
                 case 'exclude_from_count':
                 case 'title_links_to_overview':
+                case 'max_ignore_elsewhere':
                 case 'exclude_from_search': // make checkbox that transmits 1 or 0, depending on status
                     $str .= '<label><input type="hidden" name="ruigehond010[' . $setting_name . ']" value="' .
                         (($this->$setting_name) ? '1' : '0') . '"><input type="checkbox"';
@@ -618,6 +628,7 @@ namespace ruigehond010 {
                     case 'queue_frontend_css':
                     case 'exclude_from_search':
                     case 'title_links_to_overview':
+                    case 'max_ignore_elsewhere':
                     case 'exclude_from_count':
                         $options[$key] = ($value === '1' or $value === true);
                         break;

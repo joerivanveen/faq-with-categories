@@ -1,7 +1,8 @@
 var ruigehond010_FAQWC; // will hold the object when started
 
-function Ruigehond010(max_for_more, more_button_text) {
+function Ruigehond010(max_for_more, max_ignore, more_button_text) {
     this.max = (this.isInt(max_for_more))?parseInt(max_for_more):5;
+    this.max_ignore = max_ignore; // when true ignore the maximum amount, never display the more button
     this.more_button_text = more_button_text || 'Show more';
     this.timeout = null;
     this.showing_more = false;
@@ -70,14 +71,18 @@ Ruigehond010.prototype.start = function() {
                     });
                 }
             }
-            // and the show more button
-            more_btn = document.createElement('button');
-            more_btn.id = 'ruigehond010_more';
-            more_btn.innerText = this.more_button_text;
-            more_btn.addEventListener('click', function() {
-                self.showMore();
-            });
-            list.insertAdjacentElement('beforeend', more_btn);
+            if (this.max_ignore) {
+                this.showing_more = true;
+            } else {
+                // and the show more button
+                more_btn = document.createElement('button');
+                more_btn.id = 'ruigehond010_more';
+                more_btn.innerText = this.more_button_text;
+                more_btn.addEventListener('click', function () {
+                    self.showMore();
+                });
+                list.insertAdjacentElement('beforeend', more_btn);
+            }
             // when a post_id is in the querystring, open that one only
             if ((pos = (src = document.location.search).indexOf('post_id=')) > -1) {
                 post_id = parseInt(src.substr(pos + 8));
@@ -136,11 +141,13 @@ Ruigehond010.prototype.showPostsById = function(post_ids, leave_toggle_state_alo
             }
         }
     }
-    if (count <= this.max) {
-        document.getElementById('ruigehond010_more').style.display = 'none';
-    } else {
-        this.showing_more = false;
-        document.getElementById('ruigehond010_more').style.display = 'block';
+    if ((len = document.getElementById('ruigehond010_more'))) {
+        if (count <= this.max) {
+            len.style.display = 'none';
+        } else {
+            this.showing_more = false;
+            len.style.display = 'block';
+        }
     }
     if (!leave_toggle_state_alone) {
         // open the first faq item
@@ -324,7 +331,8 @@ function ruigehond010_start() {
     var el;
     if ((el = document.getElementById('ruigehond010_faq'))) {
         ruigehond010_FAQWC = new Ruigehond010(
-            parseInt(el.getAttribute('data-max')),
+            el.getAttribute('data-max'),
+            el.hasAttribute('data-max_ignore'), // the server sends this when relevant
             el.getAttribute('data-more_button_text')
         );
     }

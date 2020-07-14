@@ -8,11 +8,11 @@ Requires PHP: 5.4
 Stable tag: trunk
 License: GPLv3
 
-Easy to maintain FAQ with categories
+Easy to manage FAQ with categories, including accordion, filter, search and show more functionality.
 
 == Description ==
 
-FAQs are great for your users and when implemented correctly also for your SEO.
+FAQs are great for your visitors and when implemented correctly also for SEO.
 
 This simple FAQ plugin creates a new post-type. This is straightforward and flexible: you can now create and manage FAQs like any other post type in Wordpress.
 
@@ -23,6 +23,8 @@ FAQs are always sorted by published-date descending, so newest entries are first
 You can choose a taxonomy, the default is ‘category’, to attach your FAQ posts to. You can now summon FAQs for a specific category (including sub categories) on a page. The plugin also uses it to filter the FAQs if you place the filter on your central FAQ page.
 
 If you want some FAQs in other locations that do not appear on the central page you can use an ‘exclusive’ tag.
+
+When there are many entries, a ‘Show more’ button appears automatically (configurable in the settings)
 
 = Pros =
 
@@ -38,7 +40,7 @@ If you want some FAQs in other locations that do not appear on the central page 
 
 = Cons =
 
-- Only 1 central FAQ list is supported (though you can display the FAQs anywhere you want of course)
+- Only 1 central FAQ list is supported (though you can display subsets of the FAQs anywhere you want)
 
 - Currently only with shortcodes, no widgets yet
 
@@ -48,25 +50,25 @@ If you want some FAQs in other locations that do not appear on the central page 
 
 You may use the following shortcodes, of course certain combinations do not make sense and may produce erratic behaviour.
 
-[faq-with-categories] produces the default list with all the faqs and outputs FAQ snippets schema in the head.
+**[faq-with-categories]** (use only ONCE) produces the default list with all the faqs and outputs FAQ snippets schema in the head.
 
-[faq-with-categories-filter] produces a filter menu according to the chosen taxonomy using the specified order.
+**[faq-with-categories-filter]** produces a filter menu according to the chosen taxonomy using the specified order (only works when default shortcode is also on that page).
 
-[faq-with-categories-search] produces a search box that will perform client-side lookup through the faqs.
+**[faq-with-categories-search]** produces a search box that will perform client-side lookup through the faqs (only works when default shortcode is also on that page).
 
-[faq-with-categories quantity="5"] limits the quantity of the faqs to 5, or use another number*.
+[faq-with-categories **quantity="5"**] *(1)* limits the quantity of the faqs to 5, or use another number. Can be combined with the other settings.
 
-[faq-with-categories category="category name"] display only faqs for the specified category (case insensitive)*. This will NOT output FAQ snippets schema in the head.
+[faq-with-categories **category="category name"**] *(1)* display only faqs for the specified category (case insensitive). This will NOT output FAQ snippets schema in the head.
 
-[faq-with-categories exclusive="your tag"] any tag you specified under a faq entry in the box, will gather all faqs with that tag for display*.
+[faq-with-categories **exclusive="your tag"**] *(1)* (use only ONCE for every tag) any tag you specified under a faq entry in the box, will gather all faqs with that tag for display.
 
-[faq-with-categories title-only="any value"] outputs the list as links rather than as an accordion.
+[faq-with-categories **title-only="any value"**] outputs the list as links rather than as an accordion.
 
-* NOTE: only a limited number of faqs will be present on the page so search and filter will not work.
+*(1)* NOTE: only a limited number of faqs will be present on the page so search and filter will not work.
 
-= Planned =
+= Template =
 
-If you have a lot of FAQs, the unfiltered central page will be long. A ‘more’ option is being developed that lets you trim the initial view to a couple of FAQs with a button for the user to see the whole list.
+The post-type is called ruigehond010_faq, so you can create a single-ruigehond010_faq.php and archive-ruigehond010_faq.php template should you want to format the display in more detail.
 
 Have fun. Let me know if you have a question!
 
@@ -97,3 +99,4 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 1.0.1: short_code ‘category’ now selects posts the same way as querystring (specifically also all the posts belonging to children)
 
 1.0.0: Release
+
