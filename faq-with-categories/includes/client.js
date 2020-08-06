@@ -1,7 +1,7 @@
 var ruigehond010_FAQWC; // will hold the object when started
 
 function Ruigehond010(max_for_more, max_ignore, more_button_text) {
-    this.max = (this.isInt(max_for_more))?parseInt(max_for_more):5;
+    this.max = (this.isInt(max_for_more)) ? parseInt(max_for_more) : 5;
     this.max_ignore = max_ignore; // when true ignore the maximum amount, never display the more button
     this.more_button_text = more_button_text || 'Show more';
     this.timeout = null;
@@ -9,10 +9,12 @@ function Ruigehond010(max_for_more, max_ignore, more_button_text) {
     this.post_ids = []; // caches the post_ids currently selected for display (used by method showMore());
     this.start();
 }
-Ruigehond010.prototype.start = function() {
+
+Ruigehond010.prototype.start = function () {
     var self = this,
-        options, option, i, len, parent_id, list, lists, maybe_done, search_input, h4, pos, post, post_id, post_ids = [],
-        src, more_btn,  lists_by_parent = {}, selected_list = null;
+        options, option, i, len, parent_id, list, lists, maybe_done, search_input, h4, pos, post, post_id,
+        post_ids = [],
+        src, more_btn, lists_by_parent = {}, selected_list = null;
     /**
      * first get the lists in order: sort them from parent to child and remember if any is pre-checked by php
      */
@@ -108,7 +110,7 @@ Ruigehond010.prototype.start = function() {
         self.filter(selected_list);
     }
 }
-Ruigehond010.prototype.search = function(search_string) {
+Ruigehond010.prototype.search = function (search_string) {
     var post, posts, i, len, post_ids = [];
     search_string = search_string.toLowerCase();
     if ((posts = document.getElementById('ruigehond010_faq'))) {
@@ -123,7 +125,7 @@ Ruigehond010.prototype.search = function(search_string) {
     }
 
 }
-Ruigehond010.prototype.showPostsById = function(post_ids, leave_toggle_state_alone) {
+Ruigehond010.prototype.showPostsById = function (post_ids, leave_toggle_state_alone) {
     var post, posts, i, len, self = this, count = 0;
     this.post_ids = post_ids; // cache them
     if ((posts = document.getElementById('ruigehond010_faq'))) {
@@ -149,23 +151,34 @@ Ruigehond010.prototype.showPostsById = function(post_ids, leave_toggle_state_alo
             len.style.display = 'block';
         }
     }
-    if (!leave_toggle_state_alone) {
-        // open the first faq item
-        self.timeout = setTimeout(function () {
-            if (self.timeout) clearTimeout(self.timeout);
+    if (post_ids.length === 0) {
+        this.toggleNoResultsWarning(true);
+    } else {
+        this.toggleNoResultsWarning(false);
+        if (!leave_toggle_state_alone) {
+            // open the first faq item
             self.timeout = setTimeout(function () {
-                self.toggleFirst();
-            }, 500);
-        }, 500); // wait for the showDomElement and hideDomElement to finish
+                if (self.timeout) clearTimeout(self.timeout);
+                self.timeout = setTimeout(function () {
+                    self.toggleFirst();
+                }, 500);
+            }, 500); // wait for the showDomElement and hideDomElement to finish
+        }
     }
 }
-Ruigehond010.prototype.showMore = function() {
+Ruigehond010.prototype.toggleNoResultsWarning = function (show) {
+    var el;
+    if ((el = document.getElementById('ruigehond010_no_results_warning')) && (el.style.display === 'none') === show) {
+        show ? this.showDomElement(el) : this.hideDomElement(el);
+    }
+}
+Ruigehond010.prototype.showMore = function () {
     this.showing_more = true;
     this.showPostsById(this.post_ids, true); // true means don’t toggle the first one perse
     document.getElementById('ruigehond010_more').style.display = 'none';
 }
 
-Ruigehond010.prototype.showDomElement = function(element) {
+Ruigehond010.prototype.showDomElement = function (element) {
     //element.style.display = 'block';
     element.style.position = 'inherit';
     (function ($) {
@@ -173,7 +186,7 @@ Ruigehond010.prototype.showDomElement = function(element) {
     })(jQuery);
 }
 
-Ruigehond010.prototype.hideDomElement = function(element) {
+Ruigehond010.prototype.hideDomElement = function (element) {
     //element.style.display = 'none';
     element.style.top = element.getBoundingClientRect().top.toString() + 'px';
     //element.style.position = 'fixed';
@@ -182,7 +195,7 @@ Ruigehond010.prototype.hideDomElement = function(element) {
     })(jQuery);
 }
 
-Ruigehond010.prototype.toggleFirst = function() {
+Ruigehond010.prototype.toggleFirst = function () {
     var posts = document.getElementById('ruigehond010_faq').querySelectorAll('.ruigehond010_post'),
         i, len, post, rect;
     for (i = 0, len = posts.length; i < len; ++i) {
@@ -193,7 +206,7 @@ Ruigehond010.prototype.toggleFirst = function() {
     }
 }
 
-Ruigehond010.prototype.toggle = function(li) {
+Ruigehond010.prototype.toggle = function (li) {
     // walk through all the elements to close them, only open the chosen one (li)
     var faq = document.getElementById('ruigehond010_faq'),
         posts = faq.querySelectorAll('.ruigehond010_post'),
@@ -207,7 +220,7 @@ Ruigehond010.prototype.toggle = function(li) {
     }
 }
 
-Ruigehond010.prototype.resetLists = function() {
+Ruigehond010.prototype.resetLists = function () {
     var list;
     this.hideSubLists();
     // set the first list to 'choose'
@@ -216,12 +229,12 @@ Ruigehond010.prototype.resetLists = function() {
     }
 }
 
-Ruigehond010.prototype.resetSearch = function() {
+Ruigehond010.prototype.resetSearch = function () {
     var search_input;
     if ((search_input = document.getElementById('ruigehond010_search'))) search_input.value = '';
 }
 
-Ruigehond010.prototype.hideSubLists = function() {
+Ruigehond010.prototype.hideSubLists = function () {
     var lists, list, i, len;
     if ((lists = document.getElementsByClassName('ruigehond010 choose-category'))) {
         for (i = 0, len = lists.length; i < len; ++i) {
@@ -232,7 +245,7 @@ Ruigehond010.prototype.hideSubLists = function() {
     }
 }
 
-Ruigehond010.prototype.getAllOptionValues = function(list) {
+Ruigehond010.prototype.getAllOptionValues = function (list) {
     var arr = [], i, len, options, option, parent_id, sub_list;
     // start at i = 1 because you can skip the hidden 'choose' entry
     for (i = 1, len = (options = list.options).length; i < len; ++i) {
@@ -248,8 +261,9 @@ Ruigehond010.prototype.getAllOptionValues = function(list) {
     return arr;
 }
 
-Ruigehond010.prototype.filter = function(select) {
-    var list, options, option, parent_id, i, len, terms, posts, post, class_names, count = 0, self = this, post_ids = [];
+Ruigehond010.prototype.filter = function (select) {
+    var list, options, option, parent_id, i, len, terms, posts, post, class_names, count = 0, self = this,
+        post_ids = [];
     this.resetSearch();
     if (null === select) { // only display the parent and set it to first option
         this.resetLists();
@@ -311,7 +325,7 @@ Ruigehond010.prototype.filter = function(select) {
     }
 }
 /* ponyfills */
-Ruigehond010.prototype.isInt = function(value) {
+Ruigehond010.prototype.isInt = function (value) {
     var x;
     if (isNaN(value)) {
         return false;
@@ -320,13 +334,14 @@ Ruigehond010.prototype.isInt = function(value) {
     return (x | 0) === x;
 }
 
-Ruigehond010.prototype.cloneShallow = function(obj) {
+Ruigehond010.prototype.cloneShallow = function (obj) {
     try {
         return Object.assign({}, obj); // <-- way faster if it's available, even including the try / catch
     } catch (e) {
         return JSON.parse(JSON.stringify(obj));
     }
 }
+
 function ruigehond010_start() {
     var el;
     if ((el = document.getElementById('ruigehond010_faq'))) {
@@ -337,6 +352,7 @@ function ruigehond010_start() {
         );
     }
 }
+
 /* only after everything is locked and loaded we’re initialising */
 if (document.readyState === "complete") {
     ruigehond010_start();

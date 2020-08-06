@@ -3,7 +3,7 @@ Contributors: ruigehond
 Tags: faq, categories, frequently, asked, questions, answers
 Donate link: https://paypal.me/ruigehond
 Requires at least: 4.5
-Tested up to: 5.4
+Tested up to: 5.5
 Requires PHP: 5.4
 Stable tag: trunk
 License: GPLv3
@@ -89,6 +89,10 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 1. Settings screen
 
 == Changelog ==
+
+1.0.7: added no results warning message
+
+1.0.6: fixed faq display with limited quantity and / or title-only could register as the main faq page
 
 1.0.5: improved accordion, added option to only use the ‘more’ button on the central faq page, improved explanations + translations
 

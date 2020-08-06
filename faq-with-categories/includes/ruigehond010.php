@@ -17,7 +17,7 @@ namespace ruigehond010 {
     class ruigehond010 extends ruigehond_0_3_4
     {
         private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs,
-            $more_button_text, $max, $max_ignore_elsewhere,
+            $more_button_text, $no_results_warning, $max, $max_ignore_elsewhere,
             $order_table,
             $title_links_to_overview, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
         // variables that hold cached items
@@ -42,6 +42,7 @@ namespace ruigehond010 {
             // more_button_text and max are only used in javascript, attach them to the ruigehond010_faq element as data
             $this->max_ignore_elsewhere = $this->getOption('max_ignore_elsewhere', false);
             $this->more_button_text = $this->getOption('more_button_text', __('Show more', 'faq-with-categories'));
+            $this->no_results_warning = $this->getOption('no_results_warning', __('No results found', 'faq-with-categories'));
             $this->max = $this->getOption('max',5);
             // Add custom callback for taxonomy counter, if we do not want the faq posts to be counted towards the total
             if (true === $this->exclude_from_count) {
@@ -200,7 +201,7 @@ namespace ruigehond010 {
 
                 return $str;
             } else { // 2) all the posts, filtered by 'exclusive' or 'term'
-                // only register exclusive displays and the full faq page
+                // only register exclusive displays and the full faq page for outputting schema
                 // TODO optimize this somewhat
                 if (is_null($chosen_term)) {
                     // register the shortcode being used here, for outputSchema method :-)
@@ -215,13 +216,13 @@ namespace ruigehond010 {
                                 }
                             }
                         }
-                        // register this id (also updates if e.g. the exclusive value changes
+                        // register this id (also updates if e.g. the exclusive value changes)
                         $on[$post_id] = $register;
                     } else {
                         $on = [$post_id => true];
                     }
                     $this->setOption('post_ids', $on);
-                    if ($register === true) {
+                    if ($register === true and is_null($quantity) and $title_only === false) {
                         $this->setOption('faq_page_slug', get_post_field('post_name', $post_id));
                     }
                 } else {
@@ -251,6 +252,9 @@ namespace ruigehond010 {
                                 $slug = $slug . '?post_id=%s';
                             } else {
                                 $slug = $slug . '&post_id=%s';
+                            }
+                            if (strpos($slug, '/') !== 1) {
+                                $slug = '/' . $slug;
                             }
                         }
                     } else {
@@ -301,6 +305,11 @@ namespace ruigehond010 {
                     }
                     echo '</li>';
                 }
+                // no results warning
+                echo '<li id="ruigehond010_no_results_warning" style="display: none;">';
+                echo $this->no_results_warning;
+                echo '</li>';
+                // end list
                 echo '</ul>';
                 $str = ob_get_contents();
                 ob_end_clean();
@@ -563,6 +572,7 @@ namespace ruigehond010 {
                 'max' => __('Number of faqs shown before ‘Show more’ button.', 'faq-with-categories'),
                 'max_ignore_elsewhere' => __('Only use the more button on the central FAQ page, nowhere else.', 'faq-with-categories'),
                 'more_button_text' => __('The text on the ‘Show more’ button.', 'faq-with-categories'),
+                'no_results_warning' => __('Text shown when search or filter results in 0 faqs found.', 'faq-with-categories'),
                 'exclude_from_search' => __('Will exclude the FAQ posts from site search queries.', 'faq-with-categories'),
                 'exclude_from_count' => __('FAQ posts will not count towards total posts in taxonomies.', 'faq-with-categories'),
                 'queue_frontend_css' => __('By default a small css-file is output to the frontend to format the entries. Uncheck to handle the css yourself.', 'faq-with-categories'),
@@ -578,6 +588,7 @@ namespace ruigehond010 {
                     'max',
                     'max_ignore_elsewhere',
                     'more_button_text',
+                    'no_results_warning',
                     'exclude_from_search',
                     'exclude_from_count',
                     'queue_frontend_css',
