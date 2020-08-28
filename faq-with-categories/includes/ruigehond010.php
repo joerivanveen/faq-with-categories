@@ -7,7 +7,6 @@
  */
 
 // TODO BUG if you put central faq short_code or any exclusive tag on multiple pages, the $on option keeps getting updated
-
 namespace ruigehond010 {
 
     use ruigehond_0_3_4;
@@ -43,7 +42,7 @@ namespace ruigehond010 {
             $this->max_ignore_elsewhere = $this->getOption('max_ignore_elsewhere', false);
             $this->more_button_text = $this->getOption('more_button_text', __('Show more', 'faq-with-categories'));
             $this->no_results_warning = $this->getOption('no_results_warning', __('No results found', 'faq-with-categories'));
-            $this->max = $this->getOption('max',5);
+            $this->max = $this->getOption('max', 5);
             // Add custom callback for taxonomy counter, if we do not want the faq posts to be counted towards the total
             if (true === $this->exclude_from_count) {
                 add_filter('register_taxonomy_args', function ($args, $name) {
@@ -205,7 +204,7 @@ namespace ruigehond010 {
                 // TODO optimize this somewhat
                 if (is_null($chosen_term)) {
                     // register the shortcode being used here, for outputSchema method :-)
-                    $register = (is_string($chosen_exclusive)) ? $chosen_exclusive : true;
+                    $register = (is_string($chosen_exclusive)) ? $chosen_exclusive : ((is_null($quantity)) ? true : false);
                     if (($on = $this->getOption('post_ids'))) {
                         if (false === isset($on[$post_id])) {
                             // remove the original id if any
@@ -215,14 +214,19 @@ namespace ruigehond010 {
                                     break;
                                 }
                             }
+                        } else { // remove this one, it will be set later if applicable
+                            unset($on[$post_id]);
                         }
                         // register this id (also updates if e.g. the exclusive value changes)
-                        $on[$post_id] = $register;
+                        // don’t update if it’s all faqs but with a quantity
+                        if (false !== $register) {
+                            $on[$post_id] = $register;
+                        }
                     } else {
                         $on = [$post_id => true];
                     }
                     $this->setOption('post_ids', $on);
-                    if ($register === true and is_null($quantity) and $title_only === false) {
+                    if ($register === true and $title_only === false) {
                         $this->setOption('faq_page_slug', get_post_field('post_name', $post_id));
                     }
                 } else {
@@ -356,7 +360,7 @@ namespace ruigehond010 {
                     addslashes($term) . '\';';
                 // now for as long as rows with term_ids are returned, keep building the array
                 while ($rows = $this->wpdb->get_results($sql)) {
-                    foreach ($rows as $index=>$row) {
+                    foreach ($rows as $index => $row) {
                         $term_ids[] = $row->term_id;
                     }
                     // new sql selects all the children from the term_ids that are in the array
@@ -529,9 +533,13 @@ namespace ruigehond010 {
             echo '<br/>';
             // #TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
             echo sprintf(__('%1$s %2$s limits the quantity of the faqs to 5, or use another number.', 'faq-with-categories'), '[faq-with-categories <strong>quantity="5"</strong>]', '<em>(*)</em>');
+            echo ' ';
+            echo __('This will NOT output FAQ snippets schema in the head.', 'faq-with-categories');
             echo '<br/>';
             // #TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
-            echo sprintf(__('%1$s %2$s display only faqs for the specified category (case insensitive). This will NOT output FAQ snippets schema in the head.', 'faq-with-categories'), '[faq-with-categories <strong>category="category name"</strong>]', '<em>(*)</em>');
+            echo sprintf(__('%1$s %2$s display only faqs for the specified category (case insensitive).', 'faq-with-categories'), '[faq-with-categories <strong>category="category name"</strong>]', '<em>(*)</em>');
+            echo ' ';
+            echo __('This will NOT output FAQ snippets schema in the head.', 'faq-with-categories');
             echo '<br/>';
             // #TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
             echo sprintf(__('%1$s %2$s any tag you specified under a faq entry in the box, will gather all faqs with that tag for display.', 'faq-with-categories'), '[faq-with-categories <strong>exclusive="your tag"</strong>]', '<em>(*)</em>');
@@ -746,9 +754,9 @@ namespace ruigehond010 {
         public function uninstall()
         {
             // remove the ordering table
-            if ( $this->wpdb->get_var( "SHOW TABLES LIKE '$this->order_table'" ) == $this->order_table ) {
+            if ($this->wpdb->get_var("SHOW TABLES LIKE '$this->order_table'") == $this->order_table) {
                 $sql = 'DROP TABLE ' . $this->order_table;
-                $this->wpdb->query( $sql );
+                $this->wpdb->query($sql);
             }
             // remove the post_meta entries
             delete_post_meta_by_key('_ruigehond010_exclusive');

@@ -30,12 +30,10 @@ Ruigehond010.prototype.start = function () {
     }
     if ((options = self.cloneShallow(document.querySelectorAll('[data-ruigehond010_term_id]')))) {
         // sort the lists
-        document.getElementById('ruigehond010_search').value='test';
         while (true) {
             maybe_done = true; // until proven otherwise
             for (i in options) {
                 if (this.isInt(i)) { // only loop over the own options, NOTE: hasOwnProperty doesn't work on old iPad, still returns e.g. 'length'
-                    document.getElementById('ruigehond010_search').value=i;
                     if ((list = lists_by_parent[(parent_id = options[i].getAttribute('data-ruigehond010_term_id'))])) {
                         // put the list after the list this option is in, only if it's not already later in the DOM, in which case all is ok
                         if ((option = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"] ~ select > [data-ruigehond010_term_id="' + parent_id + '"]'))) {
