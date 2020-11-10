@@ -9,16 +9,16 @@
 // TODO BUG if you put central faq short_code or any exclusive tag on multiple pages, the $on option keeps getting updated
 namespace ruigehond010 {
 
-    use ruigehond_0_3_4;
+    use ruigehond_0_3_5;
 
     defined('ABSPATH') or die();
 
-    class ruigehond010 extends ruigehond_0_3_4
+    class ruigehond010 extends ruigehond_0_3_5
     {
-        private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs,
+        private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $table_prefix,
             $more_button_text, $no_results_warning, $max, $max_ignore_elsewhere,
             $order_table,
-            $title_links_to_overview, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
+            $title_links_to_overview, $schema_on_single_page, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
         // variables that hold cached items
         private $terms;
 
@@ -34,6 +34,7 @@ namespace ruigehond010 {
             $this->title_links_to_overview = $this->getOption('title_links_to_overview', false);
             $this->choose_option = $this->getOption('choose_option', __('Choose option', 'faq-with-categories'));
             $this->choose_all = $this->getOption('choose_all', __('All', 'faq-with-categories'));
+            $this->schema_on_single_page = $this->getOption('schema_on_single_page', false);
             $this->search_faqs = $this->getOption('search_faqs', __('Search faqs', 'faq-with-categories'));
             $this->exclude_from_search = $this->getOption('exclude_from_search', true);
             $this->exclude_from_count = $this->getOption('exclude_from_count', true);
@@ -53,6 +54,8 @@ namespace ruigehond010 {
                     return $args;
                 }, 20, 2);
             }
+            // table names
+            $this->table_prefix = $this->wpdb->prefix . 'ruigehond010_';
         }
 
         public function initialize()
@@ -82,6 +85,9 @@ namespace ruigehond010 {
             );
             // regular stuff
             if (is_admin()) {
+                // seems excessive but no better stable solution found yet
+                // update check only on admin, so make sure to be admin after updating :-)
+                $this->update_when_necessary();
                 add_action('admin_init', array($this, 'settings'));
                 add_action('admin_menu', array($this, 'menuitem'));
                 add_action('add_meta_boxes', array($this, 'meta_box_add')); // in the box the user set the exclusive value
@@ -125,8 +131,13 @@ namespace ruigehond010 {
         public function outputSchema()
         {
             if (!$post_id = get_the_ID()) return;
-            if (($on = $this->getOption('post_ids')) and isset($on[$post_id])) {
-                echo $this->getSchemaFromPosts($this->getPosts($on[$post_id]));
+            if ($this->schema_on_single_page and ($temp_post = get_post($post_id))->post_type === 'ruigehond010_faq') {
+                echo $this->getSchemaFromPosts(array($temp_post));
+            } elseif (($on = $this->getOption('post_ids')) and isset($on[$post_id])) {
+                // output the exclusive ones and main faq only when not on single page
+                if (!($this->schema_on_single_page)) {
+                    echo $this->getSchemaFromPosts($this->getPosts($on[$post_id]));
+                }
             }
         }
 
@@ -150,6 +161,24 @@ namespace ruigehond010 {
             return $str;
         }
 
+        /**
+         * @param $post_id
+         * @return string The term or null when not found
+         * @since 1.1.0
+         */
+        public function getDefaultTerm($post_id) {
+            $rows = $this->getTerms();
+            $post_id = strval($post_id);
+            foreach ($rows as $term_id=>$arr) {
+                foreach ($arr as $index => $term) {
+                    if (isset($term['post_id']) and $post_id === strval($term['post_id'])) {
+                        return $term['term'];
+                    }
+                }
+            }
+            return null;
+        }
+
         public function getHtmlForFrontend($attributes = [], $content = null, $short_code = 'faq-with-categories')
         {
             if (!$post_id = get_the_ID()) return '';
@@ -158,6 +187,10 @@ namespace ruigehond010 {
             $filter_term = isset($_GET['category']) ? strtolower($_GET['category']) : null;
             $quantity = isset($attributes['quantity']) ? intval($attributes['quantity']) : null;
             $title_only = isset($attributes['title-only']); // no matter the value, when set we do title only
+            // when you have assigned a page to a term, also use that term when you’re on that specific page
+            if (is_null($chosen_term)) {
+                $chosen_term = $this->getDefaultTerm($post_id);
+            }
             // several types of html can be got with this
             // 1) the select boxes for the filter (based on term)
             if ($short_code === 'faq-with-categories-filter') {
@@ -201,16 +234,17 @@ namespace ruigehond010 {
                 return $str;
             } else { // 2) all the posts, filtered by 'exclusive' or 'term'
                 // only register exclusive displays and the full faq page for outputting schema
-                // TODO optimize this somewhat
                 if (is_null($chosen_term)) {
                     // register the shortcode being used here, for outputSchema method :-)
+                    // don’t update if it’s all faqs but with a quantity
                     $register = (is_string($chosen_exclusive)) ? $chosen_exclusive : ((is_null($quantity)) ? true : false);
                     if (($on = $this->getOption('post_ids'))) {
                         if (false === isset($on[$post_id])) {
                             // remove the original id if any
-                            foreach ($on as $key => $value) {
+                            foreach ($on as $on_post_id => $value) {
                                 if ($value === $register) {
-                                    unset($on[$key]);
+                                    // TODO if the tag is still present on that page, you may need to warn the admin about it
+                                    unset($on[$on_post_id]);
                                     break;
                                 }
                             }
@@ -218,11 +252,10 @@ namespace ruigehond010 {
                             unset($on[$post_id]);
                         }
                         // register this id (also updates if e.g. the exclusive value changes)
-                        // don’t update if it’s all faqs but with a quantity
                         if (false !== $register) {
                             $on[$post_id] = $register;
                         }
-                    } else {
+                    } else { // set it for the first time
                         $on = [$post_id => true];
                     }
                     $this->setOption('post_ids', $on);
@@ -327,7 +360,7 @@ namespace ruigehond010 {
             if (isset($this->terms)) return $this->terms; // return cached value if available
             // get the terms for this registered taxonomies from the db
             $taxonomies = sanitize_text_field($this->taxonomies); // just for the h#ck of it
-            $sql = 'select t.term_id, tt.parent, t.name as term from ' .
+            $sql = 'select t.term_id, tt.parent, t.name as term, o.t, o.post_id from ' .
                 $this->wpdb->prefix . 'terms t inner join ' .
                 $this->wpdb->prefix . 'term_taxonomy tt on t.term_id = tt.term_id left outer join ' .
                 $this->order_table . ' o on o.term_id = t.term_id where tt.taxonomy = \'' .
@@ -339,6 +372,8 @@ namespace ruigehond010 {
                 $terms[$parent][] = array(
                     'term_id' => intval($row->term_id),
                     'term' => $row->term,
+                    't' => $row->t,
+                    'post_id' => $row->post_id,
                 );
             }
             $this->terms = $terms;
@@ -367,7 +402,7 @@ namespace ruigehond010 {
                     $sql = 'select term_id from ' .
                         $this->wpdb->prefix . 'term_taxonomy tt where tt.parent in (' .
                         implode(',', $term_ids) . ') and term_id not in (' .
-                        implode(',', $term_ids) . ');'; // excluding the term_ids already in the arry
+                        implode(',', $term_ids) . ');'; // excluding the term_ids already in the array
                     // so it returns no rows if there are no more children, ending the while loop
                 }
             }
@@ -408,20 +443,104 @@ namespace ruigehond010 {
         public function handle_input($args)
         {
             $r = $this->getReturnObject();
-            if (isset($args['handle']) and $args['handle'] === 'order_taxonomy') {
-                if (isset($args['order']) and is_array($args['order'])) {
-                    $rows = $args['order'];
-                    foreach ($rows as $term_id => $o) {
-                        $this->wpdb->delete($this->order_table,
-                            array('term_id' => $term_id)
-                        );
-                        $this->wpdb->insert($this->order_table,
-                            array('o' => $o, 'term_id' => $term_id)
-                        );
+            if (isset($args['id'])) {
+                $id = (int)$args['id']; // this must be the same as $this->row->id
+            } else {
+                $id = 0;
+            }
+            $value = (string)trim(stripslashes($args['value'])); // don't know how it gets magically escaped, but not relying on it
+            $handle = (string)trim(stripslashes($args['handle']));
+            // cleanup the array, can this be done more elegantly?
+            $args['id'] = $id;
+            $args['value'] = $value;
+            switch ($handle) {
+                case 'order_taxonomy':
+                    if (isset($args['order']) and is_array($args['order'])) {
+                        $rows = $args['order'];
+                        foreach ($rows as $term_id => $o) {
+                            $this->wpdb->delete($this->order_table,
+                                array('term_id' => $term_id)
+                            );
+                            $this->wpdb->insert($this->order_table,
+                                array('o' => $o, 'term_id' => $term_id)
+                            );
+                        }
+                        $r->set_success(true);
+                        $r->set_data($args);
                     }
-                    $r->set_success(true);
+                    break;
+                case 'update':
+                    if (is_admin()) {
+                        $table_name = (string)stripslashes($args['table_name']);
+                        $column_name = (string)stripslashes($args['column_name']);
+                        $id_column = (isset($args['id_column'])) ? $args['id_column'] : $table_name . '_id';
+                        switch ($column_name) {
+                            case 't': // you need to save the title and the id as well
+                                if (strrpos($value, ')') === strlen($value) - 1) {
+                                    $post_id = (int)str_replace(')', '', substr($value, strrpos($value, '(') + 1));
+                                    //$post_title = trim( substr( $value, 0, strrpos( $value, '(' ) ) );
+                                    if ($post_title = $this->wpdb->get_var('SELECT post_title
+										FROM ' . $this->wpdb->prefix . 'posts
+										WHERE ID = ' . $post_id . ';')) {
+                                        $args['value'] = $post_title . ' (' . $post_id . ')';
+                                        $update = array('t' => $args['value'], 'post_id' => $post_id);
+                                    } else {
+                                        $update = array();
+                                        $r->add_message(sprintf(__('post_id %d not found', 'faq-with-categories'), $post_id), 'warn');
+                                    }
+                                } else {
+                                    $post_title = $value;
+                                    if ($post_id = $this->wpdb->get_var('SELECT ID 
+										FROM ' . $this->wpdb->prefix . 'posts 
+										WHERE post_title = \'' . addslashes($post_title) . '\';')) {
+                                        $args['value'] = $post_title . ' (' . $post_id . ')';
+                                        $update = array('t' => $args['value'], 'post_id' => $post_id);
+                                    } else {
+                                        $update = array('t' => $args['value'], 'post_id' => 0);
+                                        $args['nonexistent'] = true;
+                                        $r->add_message(sprintf(__('Could not find post_id based on title: %s', 'faq-with-categories'), $post_title), 'warn');
+                                    }
+                                }
+                        }
+                        if (count($update) > 0) {
+                            $rowsaffected = $this->wpdb->update(
+                                $this->table_prefix . $table_name, $update,
+                                array($id_column => $id));
+                            if ($rowsaffected === 0) {
+                                $r->add_message(__('Update with same value not necessary...', 'faq-with-categories'), 'warn');
+                            }
+                            if ($rowsaffected === false) {
+                                $r->add_message(__('Operation failed', 'faq-with-categories'), 'error');
+                            } else {
+                                $r->set_success(true);
+                                $args['value'] = $this->wpdb->get_var('SELECT ' . $column_name .
+                                    ' FROM ' . $this->table_prefix . $table_name .
+                                    ' WHERE ' . $id_column . ' = ' . $id);
+                                if ($column_name === 'rating_criteria') {
+                                    $args['value'] = implode(PHP_EOL, json_decode($args['value']));
+                                }
+                                $r->set_data($args);
+                            }
+                        }
+                    }
+                    //var_dump( $update );
+                    //die( 'opa update' );
+                    break;
+                case 'suggest_t':
+                    // return all valid post titles that can be used for this tag
+                    $rows = $this->wpdb->get_results('SELECT CONCAT(post_title, \' (\', ID, \')\') AS t 
+						FROM ' . $this->wpdb->prefix . 'posts 
+						WHERE post_status = \'publish\' AND NOT post_type = \'nav_menu_item\'
+						ORDER BY post_title ASC');
+                    if (count($rows) > 0) {
+                        $r->set_success(true);
+                    }
+                    $r->suggestions = $rows;
                     $r->set_data($args);
-                }
+                    break;
+                default:
+                    return $this->getReturnObject(sprintf(__('Did not understand handle %s', 'faq-with-categories'),
+                        var_export($args['handle'], true)));
             }
 
             return $r;
@@ -486,6 +605,8 @@ namespace ruigehond010 {
             echo esc_html(get_admin_page_title());
             echo '</h1><p>';
             echo __('This page only concerns itself with the order. The hierarchy is determined by the taxonomy itself.', 'faq-with-categories');
+            echo '<br/>';
+            echo __('If you assign a page to a taxonomy, the faq shortcut on that page will display faq-posts from that taxonomy.', 'faq-with-categories');
             echo '</p><hr/>';
             $terms = $this->getTerms(); // these are ordered to the best of the knowledge of the system already, but with parents
             foreach ($terms as $index => $sub_terms) {
@@ -496,6 +617,19 @@ namespace ruigehond010 {
                     echo '" data-inferred_order="';
                     echo $o;
                     echo '">';
+                    // ajax input to link a page to the taxonomy / explaining the taxonomy
+                    echo '<input type="text" data-id_column="term_id" data-id="';
+                    echo $term['term_id'];
+                    echo '" data-handle="update" data-table_name="taxonomy_o" data-column_name="t" data-value="';
+                    echo htmlentities($term['t']);
+                    echo '" value="';
+                    echo htmlentities($term['t']);
+                    echo '"	class="ruigehond010 input post_title ajaxupdate ajaxsuggest tabbed';
+                    if ($term['post_id'] === '0') {
+                        echo ' nonexistent';
+                    }
+                    echo '"/>';
+                    // ordering handle
                     echo '<div class="sortable-handle">';
                     echo $term['term'];
                     echo '</div></div>';
@@ -574,6 +708,7 @@ namespace ruigehond010 {
                 'taxonomies' => __('Type the taxonomy you want to use for the categories.', 'faq-with-categories'),
                 'slug' => __('Slug for the individual faq entries (optional).', 'faq-with-categories'),
                 'title_links_to_overview' => __('When using title-only in shortcodes, link to the overview rather than individual FAQ page.', 'faq-with-categories'),
+                'schema_on_single_page' => __('Output the faq schema on individual page rather than overview.', 'faq-with-categories'),
                 'choose_option' => __('The ‘choose / show all’ option in top most select list.', 'faq-with-categories'),
                 'choose_all' => __('The ‘choose / show all’ option in subsequent select lists.', 'faq-with-categories'),
                 'search_faqs' => __('The placeholder in the search bar for the faqs.', 'faq-with-categories'),
@@ -585,32 +720,16 @@ namespace ruigehond010 {
                 'exclude_from_count' => __('FAQ posts will not count towards total posts in taxonomies.', 'faq-with-categories'),
                 'queue_frontend_css' => __('By default a small css-file is output to the frontend to format the entries. Uncheck to handle the css yourself.', 'faq-with-categories'),
             );
-            foreach (
-                array(
-                    'taxonomies',
-                    'slug',
-                    'title_links_to_overview',
-                    'choose_option',
-                    'choose_all',
-                    'search_faqs',
-                    'max',
-                    'max_ignore_elsewhere',
-                    'more_button_text',
-                    'no_results_warning',
-                    'exclude_from_search',
-                    'exclude_from_count',
-                    'queue_frontend_css',
-                ) as $index => $setting_name
-            ) {
+            foreach ($labels as $setting_name => $explanation) {
                 add_settings_field(
-                    $setting_name . $index, // id, As of WP 4.6 this value is used only internally
+                    $setting_name, // id, As of WP 4.6 this value is used only internally
                     $setting_name, // title
                     array($this, 'echo_settings_field'), // callback
                     'ruigehond010', // page id
                     'global_settings',
                     [
                         'setting_name' => $setting_name,
-                        'label_for' => $labels[$setting_name],
+                        'label_for' => $explanation,
                         'class_name' => 'ruigehond010',
                     ] // args
                 );
@@ -626,6 +745,7 @@ namespace ruigehond010 {
                 case 'exclude_from_count':
                 case 'title_links_to_overview':
                 case 'max_ignore_elsewhere':
+                case 'schema_on_single_page':
                 case 'exclude_from_search': // make checkbox that transmits 1 or 0, depending on status
                     $str .= '<label><input type="hidden" name="ruigehond010[' . $setting_name . ']" value="' .
                         (($this->$setting_name) ? '1' : '0') . '"><input type="checkbox"';
@@ -732,12 +852,32 @@ namespace ruigehond010 {
                         );*/
         }
 
+        public function update_when_necessary()
+        {
+            // register current version, but keep incremental updates (for when someone skips a version)
+            if (version_compare($this->database_version, '1.1.0') < 0) {
+                // on busy sites this can be called several times, so suppress the errors
+                $this->wpdb->suppress_errors = true;
+                $sql = 'ALTER TABLE ' . $this->order_table . ' ADD COLUMN 
+				        t VARCHAR(255) CHARACTER SET \'utf8mb4\' COLLATE \'utf8mb4_unicode_520_ci\' NOT NULL DEFAULT \'\';';
+                // TODO query returns false on error, maybe it never works, what do we do then?
+                $this->wpdb->query($sql);
+                $sql = 'ALTER TABLE ' . $this->order_table . ' ADD COLUMN 
+				        post_id INT;';
+                $this->wpdb->query($sql);
+                $old_version = $this->setOption('version', '1.1.0');
+                $this->wpdb->suppress_errors = false;
+            }
+        }
+
         public function install()
         {
             $table_name = $this->order_table;
             if ($this->wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
                 $sql = 'CREATE TABLE ' . $table_name . ' (
 						term_id INT NOT NULL,
+						post_id INT,
+						t VARCHAR(255) CHARACTER SET \'utf8mb4\' COLLATE \'utf8mb4_unicode_520_ci\' NOT NULL DEFAULT \'\',
 						o INT NOT NULL DEFAULT 1)
 					';
                 $this->wpdb->query($sql);

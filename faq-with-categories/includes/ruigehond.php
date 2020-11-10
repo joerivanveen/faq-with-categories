@@ -1,6 +1,6 @@
 <?php
 /**
- * Version 0.3.4
+ * Version 0.3.5
  * This file includes in the global namespace
  * - the base class, ruigehond_[version], for wordpress plugin development
  * - general functionality
@@ -29,7 +29,7 @@ namespace { // global
 	/**
 	 * Base class for plugin development, contains useful methods and variables, inherit from this in your plugin
 	 */
-	Class ruigehond_0_3_4 {
+	Class ruigehond_0_3_5 {
 		public $identifier, $wpdb;
 		private $options, $options_checksum;
 
@@ -37,9 +37,14 @@ namespace { // global
 			$this->identifier = $identifier; // must be ruigehond###, the unique identifier for this plugin
 			global $wpdb;
 			$this->wpdb = $wpdb;
+			// @since 0.3.5 moved __destruct to register_shutdown_function (way more stable)
+            register_shutdown_function(array($this, '__shutdown'));
 		}
 
-		public function __destruct() {
+        /**
+         * called on shutdown, saves changed options for this plugin
+         */
+		public function __shutdown() {
 			// save the options when changed
 			if (isset($this->options) and $this->options_checksum !== md5(json_encode($this->options))) {
 				update_option($this->identifier, $this->options);
@@ -50,30 +55,30 @@ namespace { // global
 		 * wrapper for answerObject, to get it from the current namespace
 		 * @param $text
 		 * @param $data
-		 * @return \ruigehond_0_3_4\answerObject
+		 * @return \ruigehond_0_3_5\answerObject
 		 *
 		 * @since 0.3.3
 		 */
 		public function getAnswerObject($text,$data){
-			return new \ruigehond_0_3_4\answerObject($text,$data);
+			return new \ruigehond_0_3_5\answerObject($text,$data);
 		}
 
 		/**
 		 * wrapper for questionObject, to get it from the current namespace
 		 * @param $text
-		 * @return \ruigehond_0_3_4\questionObject
+		 * @return \ruigehond_0_3_5\questionObject
 		 */
 		public function getQuestionObject($text) {
-			return new \ruigehond_0_3_4\questionObject($text);
+			return new \ruigehond_0_3_5\questionObject($text);
 		}
 
 		/**
 		 * wrapper for returnObject, to get it from the current namespace
 		 * @param null $errorMessage
-		 * @return \ruigehond_0_3_4\returnObject
+		 * @return \ruigehond_0_3_5\returnObject
 		 */
 		public function getReturnObject($errorMessage = null) {
-			return new \ruigehond_0_3_4\returnObject($errorMessage);
+			return new \ruigehond_0_3_5\returnObject($errorMessage);
 		}
 
         /**
@@ -272,7 +277,7 @@ namespace { // global
  * following namespace is used for versioning common objects (/classes)
  * 'get' wrappers for them are in ruigehond_[version] objects
  */
-namespace ruigehond_0_3_4 {
+namespace ruigehond_0_3_5 {
 	/**
 	 * A simple object that can be used as a return value for a method or function
 	 * containing not only a success bit / boolean, but also messages, a question with answers and raw data
