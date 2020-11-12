@@ -6,6 +6,10 @@
     cursor: grab;
     display: inline-block;
 }
+.ruigehond010-order-term input {
+    width: 242px;
+    margin-right: 4px;
+}
 .ruigehond010 .unsaved {
     background-color: rgba(255, 0, 0, .2);
 }

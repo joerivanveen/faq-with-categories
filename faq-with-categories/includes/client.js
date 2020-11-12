@@ -49,7 +49,7 @@ Ruigehond010.prototype.start = function () {
     /**
      * setup the search field
      */
-        if ((search_input = document.getElementById('ruigehond010_search'))) {
+    if ((search_input = document.getElementById('ruigehond010_search'))) {
         search_input.addEventListener('keyup', function () {
             self.search(this.value);
         });
