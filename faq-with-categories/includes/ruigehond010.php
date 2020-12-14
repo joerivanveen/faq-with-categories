@@ -17,7 +17,7 @@ namespace ruigehond010 {
     {
         private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $table_prefix,
             $more_button_text, $no_results_warning, $max, $max_ignore_elsewhere,
-            $order_table,
+            $order_table, $header_tag,
             $title_links_to_overview, $schema_on_single_page, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
         // variables that hold cached items
         private $terms;
@@ -34,6 +34,7 @@ namespace ruigehond010 {
             $this->title_links_to_overview = $this->getOption('title_links_to_overview', false);
             $this->choose_option = $this->getOption('choose_option', __('Choose option', 'faq-with-categories'));
             $this->choose_all = $this->getOption('choose_all', __('All', 'faq-with-categories'));
+            $this->header_tag = $this->getOption('header_tag','h4');
             $this->schema_on_single_page = $this->getOption('schema_on_single_page', false);
             $this->search_faqs = $this->getOption('search_faqs', __('Search faqs', 'faq-with-categories'));
             $this->exclude_from_search = $this->getOption('exclude_from_search', true);
@@ -94,7 +95,7 @@ namespace ruigehond010 {
                 add_action('save_post', array($this, 'meta_box_save'));
                 add_action('admin_notices', array($this, 'displayAdminNotices'));
             } else {
-                wp_enqueue_script('ruigehond010_javascript', plugin_dir_url(__FILE__) . 'client.js', array('jquery'));
+                wp_enqueue_script('ruigehond010_javascript', plugin_dir_url(__FILE__) . 'client.js', array('jquery'), RUIGEHOND010_VERSION);
                 if ($this->queue_frontend_css) { // only output css when necessary
                     wp_enqueue_style('ruigehond010_stylesheet_display', plugin_dir_url(__FILE__) . 'display.css', [], RUIGEHOND010_VERSION);
                 }
@@ -364,6 +365,11 @@ namespace ruigehond010 {
                 echo '" data-more_button_text="';
                 echo htmlentities($this->more_button_text);
                 echo '">';
+                // apparently under some circumstances the first time you call apply_filters it doesn’t do anything
+                apply_filters('the_content', 'bug');
+                // so now apply_filters is ready to apply some filters on the post content in the following loop:
+                $h_open = '<' . $this->header_tag . ' class="faq-header">';
+                $h_close = '</' . $this->header_tag . '>';
                 foreach ($posts as $index => $post) {
                     if ($index === $quantity) break;
                     echo '<li class="ruigehond010_post term-';
@@ -376,13 +382,14 @@ namespace ruigehond010 {
                     echo $post->ID;
                     echo '">';
                     if (false === $title_only) {
-                        echo '<h4>';
+                        echo $h_open;
                         echo $post->post_title;
-                        echo '</h4><div>';
-                        echo $post->post_content;
+                        echo $h_close;
+                        echo '<div>';
+                        echo apply_filters('the_content', $post->post_content);
                         echo '</div>';
                     } else {
-                        echo '<a class="title-only h4" href="';
+                        echo '<a class="title-only faq-header" href="';
                         if (true === $this->title_links_to_overview) {
                             echo sprintf($slug, $post->ID);
                         } else {
@@ -464,7 +471,7 @@ namespace ruigehond010 {
                 $this->wpdb->prefix . 'term_taxonomy tt on tt.term_taxonomy_id = tr.term_taxonomy_id left outer join ' .
                 $this->wpdb->prefix . 'terms t on t.term_id = tt.term_id left outer join ' .
                 $this->wpdb->prefix . 'postmeta pm on pm.post_id = p.ID and pm.meta_key = \'_ruigehond010_exclusive\' ' .
-                'where p.post_type = \'ruigehond010_faq\'';
+                'where p.post_type = \'ruigehond010_faq\' and post_status = \'publish\'';
             // setup the where condition regarding exclusive and term....
             if (is_array($term_ids)) {
                 $sql .= ' and t.term_id IN (' . implode(',', $term_ids) . ')';
@@ -510,11 +517,16 @@ namespace ruigehond010 {
                     if (isset($args['order']) and is_array($args['order'])) {
                         $rows = $args['order'];
                         foreach ($rows as $term_id => $o) {
-                            $this->wpdb->delete($this->order_table,
+                            /*$this->wpdb->delete($this->order_table,
                                 array('term_id' => $term_id)
                             );
                             $this->wpdb->insert($this->order_table,
                                 array('o' => $o, 'term_id' => $term_id)
+                            );*/
+                            // each term_id should definitely exist, so an update is safe barring edge cases that probably deserve an error anyway
+                            $this->wpdb->update($this->order_table,
+                                array('o' => $o),
+                                array('term_id'=>$term_id)
                             );
                         }
                         $r->set_success(true);
@@ -765,6 +777,7 @@ namespace ruigehond010 {
                 'choose_option' => __('The ‘choose / show all’ option in top most select list.', 'faq-with-categories'),
                 'choose_all' => __('The ‘choose / show all’ option in subsequent select lists.', 'faq-with-categories'),
                 'search_faqs' => __('The placeholder in the search bar for the faqs.', 'faq-with-categories'),
+                'header_tag' => __('Tag used for the header on faq page (e.g. h4), invalid input may cause errors on your page.', 'faq-with-categories'),
                 'max' => __('Number of faqs shown before ‘Show more’ button.', 'faq-with-categories'),
                 'max_ignore_elsewhere' => __('Only use the more button on the central FAQ page, nowhere else.', 'faq-with-categories'),
                 'more_button_text' => __('The text on the ‘Show more’ button.', 'faq-with-categories'),
