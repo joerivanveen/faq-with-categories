@@ -42,7 +42,9 @@ function ruigehond010_settingslink($links)
     $url = 'edit.php?post_type=ruigehond010_faq';
     $settings_link = '<a href="' . $url . '">' . __('FAQ', 'faq-with-categories') . '</a>';
     array_unshift($links, $settings_link);
-
+    $url = get_admin_url() . 'admin.php?page=faq-with-categories-settings';
+    $settings_link = '<a href="' . $url . '">' . __('Settings', 'faq-with-categories') . '</a>';
+    array_unshift($links, $settings_link);
     return $links;
 }
 
