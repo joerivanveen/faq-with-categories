@@ -263,9 +263,9 @@ Ruigehond008_input.prototype.save = function (e) {
 
 Ruigehond008_input.prototype.updateInput = function (value) {
     this.$input.attr({
-        value: value,
+        'value': value,
         //placeholder: value,
-        'data-value': value
+        'data-value': value,
     });
     this.checkChanged();
 };

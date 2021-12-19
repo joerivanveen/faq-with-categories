@@ -13,3 +13,36 @@
 .ruigehond010 .unsaved {
     background-color: rgba(255, 0, 0, .2);
 }
+
+ul.ruigehond.datalist { /* suggestions under inputs */
+    position: absolute;
+    background-color: #eee;
+    z-index: 10000;
+    box-shadow: 0 0 1em;
+    max-height: 300px;
+    overflow-y: scroll;
+}
+ul.ruigehond.datalist li {
+    display: none; /* default, will be visible with filter */
+    padding: 0;
+    font-weight: bold;
+}
+ul.ruigehond.datalist li input {
+    background-color: inherit;
+    color: inherit;
+    border: 0;
+    padding: .15em;
+    padding-left: 1em;
+    cursor: pointer;
+}
+ul.ruigehond.datalist li input:hover,
+ul.ruigehond.datalist li.selecting input {
+    background-color: rgb(232, 240, 254); /*#ffc;*/
+}
+ul.ruigehond.datalist li.selecting::before {
+    content: '>';
+    position: absolute;
+    margin-left: 0;
+    margin-top: .15em;
+}
+

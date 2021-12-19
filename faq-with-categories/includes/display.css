@@ -13,39 +13,35 @@
     display: none; /* by default to prevent flickering, will be set correctly by javascript */
     height: auto;
 }
-#ruigehond010_faq .ruigehond010_post h4 {
+#ruigehond010_faq .ruigehond010_post .faq-header {
     margin-bottom: 0;
+    color: #333;
 }
-#ruigehond010_faq .ruigehond010_post h4+div {
+#ruigehond010_faq .ruigehond010_post .faq-header+div {
     height: auto;
     max-height: 0;
     overflow: hidden;
-    transition: max-height .6s ease-in-out;
+    /*transition: max-height .21s ease-in-out;*/
 }
 
-#ruigehond010_faq .ruigehond010_post.open h4+div {
-    height: auto;
-    max-height: 300px;
-}
-
-#ruigehond010_faq .ruigehond010_post:not(.open) h4 {
+#ruigehond010_faq .ruigehond010_post:not(.open) .faq-header {
     cursor: pointer;
 }
+#ruigehond010_test { /* element used to determine max height in the carousel */
+    display: block;
+    visibility: hidden;
+}
 
-#ruigehond010_faq .ruigehond010_post h4:before {
+#ruigehond010_faq .ruigehond010_post .faq-header:before {
     content: '▼';
     float: right;
     transition: all .4s;
 }
 
-#ruigehond010_faq .ruigehond010_post.open h4:before {
+#ruigehond010_faq .ruigehond010_post.open .faq-header:before {
     transform: rotate(90deg);
 }
 
-#ruigehond010_faq .ruigehond010_post .h4 {
-    font-size: 125%;
-    color: #333;
-}
 #ruigehond010_more {
     margin-top: 2em;
     display: none;

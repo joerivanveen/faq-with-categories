@@ -1,11 +1,11 @@
 === FAQ with categories ===
 Contributors: ruigehond
 Tags: faq, categories, frequently, asked, questions, answers
-Donate link: https://paypal.me/ruigehond
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=hallo@ruigehond.nl&lc=US&item_name=FAQ+with+categories+plugin&no_note=0&cn=&currency_code=EUR&bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted
 Requires at least: 4.5
-Tested up to: 5.5
+Tested up to: 5.8
 Requires PHP: 5.4
-Stable tag: trunk
+Stable tag: 1.1.5
 License: GPLv3
 
 Easy to manage FAQ with categories, including accordion, filter, search and show more functionality.
@@ -45,6 +45,8 @@ When there are many entries, a ‘Show more’ button appears automatically (con
 - Currently only with shortcodes, no widgets yet
 
 - Filtering and searching the FAQs only work with javascript enabled (but then again, so does most of Wordpress)
+
+- The filter displays all the categories currently, also the categories without faqs, this will be fixed in a future release
 
 = Short codes =
 
@@ -86,9 +88,27 @@ Joeri (ruige hond)
 Upon uninstall FAQ with categories removes its own options and taxonomy sorting table. However, it leaves the FAQ posts in the database currently. If you are positive you don’t need the FAQ posts anymore, bulk-delete them before uninstalling the plugin.
 
 == Screenshots ==
-1. Settings screen
+1. Default view on the frontend with a search bar
+
+2. ruigehond010_faq post-type lets you easily manage the faqs
+
+3. Customize the plugin using the options
+
+4. The categories can be coupled to a page, and you can order them as well
 
 == Changelog ==
+
+1.1.5: improved accordion handling, removed animation
+
+1.1.4: added screenshots, released on Wordpress.org
+
+1.1.3: plugin determines max-height of faq posts on client itself, fix apply_filters would sometimes not work the first time
+
+1.1.2: you can now decide which html tag is used for the header of each faq on the faq page, fix ordering taxonomy would delete coupled page
+
+1.1.1: small fixes and updated translation, added admin warning message for duplicate short codes
+
+1.1.0: added page linking to taxonomy for automatic selection of the corresponding faqs on them, option to output faq snippet on single pages
 
 1.0.7: added no results warning message
 
