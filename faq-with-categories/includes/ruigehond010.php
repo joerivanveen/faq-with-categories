@@ -264,17 +264,17 @@ namespace ruigehond010 {
                                 if ($value === $register) {
                                     // check for duplicate tags, you may need to warn the admin about it
                                     if ($post_id !== $on_post_id) {
-                                        $broep = get_the_content(null, false, $on_post_id);
+                                        $temps = get_the_content(null, false, $on_post_id);
                                         $danger = false;
                                         if (true === $register) { // disallowed is [faq-with-categories without ‘exclusive’ or ‘category’
-                                            if (false !== ($pos = strpos($broep, '[faq-with-categories'))) {
-                                                if (false === strpos($broep, ' exclusive="', $pos) and
-                                                    false === strpos($broep, ' category="', $pos)) {
+                                            if (false !== ($pos = strpos($temps, '[faq-with-categories'))) {
+                                                if (false === strpos($temps, ' exclusive="', $pos) and
+                                                    false === strpos($temps, ' category="', $pos)) {
                                                     $danger = true;
                                                 }
                                             }
                                         } else {
-                                            if (false !== strpos($broep, 'exclusive="' . $register . '"')) $danger = true;
+                                            if (false !== strpos($temps, 'exclusive="' . $register . '"')) $danger = true;
                                         }
                                         if (true === $danger) {
                                             ob_start();
