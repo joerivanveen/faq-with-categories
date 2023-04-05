@@ -26,7 +26,8 @@ namespace ruigehond010 {
         {
             parent::__construct('ruigehond010');
             $this->name = __CLASS__;
-            $this->order_table = $this->wpdb->prefix . 'ruigehond010_taxonomy_o';
+            $wp_prefix = $this->wpdb->prefix;
+            $this->order_table = "{$wp_prefix}ruigehond010_taxonomy_o";
             // set some options
             $this->database_version = $this->getOption('database_version', '0.0.0');
             $this->taxonomies = $this->getOption('taxonomies', 'category');
@@ -56,7 +57,7 @@ namespace ruigehond010 {
                 }, 20, 2);
             }
             // table names
-            $this->table_prefix = $this->wpdb->prefix . 'ruigehond010_';
+            $this->table_prefix = "{$wp_prefix}ruigehond010_";
         }
 
         public function initialize()
@@ -148,13 +149,13 @@ namespace ruigehond010 {
         public function outputSchema()
         {
             if (!$post_id = get_the_ID()) return;
-            if ($this->schema_on_single_page and ($temp_post = get_post($post_id))->post_type === 'ruigehond010_faq') {
-                echo $this->getSchemaFromPosts(array($temp_post));
+            if ($this->schema_on_single_page) {
+                if (($temp_post = get_post($post_id))->post_type === 'ruigehond010_faq') {
+                    echo $this->getSchemaFromPosts(array($temp_post));
+                }
             } elseif (($on = $this->getOption('post_ids')) and isset($on[$post_id])) {
                 // output the exclusive ones and main faq only when not on single page
-                if (!($this->schema_on_single_page)) {
-                    echo $this->getSchemaFromPosts($this->getPosts($on[$post_id]));
-                }
+                echo $this->getSchemaFromPosts($this->getPosts($on[$post_id]));
             }
         }
 
@@ -172,10 +173,8 @@ namespace ruigehond010 {
                 if ($index < $last_index) echo ',';
             }
             echo ']}</script>';
-            $str = ob_get_contents();
-            ob_end_clean();
 
-            return $str;
+            return ob_get_clean();
         }
 
         /**
