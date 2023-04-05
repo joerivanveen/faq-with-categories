@@ -14,7 +14,7 @@ Easy to manage FAQ with categories, including accordion, filter, search and show
 
 FAQs are great for your visitors and when implemented correctly also for SEO.
 
-This simple FAQ plugin creates a new post-type. This is straightforward and flexible: you can now create and manage FAQs like any other post type in Wordpress.
+This simple FAQ plugin creates a new post-type. This is straightforward and flexible: you can now create and manage FAQs like any other post type in WordPress.
 
 The FAQs can be summoned using shortcodes, the default for the central FAQ page is [faq-with-categories]. More options are explained below and on the settings page.
 
@@ -44,7 +44,7 @@ When there are many entries, a ‘Show more’ button appears automatically (con
 
 - Currently only with shortcodes, no widgets yet
 
-- Filtering and searching the FAQs only work with javascript enabled (but then again, so does most of Wordpress)
+- Filtering and searching the FAQs only work with javascript enabled (but then again, so does most of WordPress)
 
 - The filter displays all the categories currently, also the categories without faqs, this will be fixed in a future release
 
@@ -102,7 +102,7 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 
 1.1.5: improved accordion handling, removed animation
 
-1.1.4: added screenshots, released on Wordpress.org
+1.1.4: added screenshots, released on wordpress.org
 
 1.1.3: plugin determines max-height of faq posts on client itself, fix apply_filters would sometimes not work the first time
 
