@@ -3,7 +3,7 @@ Contributors: ruigehond
 Tags: faq, categories, frequently, asked, questions, answers
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=hallo@ruigehond.nl&lc=US&item_name=FAQ+with+categories+plugin&no_note=0&cn=&currency_code=EUR&bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted
 Requires at least: 4.5
-Tested up to: 6.0
+Tested up to: 6.2
 Requires PHP: 5.4
 Stable tag: 1.1.6
 License: GPLv3

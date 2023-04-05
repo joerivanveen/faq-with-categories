@@ -34,7 +34,7 @@ namespace ruigehond010 {
             $this->title_links_to_overview = $this->getOption('title_links_to_overview', false);
             $this->choose_option = $this->getOption('choose_option', __('Choose option', 'faq-with-categories'));
             $this->choose_all = $this->getOption('choose_all', __('All', 'faq-with-categories'));
-            $this->header_tag = $this->getOption('header_tag','h4');
+            $this->header_tag = $this->getOption('header_tag', 'h4');
             $this->schema_on_single_page = $this->getOption('schema_on_single_page', false);
             $this->search_faqs = $this->getOption('search_faqs', __('Search faqs', 'faq-with-categories'));
             $this->exclude_from_search = $this->getOption('exclude_from_search', true);
@@ -94,6 +94,9 @@ namespace ruigehond010 {
                 add_action('add_meta_boxes', array($this, 'meta_box_add')); // in the box the user set the exclusive value
                 add_action('save_post', array($this, 'meta_box_save'));
                 add_action('admin_notices', array($this, 'displayAdminNotices'));
+                // styles...
+                wp_enqueue_style('ruigehond010_admin_stylesheet', plugin_dir_url(__FILE__) . 'admin.css', [], RUIGEHOND010_VERSION);
+                wp_enqueue_style('wp-jquery-ui-dialog');
             } else {
                 wp_enqueue_script('ruigehond010_javascript', plugin_dir_url(__FILE__) . 'client.js', array('jquery'), RUIGEHOND010_VERSION);
                 if ($this->queue_frontend_css) { // only output css when necessary
@@ -526,7 +529,7 @@ namespace ruigehond010 {
                             // each term_id should definitely exist, so an update is safe barring edge cases that probably deserve an error anyway
                             $this->wpdb->update($this->order_table,
                                 array('o' => $o),
-                                array('term_id'=>$term_id)
+                                array('term_id' => $term_id)
                             );
                         }
                         $r->set_success(true);
@@ -662,9 +665,6 @@ namespace ruigehond010 {
                 'jquery-ui-sortable',
                 'jquery'
             ), RUIGEHOND010_VERSION);
-            //wp_enqueue_script( 'jquery-ui-accordion' );
-            wp_enqueue_style('ruigehond010_admin_stylesheet', plugin_dir_url(__FILE__) . 'admin.css', [], RUIGEHOND010_VERSION);
-            wp_enqueue_style('wp-jquery-ui-dialog');
             echo '<div class="wrap ruigehond010"><h1>';
             echo esc_html(get_admin_page_title());
             echo '</h1><p>';
@@ -866,44 +866,45 @@ namespace ruigehond010 {
 
         public function menuitem()
         {
+            $menuslug = current_user_can('manage_options') ? 'faq-with-categories-with-submenu' : 'faq-with-categories';
             // add top level page
             add_menu_page(
                 'FAQ',
                 'FAQ',
-                'manage_options',
-                'faq-with-categories',
-                array($this, 'redirect_to_entries'), // callback
+                'edit_posts',
+                $menuslug,
+                array($this, 'redirect_to_entries'), // callback unused
                 'dashicons-lightbulb',
                 27 // just under comments / reacties
             );
             add_submenu_page(
-                'faq-with-categories',
+                $menuslug,
                 __('Settings', 'faq-with-categories'), // page_title
                 __('FAQ', 'faq-with-categories'), // menu_title
-                'manage_options',
-                'faq-with-categories',
-                array($this, 'redirect_to_entries') // callback
+                'edit_posts',
+                $menuslug,
+                array($this, 'redirect_to_entries') // callback unused
             );
             add_submenu_page(
-                'faq-with-categories',
+                $menuslug,
                 __('Settings', 'faq-with-categories'), // page_title
                 __('Settings', 'faq-with-categories'), // menu_title
                 'manage_options',
-                'faq-with-categories-settings',
+                "$menuslug-settings",
                 array($this, 'settingspage') // callback
             );
             add_submenu_page(
-                'faq-with-categories',
+                $menuslug,
                 __('Order taxonomy', 'faq-with-categories'), // page_title
                 __('Order taxonomy', 'faq-with-categories'), // menu_title
                 'manage_options',
-                'faq-with-categories-order-taxonomy',
+                "$menuslug-order-taxonomy",
                 array($this, 'ordertaxonomypage') // callback
             );
             global $submenu; // make the first entry go to the edit page of the faq post_type
-            $submenu['faq-with-categories'][0] = array(
+            $submenu[$menuslug][0] = array(
                 __('FAQ', 'faq-with-categories'),
-                'manage_options',
+                'edit_posts',
                 'edit.php?post_type=ruigehond010_faq',
                 'blub' // WHOA
             );
