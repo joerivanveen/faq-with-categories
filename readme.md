@@ -66,6 +66,3 @@ You may use the following shortcodes, of course certain combinations do not make
 The post-type is called ruigehond010_faq, so you can create a single-ruigehond010_faq.php and archive-ruigehond010_faq.php template should you want to format the display in more detail.
 
 Have fun. Let me know if you have a question!
-
-Regards,
-Joeri (ruige hond)

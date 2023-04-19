@@ -4,8 +4,8 @@ Plugin Name: FAQ with categories
 Plugin URI: https://github.com/joerivanveen/faq-with-categories
 Description: Easy to maintain FAQ and answer plugin with categories.
 Version: 1.1.7
-Author: Ruige hond
-Author URI: https://ruigehond.nl
+Author: Joeri van Veen
+Author URI: https://wp-developer.eu
 License: GPL3
 Text Domain: faq-with-categories
 Domain Path: /languages/

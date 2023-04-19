@@ -74,9 +74,6 @@ The post-type is called ruigehond010_faq, so you can create a single-ruigehond01
 
 Have fun. Let me know if you have a question!
 
-Regards,
-Joeri (ruige hond)
-
 == Installation ==
 
 1. Install the plugin by clicking ‘Install now’ below, or the ‘Download’ button, and put the faq-with-categories folder in your plugins folder.
