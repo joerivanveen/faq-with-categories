@@ -199,7 +199,7 @@ namespace ruigehond010 {
 
         public function getHtmlForFrontend($attributes = [], $content = null, $short_code = 'faq-with-categories')
         {
-            if (!$post_id = get_the_ID()) return '';
+            if ((!$post_id = get_the_ID())) return '';
             $chosen_exclusive = isset($attributes['exclusive']) ? $attributes['exclusive'] : null;
             $chosen_term = isset($attributes['category']) ? strtolower($attributes['category']) : null;
             $filter_term = isset($_GET['category']) ? strtolower($_GET['category']) : null;
@@ -240,10 +240,7 @@ namespace ruigehond010 {
                     }
                     echo '</select>';
                 }
-                $str = ob_get_contents();
-                ob_end_clean();
-
-                return $str;
+                return ob_get_clean();
             } elseif ($short_code === 'faq-with-categories-search') {
                 $str = '<input type="text" name="search" class="search-field ruigehond010 faq" id="ruigehond010_search" placeholder="';
                 $str .= $this->search_faqs;
@@ -341,12 +338,12 @@ namespace ruigehond010 {
                             echo '</span>';
                         } else {
                             if (strpos($slug, '?') === false) {
-                                $slug = $slug . '?post_id=%s';
+                                $slug = "$slug?post_id=%s";
                             } else {
-                                $slug = $slug . '&post_id=%s';
+                                $slug = "$slug&post_id=%s";
                             }
                             if (strpos($slug, '/') !== 1) {
-                                $slug = '/' . $slug;
+                                $slug = "/$slug";
                             }
                         }
                     } else {
@@ -370,8 +367,8 @@ namespace ruigehond010 {
                 // apparently under some circumstances the first time you call apply_filters it doesn’t do anything
                 apply_filters('the_content', 'bug');
                 // so now apply_filters is ready to apply some filters on the post content in the following loop:
-                $h_open = '<' . $this->header_tag . ' class="faq-header">';
-                $h_close = '</' . $this->header_tag . '>';
+                $h_open = "<$this->header_tag class=\"faq-header\">";
+                $h_close = "</$this->header_tag>";
                 foreach ($posts as $index => $post) {
                     if ($index === $quantity) break;
                     echo '<li class="ruigehond010_post term-';
@@ -395,7 +392,7 @@ namespace ruigehond010 {
                         if (true === $this->title_links_to_overview) {
                             echo sprintf($slug, $post->ID);
                         } else {
-                            echo '/' . $slug . '/' . $post->post_name;
+                            echo "/$slug/$post->post_name";
                         }
                         echo '">';
                         echo $post->post_title;
@@ -420,12 +417,13 @@ namespace ruigehond010 {
         {
             if (isset($this->terms)) return $this->terms; // return cached value if available
             // get the terms for this registered taxonomies from the db
-            $taxonomies = sanitize_text_field($this->taxonomies); // just for the h#ck of it
-            $sql = 'select t.term_id, tt.parent, t.name as term, o.t, o.post_id from ' .
-                $this->wpdb->prefix . 'terms t inner join ' .
-                $this->wpdb->prefix . 'term_taxonomy tt on t.term_id = tt.term_id left outer join ' .
-                $this->order_table . ' o on o.term_id = t.term_id where tt.taxonomy = \'' .
-                addslashes($taxonomies) . '\' order by o.o, t.name';
+            $taxonomies = addslashes(sanitize_text_field($this->taxonomies)); // just for the h#ck of it
+            $wp_prefix = $this->wpdb->prefix;
+            $sql = "select t.term_id, tt.parent, t.name as term, o.t, o.post_id from
+                {$wp_prefix}terms t inner join
+                {$wp_prefix}term_taxonomy tt on t.term_id = tt.term_id left outer join
+                {$this->order_table} o on o.term_id = t.term_id where tt.taxonomy = '$taxonomies'
+                order by o.o, t.name;";
             $rows = $this->wpdb->get_results($sql, OBJECT);
             $terms = array();
             foreach ($rows as $key => $row) {
@@ -450,37 +448,37 @@ namespace ruigehond010 {
         private function getPosts($exclusive = null, $term = null)
         {
             $term_ids = null; // we are going to collect all the term_ids that fall under the requested $term
+            $wp_prefix = $this->wpdb->prefix;
             if (is_string($term)) {
-                $sql = 'select term_id from ' .
-                    $this->wpdb->prefix . 'terms t where lower(t.name) = \'' .
-                    addslashes($term) . '\';';
+                $sql_term = addslashes($term);
+                $sql = "select term_id from {$wp_prefix}terms t where lower(t.name) = '$sql_term';";
                 // now for as long as rows with term_ids are returned, keep building the array
                 while ($rows = $this->wpdb->get_results($sql)) {
                     foreach ($rows as $index => $row) {
                         $term_ids[] = $row->term_id;
                     }
                     // new sql selects all the children from the term_ids that are in the array
-                    $sql = 'select term_id from ' .
-                        $this->wpdb->prefix . 'term_taxonomy tt where tt.parent in (' .
-                        implode(',', $term_ids) . ') and term_id not in (' .
-                        implode(',', $term_ids) . ');'; // excluding the term_ids already in the array
+                    $str_term_ids = implode(',', $term_ids);
+                    $sql = "select term_id from {$wp_prefix}term_taxonomy tt 
+                        where tt.parent in ($str_term_ids) 
+                        and term_id not in ($str_term_ids);"; // excluding the term_ids already in the array
                     // so it returns no rows if there are no more children, ending the while loop
                 }
             }
-            $sql = 'select p.ID, p.post_title, p.post_content, p.post_date, p.post_name, t.term_id, pm.meta_value AS exclusive from ' .
-                $this->wpdb->prefix . 'posts p left outer join ' .
-                $this->wpdb->prefix . 'term_relationships tr on tr.object_id = p.ID left outer join ' .
-                $this->wpdb->prefix . 'term_taxonomy tt on tt.term_taxonomy_id = tr.term_taxonomy_id left outer join ' .
-                $this->wpdb->prefix . 'terms t on t.term_id = tt.term_id left outer join ' .
-                $this->wpdb->prefix . 'postmeta pm on pm.post_id = p.ID and pm.meta_key = \'_ruigehond010_exclusive\' ' .
-                'where p.post_type = \'ruigehond010_faq\' and post_status = \'publish\'';
+            $sql = "select p.ID, p.post_title, p.post_content, p.post_date, p.post_name, t.term_id, pm.meta_value AS exclusive from ' .
+                {$wp_prefix}posts p left outer join 
+                {$wp_prefix}term_relationships tr on tr.object_id = p.ID left outer join 
+                {$wp_prefix}term_taxonomy tt on tt.term_taxonomy_id = tr.term_taxonomy_id left outer join 
+                {$wp_prefix}terms t on t.term_id = tt.term_id left outer join 
+                {$wp_prefix}postmeta pm on pm.post_id = p.ID and pm.meta_key = '_ruigehond010_exclusive' 
+                'where p.post_type = 'ruigehond010_faq' and post_status = 'publish'";
             // setup the where condition regarding exclusive and term....
             if (is_array($term_ids)) {
                 $sql .= ' and t.term_id IN (' . implode(',', $term_ids) . ')';
             } elseif (is_string($exclusive)) {
                 $sql .= ' and pm.meta_value = \'' . addslashes(sanitize_text_field($exclusive)) . '\'';
             }
-            $sql .= ' order by p.post_date desc';
+            $sql = "$sql order by p.post_date desc;";
             $rows = $this->wpdb->get_results($sql, OBJECT);
             $return_arr = array();
             $current_id = 0;
@@ -503,7 +501,8 @@ namespace ruigehond010 {
 
         public function handle_input($args)
         {
-            $r = $this->getReturnObject();
+            $returnObject = $this->getReturnObject();
+            $wp_prefix = $this->wpdb->prefix;
             if (isset($args['id'])) {
                 $id = (int)$args['id']; // this must be the same as $this->row->id
             } else {
@@ -531,8 +530,8 @@ namespace ruigehond010 {
                                 array('term_id' => $term_id)
                             );
                         }
-                        $r->set_success(true);
-                        $r->set_data($args);
+                        $returnObject->set_success(true);
+                        $returnObject->set_data($args);
                     }
                     break;
                 case 'update':
@@ -545,26 +544,23 @@ namespace ruigehond010 {
                                 if (strrpos($value, ')') === strlen($value) - 1) {
                                     $post_id = (int)str_replace(')', '', substr($value, strrpos($value, '(') + 1));
                                     //$post_title = trim( substr( $value, 0, strrpos( $value, '(' ) ) );
-                                    if ($post_title = $this->wpdb->get_var('SELECT post_title
-										FROM ' . $this->wpdb->prefix . 'posts
-										WHERE ID = ' . $post_id . ';')) {
-                                        $args['value'] = $post_title . ' (' . $post_id . ')';
+                                    if ($post_title = $this->wpdb->get_var("SELECT post_title FROM {$wp_prefix}posts WHERE ID = {$post_id};")) {
+                                        $args['value'] = "$post_title ($post_id)";
                                         $update = array('t' => $args['value'], 'post_id' => $post_id);
                                     } else {
                                         $update = array();
-                                        $r->add_message(sprintf(__('post_id %d not found', 'faq-with-categories'), $post_id), 'warn');
+                                        $returnObject->add_message(sprintf(__('post_id %d not found', 'faq-with-categories'), $post_id), 'warn');
                                     }
                                 } else {
                                     $post_title = $value;
-                                    if ($post_id = $this->wpdb->get_var('SELECT ID 
-										FROM ' . $this->wpdb->prefix . 'posts 
-										WHERE post_title = \'' . addslashes($post_title) . '\';')) {
-                                        $args['value'] = $post_title . ' (' . $post_id . ')';
+                                    if ($post_id = $this->wpdb->get_var("SELECT ID 
+										FROM {$wp_prefix}posts WHERE post_title = '" . addslashes($post_title) . "';")) {
+                                        $args['value'] = "$post_title ($post_id)";
                                         $update = array('t' => $args['value'], 'post_id' => $post_id);
                                     } else {
                                         $update = array('t' => $args['value'], 'post_id' => 0);
                                         $args['nonexistent'] = true;
-                                        $r->add_message(sprintf(__('Could not find post_id based on title: %s', 'faq-with-categories'), $post_title), 'warn');
+                                        $returnObject->add_message(sprintf(__('Could not find post_id based on title: %s', 'faq-with-categories'), $post_title), 'warn');
                                     }
                                 }
                         }
@@ -573,43 +569,41 @@ namespace ruigehond010 {
                                 $this->table_prefix . $table_name, $update,
                                 array($id_column => $id));
                             if ($rowsaffected === 0) {
-                                $r->add_message(__('Update with same value not necessary...', 'faq-with-categories'), 'warn');
+                                $returnObject->add_message(__('Update with same value not necessary...', 'faq-with-categories'), 'warn');
                             }
                             if ($rowsaffected === false) {
-                                $r->add_message(__('Operation failed', 'faq-with-categories'), 'error');
+                                $returnObject->add_message(__('Operation failed', 'faq-with-categories'), 'error');
                             } else {
-                                $r->set_success(true);
-                                $args['value'] = $this->wpdb->get_var('SELECT ' . $column_name .
-                                    ' FROM ' . $this->table_prefix . $table_name .
-                                    ' WHERE ' . $id_column . ' = ' . $id);
+                                $returnObject->set_success(true);
+                                $args['value'] = $this->wpdb->get_var(
+                                    "SELECT $column_name FROM {$this->table_prefix}$table_name WHERE $id_column = $id;");
                                 if ($column_name === 'rating_criteria') {
                                     $args['value'] = implode(PHP_EOL, json_decode($args['value']));
                                 }
-                                $r->set_data($args);
+                                $returnObject->set_data($args);
                             }
                         }
                     }
-                    //var_dump( $update );
-                    //die( 'opa update' );
                     break;
                 case 'suggest_t':
                     // return all valid post titles that can be used for this tag
-                    $rows = $this->wpdb->get_results('SELECT CONCAT(post_title, \' (\', ID, \')\') AS t 
-						FROM ' . $this->wpdb->prefix . 'posts 
-						WHERE post_status = \'publish\' AND NOT post_type = \'nav_menu_item\'
-						ORDER BY post_title ASC');
+                    $rows = $this->wpdb->get_results(
+                        "SELECT CONCAT(post_title, ' (', ID, ')') AS t 
+						FROM {$wp_prefix}posts 
+						WHERE post_status = 'publish' AND NOT post_type = 'nav_menu_item'
+						ORDER BY post_title ASC;");
                     if (count($rows) > 0) {
-                        $r->set_success(true);
+                        $returnObject->set_success(true);
                     }
-                    $r->suggestions = $rows;
-                    $r->set_data($args);
+                    $returnObject->suggestions = $rows;
+                    $returnObject->set_data($args);
                     break;
                 default:
                     return $this->getReturnObject(sprintf(__('Did not understand handle %s', 'faq-with-categories'),
                         var_export($args['handle'], true)));
             }
 
-            return $r;
+            return $returnObject;
         }
 
         /**
@@ -940,12 +934,11 @@ namespace ruigehond010 {
         {
             $table_name = $this->order_table;
             if ($this->wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
-                $sql = 'CREATE TABLE ' . $table_name . ' (
+                $sql = "CREATE TABLE $table_name (
 						term_id INT NOT NULL,
 						post_id INT,
-						t VARCHAR(255) CHARACTER SET \'utf8mb4\' COLLATE \'utf8mb4_unicode_520_ci\' NOT NULL DEFAULT \'\',
-						o INT NOT NULL DEFAULT 1)
-					';
+						t VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_520_ci' NOT NULL DEFAULT '',
+						o INT NOT NULL DEFAULT 1);";
                 $this->wpdb->query($sql);
             }
             // register the current version
@@ -961,7 +954,7 @@ namespace ruigehond010 {
         {
             // remove the ordering table
             if ($this->wpdb->get_var("SHOW TABLES LIKE '$this->order_table'") == $this->order_table) {
-                $sql = 'DROP TABLE ' . $this->order_table;
+                $sql = "DROP TABLE $this->order_table";
                 $this->wpdb->query($sql);
             }
             // remove the post_meta entries

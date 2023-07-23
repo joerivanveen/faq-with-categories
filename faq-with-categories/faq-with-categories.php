@@ -3,7 +3,7 @@
 Plugin Name: FAQ with categories
 Plugin URI: https://github.com/joerivanveen/faq-with-categories
 Description: Easy to maintain FAQ and answer plugin with categories.
-Version: 1.1.7
+Version: 1.1.8
 Author: Joeri van Veen
 Author URI: https://wp-developer.eu
 License: GPL3
@@ -11,7 +11,7 @@ Text Domain: faq-with-categories
 Domain Path: /languages/
 */
 defined('ABSPATH') or die();
-define('RUIGEHOND010_VERSION', '1.1.7');
+define('RUIGEHOND010_VERSION', '1.1.8');
 // This is plugin nr. 10 by ruige hond. It identifies with: ruigehond010.
 if (!class_exists('ruigehond_0_3_5', false)) {
     include_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'ruigehond.php'); // base class
@@ -33,18 +33,20 @@ function ruigehond010_handle_input()
     $ruigehond = new ruigehond010\ruigehond010();
     $r = $ruigehond->handle_input($_POST);
     echo json_encode($r);
-    die(); // prevent any other output, TODO is there another possibility? Not sure about ramifications here.
+    die(); // prevent any other output
 }
 
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'ruigehond010_settingslink'); // settings link on plugins page
 function ruigehond010_settingslink($links)
 {
-    $url = 'edit.php?post_type=ruigehond010_faq';
-    $settings_link = '<a href="' . $url . '">' . __('FAQ', 'faq-with-categories') . '</a>';
-    array_unshift($links, $settings_link);
-    $url = get_admin_url() . 'admin.php?page=faq-with-categories-settings';
-    $settings_link = '<a href="' . $url . '">' . __('Settings', 'faq-with-categories') . '</a>';
-    array_unshift($links, $settings_link);
+    $admin_url = get_admin_url();
+    $__faq = __('FAQ', 'faq-with-categories');
+    $__settings = __('Settings', 'faq-with-categories');
+    array_unshift(
+        $links,
+        "<a href=\"edit.php?post_type=ruigehond010_faq\">{$__faq}</a>",
+        "<a href=\"{$admin_url}admin.php?page=faq-with-categories-with-submenu-settings\">{$__settings}</a>",
+    );
     return $links;
 }
 

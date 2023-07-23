@@ -3,9 +3,9 @@ Contributors: ruigehond
 Tags: faq, categories, frequently, asked, questions, answers
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=hallo@ruigehond.nl&lc=US&item_name=FAQ+with+categories+plugin&no_note=0&cn=&currency_code=EUR&bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHosted
 Requires at least: 4.5
-Tested up to: 6.2
-Requires PHP: 5.4
-Stable tag: 1.1.7
+Tested up to: 6.3
+Requires PHP: 7.0
+Stable tag: 1.1.8
 License: GPLv3
 
 Easy to manage FAQ with categories, including accordion, filter, search and show more functionality.
@@ -94,6 +94,8 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 4. The categories can be coupled to a page, and you can order them as well
 
 == Changelog ==
+
+1.1.8: small optimizations
 
 1.1.7: allow editors to manage the faq post type
 
