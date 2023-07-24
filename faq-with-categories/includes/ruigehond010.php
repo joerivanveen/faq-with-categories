@@ -465,13 +465,13 @@ namespace ruigehond010 {
                     // so it returns no rows if there are no more children, ending the while loop
                 }
             }
-            $sql = "select p.ID, p.post_title, p.post_content, p.post_date, p.post_name, t.term_id, pm.meta_value AS exclusive from ' .
+            $sql = "select p.ID, p.post_title, p.post_content, p.post_date, p.post_name, t.term_id, pm.meta_value AS exclusive from
                 {$wp_prefix}posts p left outer join 
                 {$wp_prefix}term_relationships tr on tr.object_id = p.ID left outer join 
                 {$wp_prefix}term_taxonomy tt on tt.term_taxonomy_id = tr.term_taxonomy_id left outer join 
                 {$wp_prefix}terms t on t.term_id = tt.term_id left outer join 
                 {$wp_prefix}postmeta pm on pm.post_id = p.ID and pm.meta_key = '_ruigehond010_exclusive' 
-                'where p.post_type = 'ruigehond010_faq' and post_status = 'publish'";
+                where p.post_type = 'ruigehond010_faq' and post_status = 'publish'";
             // setup the where condition regarding exclusive and term....
             if (is_array($term_ids)) {
                 $sql .= ' and t.term_id IN (' . implode(',', $term_ids) . ')';
