@@ -300,6 +300,8 @@ Ruigehond008_input.prototype.hasChanged = function () {
         return false;
     } else if (this.$input.attr('data-id') === '0' && this.$input.val() === '') {
         return false; // new property with value of '' means no change
+    } else if (!this.$input.attr('data-value') && !this.$input.val()){
+        return false; // everything's empty
     } else {
         return true;
     }

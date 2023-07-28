@@ -546,7 +546,9 @@ namespace ruigehond010 {
                                     }
                                 } else {
                                     $post_title = $value;
-                                    if ($post_id = $this->wpdb->get_var("SELECT ID 
+                                    if ('' === $value) {
+                                        $update = array('t' => '', 'post_id' => null);
+                                    } elseif ($post_id = $this->wpdb->get_var("SELECT ID 
 										FROM {$wp_prefix}posts WHERE post_title = '" . addslashes($post_title) . "';")) {
                                         $args['value'] = "$post_title ($post_id)";
                                         $update = array('t' => $args['value'], 'post_id' => $post_id);
