@@ -95,7 +95,7 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 
 == Changelog ==
 
-1.1.8: small optimizations
+1.1.8: fix updating ordering table when rows are missing
 
 1.1.7: allow editors to manage the faq post type
 

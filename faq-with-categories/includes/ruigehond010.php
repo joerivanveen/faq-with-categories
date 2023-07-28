@@ -508,8 +508,8 @@ namespace ruigehond010 {
             } else {
                 $id = 0;
             }
-            $value = (string)trim(stripslashes($args['value'])); // don't know how it gets magically escaped, but not relying on it
-            $handle = (string)trim(stripslashes($args['handle']));
+            $value = trim(stripslashes($args['value'])); // don't know how it gets magically escaped, but not relying on it
+            $handle = trim(stripslashes($args['handle']));
             // cleanup the array, can this be done more elegantly?
             $args['id'] = $id;
             $args['value'] = $value;
@@ -518,14 +518,7 @@ namespace ruigehond010 {
                     if (isset($args['order']) and is_array($args['order'])) {
                         $rows = $args['order'];
                         foreach ($rows as $term_id => $o) {
-                            /*$this->wpdb->delete($this->order_table,
-                                array('term_id' => $term_id)
-                            );
-                            $this->wpdb->insert($this->order_table,
-                                array('o' => $o, 'term_id' => $term_id)
-                            );*/
-                            // each term_id should definitely exist, so an update is safe barring edge cases that probably deserve an error anyway
-                            $this->wpdb->update($this->order_table,
+                            $this->upsert($this->order_table,
                                 array('o' => $o),
                                 array('term_id' => $term_id)
                             );
@@ -536,9 +529,9 @@ namespace ruigehond010 {
                     break;
                 case 'update':
                     if (is_admin()) {
-                        $table_name = (string)stripslashes($args['table_name']);
-                        $column_name = (string)stripslashes($args['column_name']);
-                        $id_column = (isset($args['id_column'])) ? $args['id_column'] : $table_name . '_id';
+                        $table_name = stripslashes($args['table_name']);
+                        $column_name = stripslashes($args['column_name']);
+                        $id_column = (isset($args['id_column'])) ? $args['id_column'] : "{$table_name}_id";
                         switch ($column_name) {
                             case 't': // you need to save the title and the id as well
                                 if (strrpos($value, ')') === strlen($value) - 1) {
@@ -565,7 +558,7 @@ namespace ruigehond010 {
                                 }
                         }
                         if (count($update) > 0) {
-                            $rowsaffected = $this->wpdb->update(
+                            $rowsaffected = $this->upsert(
                                 $this->table_prefix . $table_name, $update,
                                 array($id_column => $id));
                             if ($rowsaffected === 0) {
@@ -604,6 +597,23 @@ namespace ruigehond010 {
             }
 
             return $returnObject;
+        }
+
+        private function upsert(string $table_name, array $values, array $where): int
+        {
+            $where_condition = 'WHERE 1 = 1';
+            foreach ($where as $key => $value) {
+                $key = addslashes($key);
+                $value = addslashes($value);
+                $where_condition .= " AND $key = '$value'";
+            }
+            if ($this->wpdb->get_var("SELECT EXISTS (SELECT 1 FROM $table_name $where_condition);")) {
+                $rows_affected = $this->wpdb->update($table_name, $values, $where);
+            } else {
+                $rows_affected = $this->wpdb->insert($table_name, $values + $where);
+            }
+
+            return $rows_affected;
         }
 
         /**
@@ -928,6 +938,14 @@ namespace ruigehond010 {
                 $old_version = $this->setOption('version', '1.1.0');
                 $this->wpdb->suppress_errors = false;
             }
+            if (version_compare($this->database_version, '1.1.8') < 0) {
+                // on busy sites this can be called several times, so suppress the errors
+                $this->wpdb->suppress_errors = true;
+                $sql = "ALTER TABLE {$this->order_table} ADD CONSTRAINT 'ruigehond010_unique_{$this->order_table}' UNIQUE (term_id);";
+                $this->wpdb->query($sql);
+                $old_version = $this->setOption('version', '1.1.8');
+                $this->wpdb->suppress_errors = false;
+            }
         }
 
         public function install()
@@ -939,6 +957,8 @@ namespace ruigehond010 {
 						post_id INT,
 						t VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_520_ci' NOT NULL DEFAULT '',
 						o INT NOT NULL DEFAULT 1);";
+                $this->wpdb->query($sql);
+                $sql = "ALTER TABLE $table_name ADD CONSTRAINT 'ruigehond010_unique_$table_name' UNIQUE (term_id);";
                 $this->wpdb->query($sql);
             }
             // register the current version
