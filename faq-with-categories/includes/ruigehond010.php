@@ -943,7 +943,7 @@ namespace ruigehond010 {
             if (version_compare($this->database_version, '1.1.8') < 0) {
                 // on busy sites this can be called several times, so suppress the errors
                 $this->wpdb->suppress_errors = true;
-                $sql = "ALTER TABLE {$this->order_table} ADD CONSTRAINT 'ruigehond010_unique_{$this->order_table}' UNIQUE (term_id);";
+                $sql = "ALTER TABLE {$this->order_table} ADD CONSTRAINT ruigehond010_unique_{$this->order_table} UNIQUE (term_id);";
                 $this->wpdb->query($sql);
                 $old_version = $this->setOption('version', '1.1.8');
                 $this->wpdb->suppress_errors = false;
@@ -960,7 +960,7 @@ namespace ruigehond010 {
 						t VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_520_ci' NOT NULL DEFAULT '',
 						o INT NOT NULL DEFAULT 1);";
                 $this->wpdb->query($sql);
-                $sql = "ALTER TABLE $table_name ADD CONSTRAINT 'ruigehond010_unique_$table_name' UNIQUE (term_id);";
+                $sql = "ALTER TABLE $table_name ADD CONSTRAINT ruigehond010_unique_$table_name UNIQUE (term_id);";
                 $this->wpdb->query($sql);
             }
             // register the current version
