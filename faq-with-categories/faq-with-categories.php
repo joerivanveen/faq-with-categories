@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /*
 Plugin Name: FAQ with categories
 Plugin URI: https://github.com/joerivanveen/faq-with-categories
@@ -11,12 +13,12 @@ Text Domain: faq-with-categories
 Domain Path: /languages/
 */
 defined('ABSPATH') or die();
-define('RUIGEHOND010_VERSION', '1.1.8');
+const RUIGEHOND010_VERSION = '1.1.8';
 // This is plugin nr. 10 by ruige hond. It identifies with: ruigehond010.
 if (!class_exists('ruigehond_0_3_5', false)) {
-    include_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'ruigehond.php'); // base class
+    include_once(dirname(__FILE__) . '/includes/ruigehond.php'); // base class
 }
-include_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'ruigehond010.php');
+include_once(dirname(__FILE__) . '/includes/ruigehond010.php');
 // Register hooks for plugin management, functions are at the bottom of this file.
 register_activation_hook(__FILE__, 'ruigehond010_install');
 register_deactivation_hook(__FILE__, 'ruigehond010_deactivate');
@@ -45,7 +47,7 @@ function ruigehond010_settingslink($links)
     array_unshift(
         $links,
         "<a href=\"edit.php?post_type=ruigehond010_faq\">{$__faq}</a>",
-        "<a href=\"{$admin_url}admin.php?page=faq-with-categories-with-submenu-settings\">{$__settings}</a>",
+        "<a href=\"{$admin_url}admin.php?page=faq-with-categories-with-submenu-settings\">{$__settings}</a>"
     );
     return $links;
 }
