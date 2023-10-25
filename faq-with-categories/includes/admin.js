@@ -1,4 +1,4 @@
-function ruigehond010_setup() {
+function Ruigehond010setup() {
     // sort functionality stolen from ruigehond008 / user-reviews
     (function ($) {
         $('.rows-sortable').sortable({
@@ -65,9 +65,9 @@ function ruigehond010_setup() {
                 });
             },
         });
-        // enhance the input elements to Ruigehond008_input elements
+        // enhance the input elements to Ruigehond010input elements
         $.each($('input[type="checkbox"].ruigehond010.ajaxupdate, input[type="text"].ruigehond010.ajaxupdate, textarea.ruigehond010.ajaxupdate, input[type="button"].ruigehond010.ajaxupdate'), function (key, value) {
-            value.prototype = new Ruigehond008_input($, value);
+            value.prototype = new Ruigehond010_input($, value);
         });
 // okipokoi
     })(jQuery);
@@ -76,22 +76,22 @@ function ruigehond010_setup() {
 /**
  *  copied from ruigehond008..., make this better please
  */
-function Ruigehond008_input($, HTMLElement) {
+function Ruigehond010_input($, HTMLElement) {
     this.input = HTMLElement;
     this.$input = $(HTMLElement);
     this.$ = $; // cache jQuery to stay compatible with everybody
     this.id = parseInt(this.$input.attr('data-id'));
-    this.ajax = new Ruigehond008Ajax(this);
+    this.ajax = new Ruigehond010Ajax(this);
     // suggestions are disabled when input lacks class ajaxsuggest
-    this.suggest = new Ruigehond008InputSuggestions(this);
+    this.suggest = new Ruigehond010InputSuggestions(this);
     var _this = this;
     if (HTMLElement.type === 'button') {
         // currently only a delete button exists, so you can assume this is it
-        this.$input.off('.ruigehond008').on('click.ruigehond008', function () {
+        this.$input.off('.ruigehond010').on('click.ruigehond010', function () {
             _this.delete();
         });
     } else if (HTMLElement.type === 'checkbox') {
-        this.$input.off('.ruigehond008').on('change.ruigehond008', function () {
+        this.$input.off('.ruigehond010').on('change.ruigehond010', function () {
             if (this.getAttribute('data-column_name') === 'review_online') {
                 _this.toggleReviewOnline(this.checked);
             } else if (this.getAttribute('data-handle') === 'upsert_option') {
@@ -101,11 +101,11 @@ function Ruigehond008_input($, HTMLElement) {
             }
         })
     } else { // text or textarea
-        this.$input.off('.ruigehond008').on('blur.ruigehond008', function (event) {
+        this.$input.off('.ruigehond010').on('blur.ruigehond010', function (event) {
             _this.save(event);
-        }).on('keyup.ruigehond008', function (event) {
+        }).on('keyup.ruigehond010', function (event) {
             _this.typed(event);
-        }).on('keydown.ruigehond008', function (event) { // prevent form from submitting
+        }).on('keydown.ruigehond010', function (event) { // prevent form from submitting
             if (event.which === 13 && !event.shiftKey) {
                 return false; // jQuery way to stopPropagation and preventDefault at the same time.
             }
@@ -113,7 +113,7 @@ function Ruigehond008_input($, HTMLElement) {
     }
 }
 
-Ruigehond008_input.prototype.typed = function (e) {
+Ruigehond010_input.prototype.typed = function (e) {
     //console.log(e.which);
     switch (e.which) {
         case 13: // enter
@@ -121,7 +121,7 @@ Ruigehond008_input.prototype.typed = function (e) {
                 if (this.id === 0) {
                     this.$input.blur(); // when no specific focus, ruigehond will focus on the new row after ajax return
                 } else {
-                    this.focusNext(this.$('.ruigehond008.tabbed')); // will cause blur on this element which causes save
+                    this.focusNext(this.$('.ruigehond010.tabbed')); // will cause blur on this element which causes save
                 }
             }
             break;
@@ -140,7 +140,7 @@ Ruigehond008_input.prototype.typed = function (e) {
     this.checkChanged();
 };
 
-Ruigehond008_input.prototype.getData = function () {
+Ruigehond010_input.prototype.getData = function () {
     // returns an object containing all 'data' attributes
     var _this = this,
         data = {};
@@ -169,7 +169,7 @@ Ruigehond008_input.prototype.getData = function () {
     return data;
 };
 
-Ruigehond008_input.prototype.delete = function () { // this can actually delete several things, depending on handle
+Ruigehond010_input.prototype.delete = function () { // this can actually delete several things, depending on handle
     var data = this.getData(),
         _this = this;
     this.ajax.call(data, function (json) {
@@ -189,7 +189,7 @@ Ruigehond008_input.prototype.delete = function () { // this can actually delete 
         }
     });
 };
-Ruigehond008_input.prototype.saveBooleanOption = function () {
+Ruigehond010_input.prototype.saveBooleanOption = function () {
     var data = this.getData(),
         _this = this;
     _this.input.classList.add('unsaved');
@@ -198,7 +198,7 @@ Ruigehond008_input.prototype.saveBooleanOption = function () {
         if (json.success === true) _this.input.classList.remove('unsaved');
     });
 };
-Ruigehond008_input.prototype.toggleReviewOnline = function (flag) {
+Ruigehond010_input.prototype.toggleReviewOnline = function (flag) {
     var data = this.getData(),
         _this = this;
     data.value = (this.input.checked ? 1 : 0);
@@ -218,7 +218,7 @@ Ruigehond008_input.prototype.toggleReviewOnline = function (flag) {
 
 };
 
-Ruigehond008_input.prototype.save = function (e) {
+Ruigehond010_input.prototype.save = function (e) {
     this.suggest.remove();
     if (this.hasChanged()) {
         console.log('Send update to server.');
@@ -240,10 +240,10 @@ Ruigehond008_input.prototype.save = function (e) {
                     _this.$input.removeClass('unsaved');
                     _this.$input.removeAttr('disabled');
                     // (re-)activate handlers for input
-                    ruigehond008_setup(); // TODO you could only assign the prototypes to the new input elements
+                    Ruigehond010setup(); // TODO you could only assign the prototypes to the new input elements
                     // if there is no focus yet, focus on the value of the new row
                     if (document.activeElement.tagName === 'BODY') { // there is no specific focus
-                        _this.$('.ruigehond008.input.tag[data-id="' + _this.id.toString() + '"]').focus();
+                        _this.$('.ruigehond010.input.tag[data-id="' + _this.id.toString() + '"]').focus();
                     }
                 } else { // update existing
                     _this.updateInput(json.data.value);
@@ -261,7 +261,7 @@ Ruigehond008_input.prototype.save = function (e) {
     this.checkChanged();
 };
 
-Ruigehond008_input.prototype.updateInput = function (value) {
+Ruigehond010_input.prototype.updateInput = function (value) {
     this.$input.attr({
         'value': value,
         //placeholder: value,
@@ -270,12 +270,12 @@ Ruigehond008_input.prototype.updateInput = function (value) {
     this.checkChanged();
 };
 
-Ruigehond008_input.prototype.escape = function () {
+Ruigehond010_input.prototype.escape = function () {
     this.suggest.remove();
     this.$input.val(this.$input.attr('data-value'));
 };
 
-Ruigehond008_input.prototype.focusNext = function ($tabbed) {
+Ruigehond010_input.prototype.focusNext = function ($tabbed) {
     // focus on the next .tabbed item
     var found = false, i, len;
     for (i = 0, len = $tabbed.length; i < len; ++i) {
@@ -288,14 +288,14 @@ Ruigehond008_input.prototype.focusNext = function ($tabbed) {
     }
     this.input.blur();
 };
-Ruigehond008_input.prototype.checkChanged = function () {
+Ruigehond010_input.prototype.checkChanged = function () {
     if (this.hasChanged()) {
         this.$input.addClass('unsaved'); // class will only be added once, no need to check if it's present already
     } else {
         this.$input.removeClass('unsaved');
     }
 };
-Ruigehond008_input.prototype.hasChanged = function () {
+Ruigehond010_input.prototype.hasChanged = function () {
     if (this.$input.attr('data-value') === this.$input.val()) {
         return false;
     } else if (this.$input.attr('data-id') === '0' && this.$input.val() === '') {
@@ -307,13 +307,13 @@ Ruigehond008_input.prototype.hasChanged = function () {
     }
 };
 
-function Ruigehond008Ajax(ruigehond_input) {
-    // it receives a Ruigehond008_input instance, you can get all info from there
+function Ruigehond010Ajax(ruigehond_input) {
+    // it receives a Ruigehond010_input instance, you can get all info from there
     this.hond = ruigehond_input;
     this.post_id = ruigehond_input.$("#post_ID").val();
 }
 
-Ruigehond008Ajax.prototype.call = function (data, callback) {
+Ruigehond010Ajax.prototype.call = function (data, callback) {
     var $input = this.hond.$input;
     var hond = this.hond;
     // keep track of ajax communication
@@ -355,13 +355,6 @@ Ruigehond008Ajax.prototype.call = function (data, callback) {
                     ntc.set_level(msg.level);
                     ntc.popup();
                 }
-                // update the counter as well, if you want
-                if (json.new_reviews_indicator) {
-                    var el = document.getElementById('ruigehond008_new_reviews_indicator'),
-                        pa = el.parentNode;
-                    pa.removeChild(el);
-                    pa.insertAdjacentHTML('beforeend', json.new_reviews_indicator);
-                }
             } else {
                 console.warn('timestamp ' + json.data.timestamp + ' incorrect, need: ' + $input.attr('data-timestamp'))
             }
@@ -375,8 +368,8 @@ Ruigehond008Ajax.prototype.call = function (data, callback) {
     });
 };
 
-function Ruigehond008InputSuggestions(ruigehond_input) {
-    // it receives a Ruigehond008_input instance, you can get all info from there
+function Ruigehond010InputSuggestions(ruigehond_input) {
+    // it receives a Ruigehond010_input instance, you can get all info from there
     this.hond = ruigehond_input;
     this.disabled = !this.hond.$input.hasClass('ajaxsuggest');
     if (!this.disabled) {
@@ -387,10 +380,10 @@ function Ruigehond008InputSuggestions(ruigehond_input) {
     // don't initialize here, for all the ajax calls slow down, initialize JIT
 }
 
-Ruigehond008InputSuggestions.prototype.hasDatalist = function () {
+Ruigehond010InputSuggestions.prototype.hasDatalist = function () {
     return (this.hond.$('#' + this.suggest_id).length === 1);
 };
-Ruigehond008InputSuggestions.prototype.next = function () {
+Ruigehond010InputSuggestions.prototype.next = function () {
     if (this.disabled) return;
     if (!this.hasDatalist()) {
         this.initialize(this.next, this);
@@ -408,7 +401,7 @@ Ruigehond008InputSuggestions.prototype.next = function () {
         this.hond.$input.val(this.getCurrent() || this.lastTyped);
     }
 };
-Ruigehond008InputSuggestions.prototype.previous = function () {
+Ruigehond010InputSuggestions.prototype.previous = function () {
     if (this.disabled) return;
     if (!this.hasDatalist()) {
         this.initialize(this.previous, this);
@@ -426,10 +419,10 @@ Ruigehond008InputSuggestions.prototype.previous = function () {
         this.hond.$input.val(this.getCurrent() || this.lastTyped);
     }
 };
-Ruigehond008InputSuggestions.prototype.getCurrent = function () {
+Ruigehond010InputSuggestions.prototype.getCurrent = function () {
     return this.hond.$('#' + this.suggest_id + ' li.selecting input').val();
 };
-Ruigehond008InputSuggestions.prototype.filter = function () {
+Ruigehond010InputSuggestions.prototype.filter = function () {
     if (this.disabled) return;
     if (!this.hasDatalist()) {
         this.initialize(this.filter, this);
@@ -448,38 +441,40 @@ Ruigehond008InputSuggestions.prototype.filter = function () {
         this.hond.$('#' + this.suggest_id).css({'visibility': 'visible'});
     }
 };
-Ruigehond008InputSuggestions.prototype.remove = function () {
+Ruigehond010InputSuggestions.prototype.remove = function () {
     try {
         this.hond.$('#' + this.suggest_id).remove();
     } catch (e) {
     }
 };
-Ruigehond008InputSuggestions.prototype.initialize = function (callback, callbackObj) {
+Ruigehond010InputSuggestions.prototype.initialize = function (callback, callbackObj) {
     if (this.disabled) return;
     // you can fetch the whole list just once, so no repeated ajax calls for suggestions please, just wait for the first one to come back
     if (this.calling) return;
     this.calling = true;
-    data = this.hond.getData();
+    var data = this.hond.getData();
     data.handle = 'suggest_' + this.suggest_column;
-    var _this = this;
+    var self = this;
     this.hond.ajax.call(data, function (json) {
-        if (_this.hond.input !== document.activeElement) return; // too late, user moved on
-        if (!_this.hasDatalist()) { // if not exists, add the datalist
+        if (self.hond.input !== document.activeElement) return; // too late, user moved on
+        if (!self.hasDatalist()) { // if not exists, add the datalist
             // TODO possible bug when busy and another ajax call comes back right before the id is added to the dom
-            var $input = _this.hond.$input;
+            var $input = self.hond.$input;
             console.log(json);
-            $input.before($input, '<ul id="' + _this.suggest_id + '" class="ruigehond datalist"></ul>');
+            $input.before($input, '<ul id="' + self.suggest_id + '" class="ruigehond datalist"></ul>');
             // now add suggestions received by server as options to the list
-            var $datalist = _this.hond.$('#' + _this.suggest_id);
-            var handle = json.data.column_name; //_this.hond.handle;
-            if (json.suggestions) {
-                for (var i = 0; i < json.suggestions.length; ++i) {
-                    if (json.suggestions[i][handle] === '') {
+            var $datalist = self.hond.$('#' + self.suggest_id);
+            if (json.data.suggestions) {
+                var handle = json.data.column_name; //self.hond.handle;
+                var suggestions = json.data.suggestions, suggestion;
+                for (var i = 0, len = suggestions.length; i < len; ++i) {
+                    suggestion = suggestions[i][handle];
+                    if ('' === suggestion) {
                         console.warn('Empty string for suggestion ' + handle);
                     } else {
                         // the added input element is because of utf-8 symbols being rendered as emojis in plain html
                         // https://stackoverflow.com/questions/32915485/how-to-prevent-unicode-characters-from-rendering-as-emoji-in-html-from-javascrip
-                        $datalist.append('<li><input value="' + json.suggestions[i][handle].replaceAll('"', '&quot;') + '"/></li>');
+                        $datalist.append('<li><input value="' + suggestion.replaceAll('"', '&quot;') + '"/></li>');
                     }
                 }
             }
@@ -487,19 +482,19 @@ Ruigehond008InputSuggestions.prototype.initialize = function (callback, callback
                 'left': Math.floor($input.position().left) + 'px',
                 'top': Math.floor($input.position().top + $input.height()) + 'px'
             });
-            _this.hond.$('#' + _this.suggest_id + ' li').off('mousedown').on('mousedown', function () {
-                $input.val(_this.hond.$(this).find('input').val()).blur(); // here this is the li element
+            self.hond.$('#' + self.suggest_id + ' li').off('mousedown').on('mousedown', function () {
+                $input.val(self.hond.$(this).find('input').val()).blur(); // here this is the li element
                 return false; // prevent default etc.
             });
             // make the list disappear if the user clicks somewhere else
-            _this.hond.$(document).off('.ruigehond008.datalist.' + _this.suggest_id).on('mouseup.ruigehond008.datalist.' + _this.suggest_id, function () {
-                _this.remove();
+            self.hond.$(document).off('.ruigehond010.datalist.' + self.suggest_id).on('mouseup.ruigehond010.datalist.' + self.suggest_id, function () {
+                self.remove();
             });
         }
         if (typeof callback === 'function') {
             callback.apply(callbackObj);
         }
-        _this.calling = false;
+        self.calling = false;
     });
 };
 
@@ -660,9 +655,9 @@ RuigehondNotice.prototype.set_level = function (level) {
 
 /* only after everything is locked and loaded we’re initialising */
 if (document.readyState === "complete") {
-    ruigehond010_setup();
+    Ruigehond010setup();
 } else {
     window.addEventListener('load', function (event) {
-        ruigehond010_setup();
+        Ruigehond010setup();
     });
 }

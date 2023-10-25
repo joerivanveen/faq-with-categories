@@ -3,19 +3,13 @@
 declare(strict_types=1);
 
 namespace ruigehond010;
-/**
- * This file has ruigehond010 namespace.
- * ruigehond010 namespace holds the Plugin class ruigehond010
- * the widget for displaying the data frontend
- * and some other classes specific to this plugin.
- */
 
 // TODO BUG if you put central faq short_code or any exclusive tag on multiple pages, the $on option keeps getting updated
-use ruigehond_0_3_5;
+use ruigehond_0_4_0;
 
 defined('ABSPATH') or die();
 
-class ruigehond010 extends ruigehond_0_3_5
+class ruigehond010 extends ruigehond_0_4_0\ruigehond
 {
     private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $table_prefix,
         $more_button_text, $no_results_warning, $max, $max_ignore_elsewhere,
@@ -68,7 +62,7 @@ class ruigehond010 extends ruigehond_0_3_5
 //            error_reporting(E_ALL);
 //            ini_set('display_errors', '1');
 //        }
-        $this->load_translations('faq-with-categories');
+        $this->loadTranslations('faq-with-categories');
         /**
          * register custom post type for faqs
          */
@@ -416,11 +410,12 @@ class ruigehond010 extends ruigehond_0_3_5
         // get the terms for this registered taxonomies from the db
         $taxonomies = addslashes(sanitize_text_field($this->taxonomies)); // just for the h#ck of it
         $wp_prefix = $this->wpdb->prefix;
-        $sql = "select t.term_id, tt.parent, t.name as term, o.t, o.post_id from
-                {$wp_prefix}terms t inner join
-                {$wp_prefix}term_taxonomy tt on t.term_id = tt.term_id left outer join
-                {$this->order_table} o on o.term_id = t.term_id where tt.taxonomy = '$taxonomies'
-                order by o.o, t.name;";
+        $sql = "SELECT t.term_id, tt.parent, t.name AS term, o.t, o.post_id 
+                FROM {$wp_prefix}terms t
+                INNER JOIN {$wp_prefix}term_taxonomy tt ON t.term_id = tt.term_id
+                LEFT OUTER JOIN {$this->order_table} o ON o.term_id = t.term_id
+                WHERE tt.taxonomy = '$taxonomies'
+                ORDER BY o.o, t.name;";
         $rows = $this->wpdb->get_results($sql, OBJECT);
         $terms = array();
         foreach ($rows as $key => $row) {
