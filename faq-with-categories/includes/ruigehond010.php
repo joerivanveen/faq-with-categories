@@ -202,10 +202,10 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 		$chosen_exclusive = isset( $attributes['exclusive'] ) ? $attributes['exclusive'] : null;
 		$chosen_term      = isset( $attributes['category'] ) ? strtolower( $attributes['category'] ) : null;
 		$filter_term      = isset( $_GET['category'] ) ? strtolower( $_GET['category'] ) : null;
-		$quantity         = isset( $attributes['quantity'] ) ? intval( $attributes['quantity'] ) : null;
+		$quantity         = isset( $attributes['quantity'] ) ? (int) $attributes['quantity'] : null;
 		$title_only       = isset( $attributes['title-only'] ); // no matter the value, when set we do title only
 		// when you have assigned a page to a term, also use that term when you’re on that specific page
-		if ( is_null( $chosen_term ) ) {
+		if ( null === $chosen_term ) {
 			$chosen_term = $this->getDefaultTerm( $post_id );
 		}
 		// several types of html can be got with this
@@ -229,6 +229,8 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 				foreach ( $options as $index => $option ) {
 					echo '<option data-ruigehond010_term_id="';
 					echo $option['term_id'];
+					echo '" data-ruigehond010_count="';
+					echo $option['count'];
 					echo '" value="term-';
 					echo $option['term_id'];
 					//echo htmlentities($term = $option['term']);
@@ -252,7 +254,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 				if ( is_null( $chosen_term ) ) {
 					// register the shortcode being used here, for outputSchema method :-)
 					// don’t update if it’s all faqs but with a quantity
-					$register = ( is_string( $chosen_exclusive ) ) ? $chosen_exclusive : is_null( $quantity );
+					$register = ( is_string( $chosen_exclusive ) ) ? $chosen_exclusive : null === $quantity;
 					if ( ( $on = $this->getOption( 'post_ids' ) ) ) {
 						// remove any reference for this $register (exclusive or ‘true’ for overview), it will be set to the correct one later
 						//if (false === isset($on[$post_id])) {
@@ -265,13 +267,13 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 									$danger = false;
 									if ( true === $register ) { // disallowed is [faq-with-categories without ‘exclusive’ or ‘category’
 										if ( false !== ( $pos = strpos( $temps, '[faq-with-categories' ) ) ) {
-											if ( false === strpos( $temps, ' exclusive="', $pos ) and
+											if ( false === strpos( $temps, ' exclusive="', $pos ) &&
 											     false === strpos( $temps, ' category="', $pos ) ) {
 												$danger = true;
 											}
 										}
 									} else {
-										if ( false !== strpos( $temps, 'exclusive="' . $register . '"' ) ) {
+										if ( false !== strpos( $temps, "exclusive=\"$register\"" ) ) {
 											$danger = true;
 										}
 									}
@@ -279,7 +281,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 										ob_start();
 										echo sprintf(
 											__( 'Looks like the tag ‘%s’ is used multiple times.', 'faq-with-categories' ),
-											( true === $register ) ? '[faq-with-categories]' : 'exclusive="' . $register . '"' );
+											( true === $register ) ? '[faq-with-categories]' : "exclusive=\"$register\"" );
 										echo ' ';
 										echo __( 'Found on', 'faq-with-categories' );
 										echo ': <a href="';
@@ -417,29 +419,33 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 	}
 
 	private function getTerms(): array {
-		if ( isset( $this->terms ) ) {
+		if ( true === isset( $this->terms ) ) {
 			return $this->terms;
 		} // return cached value if available
 		// get the terms for this registered taxonomies from the db
 		$taxonomies = addslashes( sanitize_text_field( $this->taxonomies ) ); // just for the h#ck of it
 		$wp_prefix  = $this->wpdb->prefix;
-		$sql        = "SELECT t.term_id, tt.parent, t.name AS term, o.t, o.post_id 
+		$sql        = "SELECT t.term_id, tt.parent, t.name AS term, o.t, o.post_id, COUNT(tr.object_id) AS quantity
                 FROM {$wp_prefix}terms t
                 INNER JOIN {$wp_prefix}term_taxonomy tt ON t.term_id = tt.term_id
-                LEFT OUTER JOIN {$this->order_table} o ON o.term_id = t.term_id
+                LEFT OUTER JOIN $this->order_table o ON o.term_id = t.term_id
+                LEFT OUTER JOIN {$wp_prefix}term_relationships tr ON tr.term_taxonomy_id = tt.term_taxonomy_id
                 WHERE tt.taxonomy = '$taxonomies'
+                GROUP BY t.term_id, tt.parent, t.name, o.t, o.post_id, o.o
                 ORDER BY o.o, t.name;";
 		$rows       = $this->wpdb->get_results( $sql, OBJECT );
 		$terms      = array();
 		foreach ( $rows as $key => $row ) {
-			if ( ! isset( $terms[ $parent = intval( $row->parent ) ] ) ) {
+			$parent   = (int) $row->parent;
+			if ( false === isset( $terms[ $parent ] ) ) {
 				$terms[ $parent ] = array();
 			}
 			$terms[ $parent ][] = array(
-				'term_id' => intval( $row->term_id ),
+				'term_id' => (int) $row->term_id,
 				'term'    => $row->term,
 				't'       => $row->t,
 				'post_id' => $row->post_id,
+				'count'   => (int) $row->quantity,
 			);
 		}
 		$this->terms = $terms;
@@ -460,7 +466,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 			$sql_term = addslashes( $term );
 			$sql      = "SELECT term_id FROM {$wp_prefix}terms t WHERE lower(t.name) = '$sql_term';";
 			// now for as long as rows with term_ids are returned, keep building the array
-			while ( $rows = $this->wpdb->get_results( $sql ) ) {
+			while ( ( $rows = $this->wpdb->get_results( $sql ) ) ) {
 				foreach ( $rows as $index => $row ) {
 					$term_ids[] = $row->term_id;
 				}
@@ -495,7 +501,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 			if ( $row->ID === $current_id ) { // add the category to the current return value
 				$return_arr[ count( $return_arr ) - 1 ]->term_ids[] = $row->term_id;
 			} else { // add the row, when not exclusive is requested posts without terms must be filtered out
-				if ( ( $term_id = $row->term_id ) or $exclusive ) {
+				if ( ( $term_id = $row->term_id ) || $exclusive ) {
 					$row->term_ids = array( $term_id );
 					unset( $row->term_id );
 					$return_arr[] = $row;

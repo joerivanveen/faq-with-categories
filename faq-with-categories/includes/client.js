@@ -28,6 +28,7 @@ Ruigehond010.prototype.start = function () {
             if ((option = list.querySelector('[selected]'))) selected_list = option.parentElement;
         }
     }
+    // TODO use data-ruigehond010_count to only show options with items, and whose descendants have items
     if ((options = self.cloneShallow(document.querySelectorAll('[data-ruigehond010_term_id]')))) {
         // sort the lists
         while (true) {
