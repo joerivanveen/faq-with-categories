@@ -654,7 +654,7 @@ RuigehondNotice.prototype.set_level = function (level) {
  */
 
 /* only after everything is locked and loaded we’re initialising */
-if (document.readyState === "complete") {
+if (document.readyState === 'complete') {
     Ruigehond010setup();
 } else {
     window.addEventListener('load', function (event) {
