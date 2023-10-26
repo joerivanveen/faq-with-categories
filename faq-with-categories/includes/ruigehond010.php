@@ -73,8 +73,8 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 				'has_archive'         => true,
 				'taxonomies'          => array( $this->taxonomies ),
 				'exclude_from_search' => $this->exclude_from_search,
-				'rewrite'             => array( 'slug' => $this->slug ),
 				// remember to flush_rewrite_rules(); when this changes
+				'rewrite'             => array( 'slug' => $this->slug ),
 				'show_in_menu'        => false,
 				'show_in_admin_bar'   => true,
 			)
@@ -178,7 +178,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 	/**
 	 * @param $post_id
 	 *
-	 * @return string The term or null when not found
+	 * @return null|string The term or null when not found
 	 * @since 1.1.0
 	 */
 	public function getDefaultTerm( $post_id ) {
@@ -195,7 +195,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 		return null;
 	}
 
-	public function getHtmlForFrontend( $attributes = [], $content = null, $short_code = 'faq-with-categories' ) {
+	public function getHtmlForFrontend( $attributes = [], $content = null, $short_code = 'faq-with-categories' ): string {
 		if ( ( ! $post_id = get_the_ID() ) ) {
 			return '';
 		}
@@ -210,7 +210,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 		}
 		// several types of html can be got with this
 		// 1) the select boxes for the filter (based on term)
-		if ( $short_code === 'faq-with-categories-filter' ) {
+		if ( 'faq-with-categories-filter' === $short_code ) {
 			// ->getTerms() = fills by sql SELECT term_id, parent, count, term FROM etc.
 			$rows = $this->getTerms();
 			// write the html lists
@@ -243,7 +243,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 			}
 
 			return ob_get_clean();
-		} elseif ( $short_code === 'faq-with-categories-search' ) {
+		} elseif ( 'faq-with-categories-search' === $short_code ) {
 			return "<input type=\"text\" name=\"search\" class=\"search-field ruigehond010 faq\" id=\"ruigehond010_search\" placeholder=\"$this->search_faqs\"/>";
 		} else { // 2) all the posts, filtered by 'exclusive' or 'term'
 			// only do the whole registering if you output schema on any of those pages
@@ -252,7 +252,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 				if ( is_null( $chosen_term ) ) {
 					// register the shortcode being used here, for outputSchema method :-)
 					// don’t update if it’s all faqs but with a quantity
-					$register = ( is_string( $chosen_exclusive ) ) ? $chosen_exclusive : ( ( is_null( $quantity ) ) ? true : false );
+					$register = ( is_string( $chosen_exclusive ) ) ? $chosen_exclusive : is_null( $quantity );
 					if ( ( $on = $this->getOption( 'post_ids' ) ) ) {
 						// remove any reference for this $register (exclusive or ‘true’ for overview), it will be set to the correct one later
 						//if (false === isset($on[$post_id])) {
@@ -309,7 +309,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 						$on = [ $post_id => true ];
 					}
 					$this->setOption( 'post_ids', $on );
-					if ( $register === true and $title_only === false ) {
+					if ( true === $register && false === $title_only ) {
 						$this->setOption( 'faq_page_slug', get_post_field( 'post_name', $post_id ) );
 					}
 				} else {
@@ -355,8 +355,8 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 			if ( $chosen_exclusive ) {
 				echo strtolower( htmlentities( $chosen_exclusive ) );
 			}
-			if ( true === $this->max_ignore_elsewhere and
-			     ( false === is_null( $chosen_term ) or false === is_null( $chosen_exclusive ) )
+			if ( true === $this->max_ignore_elsewhere &&
+			     ( null !== $chosen_term || null !== $chosen_exclusive )
 			) {
 				echo '" data-max_ignore="1'; // set the max to be ignored on pages that display subsets of the faq
 			}
@@ -416,7 +416,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 		}
 	}
 
-	private function getTerms() {
+	private function getTerms(): array {
 		if ( isset( $this->terms ) ) {
 			return $this->terms;
 		} // return cached value if available
@@ -453,12 +453,12 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 	 *
 	 * @return array the rows from db as \stdClasses in an indexed array
 	 */
-	private function getPosts( $exclusive = null, $term = null ) {
+	private function getPosts( $exclusive = null, $term = null ): array {
 		$term_ids  = null; // we are going to collect all the term_ids that fall under the requested $term
 		$wp_prefix = $this->wpdb->prefix;
 		if ( is_string( $term ) ) {
 			$sql_term = addslashes( $term );
-			$sql      = "select term_id from {$wp_prefix}terms t where lower(t.name) = '$sql_term';";
+			$sql      = "SELECT term_id FROM {$wp_prefix}terms t WHERE lower(t.name) = '$sql_term';";
 			// now for as long as rows with term_ids are returned, keep building the array
 			while ( $rows = $this->wpdb->get_results( $sql ) ) {
 				foreach ( $rows as $index => $row ) {
@@ -466,26 +466,28 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 				}
 				// new sql selects all the children from the term_ids that are in the array
 				$str_term_ids = implode( ',', $term_ids );
-				$sql          = "select term_id from {$wp_prefix}term_taxonomy tt 
-                        where tt.parent in ($str_term_ids) 
-                        and term_id not in ($str_term_ids);"; // excluding the term_ids already in the array
+				$sql          = "SELECT term_id FROM {$wp_prefix}term_taxonomy tt 
+                        WHERE tt.parent IN ($str_term_ids) 
+                        AND term_id NOT IN ($str_term_ids);"; // excluding the term_ids already in the array
 				// so it returns no rows if there are no more children, ending the while loop
 			}
 		}
-		$sql = "select p.ID, p.post_title, p.post_content, p.post_date, p.post_name, t.term_id, pm.meta_value AS exclusive from
-                {$wp_prefix}posts p left outer join 
-                {$wp_prefix}term_relationships tr on tr.object_id = p.ID left outer join 
-                {$wp_prefix}term_taxonomy tt on tt.term_taxonomy_id = tr.term_taxonomy_id left outer join 
-                {$wp_prefix}terms t on t.term_id = tt.term_id left outer join 
-                {$wp_prefix}postmeta pm on pm.post_id = p.ID and pm.meta_key = '_ruigehond010_exclusive' 
-                where p.post_type = 'ruigehond010_faq' and post_status = 'publish'";
+		ob_start();
+		echo "SELECT p.ID, p.post_title, p.post_content, p.post_date, p.post_name, t.term_id, pm.meta_value AS exclusive from
+                {$wp_prefix}posts p LEFT OUTER JOIN 
+                {$wp_prefix}term_relationships tr ON tr.object_id = p.ID LEFT OUTER JOIN 
+                {$wp_prefix}term_taxonomy tt ON tt.term_taxonomy_id = tr.term_taxonomy_id LEFT OUTER JOIN 
+                {$wp_prefix}terms t ON t.term_id = tt.term_id LEFT OUTER JOIN 
+                {$wp_prefix}postmeta pm ON pm.post_id = p.ID AND pm.meta_key = '_ruigehond010_exclusive' 
+                WHERE p.post_type = 'ruigehond010_faq' AND post_status = 'publish'";
 		// setup the where condition regarding exclusive and term....
 		if ( is_array( $term_ids ) ) {
-			$sql .= ' and t.term_id IN (' . implode( ',', $term_ids ) . ')';
+			echo ' AND t.term_id IN (', implode( ',', $term_ids ), ')';
 		} elseif ( is_string( $exclusive ) ) {
-			$sql .= ' and pm.meta_value = \'' . addslashes( sanitize_text_field( $exclusive ) ) . '\'';
+			echo ' AND pm.meta_value = \'', addslashes( sanitize_text_field( $exclusive ) ), '\'';
 		}
-		$sql        = "$sql order by p.post_date desc;";
+		echo ' ORDER BY p.post_date DESC;';
+		$sql        = ob_get_clean();
 		$rows       = $this->wpdb->get_results( $sql, OBJECT );
 		$return_arr = array();
 		$current_id = 0;
@@ -506,7 +508,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 		return $return_arr;
 	}
 
-	public function handle_input( $args ) {
+	public function handle_input( $args ): ruigehond_0_4_0\returnObject {
 		$returnObject = $this->getReturnObject();
 		$wp_prefix    = $this->wpdb->prefix;
 		if ( isset( $args['id'] ) ) {
@@ -528,7 +530,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 				if ( isset( $args['order'] ) and is_array( $args['order'] ) ) {
 					$rows = $args['order'];
 					foreach ( $rows as $term_id => $o ) {
-						$this->upsert( $this->order_table,
+						$this->upsertDb( $this->order_table,
 							array( 'o' => $o ),
 							array( 'term_id' => $term_id )
 						);
@@ -567,16 +569,16 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 									$returnObject->add_message( sprintf( __( 'Could not find post_id based on title: %s', 'faq-with-categories' ), $post_title ), 'warn' );
 								}
 							}
+							break;
+						default:
+							$update = array();
 					}
 					if ( count( $update ) > 0 ) {
-						$rowsaffected = $this->upsert(
-							$this->table_prefix . $table_name, $update,
+						$rows_affected = $this->upsertDb(
+							"$this->table_prefix$table_name", $update,
 							array( $id_column => $id ) );
-						if ( $rowsaffected === 0 ) {
-							$returnObject->add_message( __( 'Update with same value not necessary...', 'faq-with-categories' ), 'warn' );
-						}
-						if ( $rowsaffected === false ) {
-							$returnObject->add_message( __( 'Operation failed', 'faq-with-categories' ), 'error' );
+						if ( 0 === $rows_affected ) {
+							$returnObject->add_message( __( 'Not updated', 'faq-with-categories' ) );
 						} else {
 							$returnObject->set_success( true );
 							$args['value'] = $this->wpdb->get_var(
@@ -607,24 +609,6 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 		$returnObject->set_data( $args );
 
 		return $returnObject;
-	}
-
-	private function upsert( string $table_name, array $values, array $where ): int {
-		$where_condition = 'WHERE 1 = 1';
-		foreach ( $where as $key => $value ) {
-			$key = addslashes( $key );
-			if ( true === is_string( $value ) ) {
-				$value = addslashes( $value );
-			}
-			$where_condition = "$where_condition AND $key = '$value'";
-		}
-		if ( $this->wpdb->get_var( "SELECT EXISTS (SELECT 1 FROM $table_name $where_condition);" ) ) {
-			$rows_affected = $this->wpdb->update( $table_name, $values, $where );
-		} else {
-			$rows_affected = $this->wpdb->insert( $table_name, $values + $where );
-		}
-
-		return $rows_affected;
 	}
 
 	/**
