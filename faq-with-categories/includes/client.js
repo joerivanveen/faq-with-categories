@@ -13,8 +13,9 @@ function Ruigehond010(max_for_more, max_ignore, more_button_text) {
 Ruigehond010.prototype.start = function () {
     var self = this,
         options, option, i, len, parent_id, list, lists, maybe_done, search_input, header_tag, pos, post, post_id,
-        post_ids = [],
-        src, more_btn, lists_by_parent = {}, selected_list = null, list_item, max_height = 300, test_height, test_element;
+        post_ids = [], term_items = [], term_count, term_id,
+        src, more_btn, lists_by_parent = {}, selected_list = null, list_item, max_height = 300, test_height,
+        test_element;
     /**
      * first get the lists in order: sort them from parent to child and remember if any is pre-checked by php
      */
@@ -30,21 +31,53 @@ Ruigehond010.prototype.start = function () {
     }
     // TODO use data-ruigehond010_count to only show options with items, and whose descendants have items
     if ((options = self.cloneShallow(document.querySelectorAll('[data-ruigehond010_term_id]')))) {
+        // count number of items
+        function add(key, value) {
+            if (term_items.hasOwnProperty(key)) {
+                term_items[key] += value;
+            } else {
+                term_items[key] = value;
+            }
+        }
+
+        for (i in options) {
+            if (false === this.isInt(i)) continue; // only loop over the own options, NOTE: hasOwnProperty doesn't work on old iPad, still returns e.g. 'length'
+            option = options[i];
+            if ((term_id = option.getAttribute('data-ruigehond010_term_id'))
+                && (term_count = parseInt(option.getAttribute('data-ruigehond010_count')))) {
+                add(term_id, term_count);
+                if ((parent_id = option.parentElement.getAttribute('data-ruigehond010_parent'))) {
+                    add(parent_id, term_count);
+                }
+            }
+        }
+        // remove options without items
+        for (i in options) {
+            if (false === this.isInt(i)) continue; // only loop over the own options, NOTE: hasOwnProperty doesn't work on old iPad, still returns e.g. 'length'
+            option = options[i];
+            if (!term_items[option.getAttribute('data-ruigehond010_term_id')]) {
+                option.parentElement.removeChild(option);
+            }
+        }
         // sort the lists
         while (true) {
             maybe_done = true; // until proven otherwise
             for (i in options) {
-                if (this.isInt(i)) { // only loop over the own options, NOTE: hasOwnProperty doesn't work on old iPad, still returns e.g. 'length'
-                    if ((list = lists_by_parent[(parent_id = options[i].getAttribute('data-ruigehond010_term_id'))])) {
-                        // put the list after the list this option is in, only if it's not already later in the DOM, in which case all is ok
-                        if ((option = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"] ~ select > [data-ruigehond010_term_id="' + parent_id + '"]'))) {
-                            option.parentElement.insertAdjacentElement('afterend', list);
-                            maybe_done = false;
-                        }
+                if (false === this.isInt(i)) continue; // only loop over the own options, NOTE: hasOwnProperty doesn't work on old iPad, still returns e.g. 'length'
+                if ((list = lists_by_parent[(parent_id = options[i].getAttribute('data-ruigehond010_term_id'))])) {
+                    // put the list after the list this option is in, only if it's not already later in the DOM, in which case all is ok
+                    if ((option = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"] ~ select > [data-ruigehond010_term_id="' + parent_id + '"]'))) {
+                        option.parentElement.insertAdjacentElement('afterend', list);
+                        maybe_done = false;
                     }
                 }
             }
             if (maybe_done) break; // yeah, we’re definitely done
+        }
+        // remove lists without options
+        for (i = 0, len = lists.length; i < len; ++i) {
+            list = lists[i];
+            if (list.options.length < 2) list.parentElement.removeChild(list);
         }
     }
     /**
@@ -87,7 +120,7 @@ Ruigehond010.prototype.start = function () {
                 }
             }
             // @since 1.1.3 set the max height style accordingly TODO check again after resize of the window
-            test_height = '#ruigehond010_faq .ruigehond010_post.open .faq-header+div { max-height: '+max_height+'px; }';
+            test_height = '#ruigehond010_faq .ruigehond010_post.open .faq-header+div { max-height: ' + max_height + 'px; }';
             list.removeChild(test_element);
             var head = document.head,
                 style = document.createElement('style');
@@ -109,7 +142,7 @@ Ruigehond010.prototype.start = function () {
             }
             // when a post_id is in the querystring, open that one only
             if ((pos = (src = document.location.search).indexOf('post_id=')) > -1) {
-                post_id = parseInt(src.substr(pos + 8));
+                post_id = parseInt(src.slice(pos + 8));
                 if ((post = list.querySelector('[data-post_id="' + post_id.toString() + '"]'))) {
                     self.showDomElement(post);
                     self.toggle(post);
@@ -382,7 +415,7 @@ function ruigehond010_start() {
 }
 
 /* only after everything is locked and loaded we’re initialising */
-if (document.readyState === "complete") {
+if (document.readyState === 'complete') {
     ruigehond010_start();
 } else {
     window.addEventListener('load', function (event) {
