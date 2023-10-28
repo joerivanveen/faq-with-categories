@@ -39,8 +39,6 @@ When there are many entries, a ‘Show more’ button appears automatically (con
 
 - Filtering and searching the FAQs only work with javascript enabled (but then again, so does most of Wordpress)
 
-- The filter displays all the categories currently, also the categories without faqs, this will be fixed in a future release
-
 ## Short codes
 
 You may use the following shortcodes, of course certain combinations do not make sense and may produce erratic behaviour.

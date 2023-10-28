@@ -5,7 +5,7 @@ declare( strict_types=1 );
 Plugin Name: FAQ with categories
 Plugin URI: https://github.com/joerivanveen/faq-with-categories
 Description: Easy to maintain FAQ and answer plugin with categories.
-Version: 1.1.8
+Version: 1.2.0
 Author: Joeri van Veen
 Author URI: https://wp-developer.eu
 License: GPL3
@@ -13,7 +13,7 @@ Text Domain: faq-with-categories
 Domain Path: /languages/
 */
 defined( 'ABSPATH' ) or die();
-const RUIGEHOND010_VERSION = '1.1.8';
+const RUIGEHOND010_VERSION = '1.2.0';
 // This is plugin nr. 10 by ruige hond. It identifies with: ruigehond010.
 if ( ! class_exists( 'ruigehond_0_4_0\ruigehond', false ) ) {
 	include_once( dirname( __FILE__ ) . '/includes/ruigehond.php' ); // base class
@@ -32,8 +32,8 @@ add_action( 'init', array( new ruigehond010\ruigehond010( 'FAQ with categories' 
 add_action( 'wp_ajax_ruigehond010_handle_input', 'ruigehond010_handle_input' );
 function ruigehond010_handle_input() {
 	$ruigehond = new ruigehond010\ruigehond010();
-	$r         = $ruigehond->handle_input( $_POST );
-	echo json_encode( $r );
+	$returnObj = $ruigehond->handle_input( $_POST );
+	echo json_encode( $returnObj );
 	die(); // prevent any other output
 }
 
