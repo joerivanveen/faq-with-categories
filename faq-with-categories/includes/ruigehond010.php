@@ -426,14 +426,17 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 		// get the terms for this registered taxonomies from the db
 		$taxonomies = addslashes( sanitize_text_field( $this->taxonomies ) ); // just for the h#ck of it
 		$wp_prefix  = $this->wpdb->prefix;
-		$sql        = "SELECT t.term_id, tt.parent, t.name AS term, o.t, o.post_id, p.post_type
-                FROM {$wp_prefix}terms t
+		$sql        = "SELECT DISTINCT t.term_id, tt.parent, t.name AS term, o.t, o.post_id,
+       			MAX(CASE WHEN
+           		EXISTS(SELECT 1 FROM {$wp_prefix}posts p WHERE ID = tr.object_id AND p.post_type = 'ruigehond010_faq')
+				THEN 1 ELSE 0 END) AS has_items                
+				FROM {$wp_prefix}terms t
                 INNER JOIN {$wp_prefix}term_taxonomy tt ON t.term_id = tt.term_id
                 LEFT OUTER JOIN $this->order_table o ON o.term_id = t.term_id
                 LEFT OUTER JOIN {$wp_prefix}term_relationships tr ON tr.term_taxonomy_id = tt.term_taxonomy_id
-                LEFT OUTER JOIN {$wp_prefix}posts p ON tr.object_id = p.ID
-                WHERE tt.taxonomy = '$taxonomies' AND (p.post_type = 'ruigehond010_faq' OR p.post_type IS NULL)
-                ORDER BY o.o, t.name;";
+                WHERE tt.taxonomy = '$taxonomies'
+				GROUP BY t.term_id, tt.parent, t.name, o.t, o.post_id, o.o
+				ORDER BY o.o, t.name;";
 		$rows       = $this->wpdb->get_results( $sql, OBJECT );
 		$terms      = array();
 		foreach ( $rows as $key => $row ) {
@@ -446,7 +449,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 				'term'      => $row->term,
 				't'         => $row->t,
 				'post_id'   => $row->post_id,
-				'has_items' => null !== $row->post_type,
+				'has_items' => (bool) $row->has_items,
 			);
 		}
 		$this->terms = $terms;
