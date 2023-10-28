@@ -5,9 +5,9 @@ Get it on WordPress: <https://wordpress.org/plugins/faq-with-categories/>
 
 ## Description
 
-FAQs are great for your visitors and when implemented correctly also for SEO.
+FAQs are attractive for your visitors and help establish you as an expert in your field.
 
-This simple FAQ plugin creates a new post-type. This is straightforward and flexible: you can now create and manage FAQs like any other post type in Wordpress.
+This simple FAQ plugin creates a new post-type. This is straightforward and flexible: you can now create and manage FAQs like any other post type in WordPress.
 
 The FAQs can be summoned using shortcodes, the default for the central FAQ page is [faq-with-categories]. More options are explained below and on the settings page.
 
@@ -35,9 +35,9 @@ When there are many entries, a ‘Show more’ button appears automatically (con
 
 - Only 1 central FAQ list is supported (though you can display subsets of the FAQs anywhere you want)
 
-- Currently only with shortcodes, no widgets yet
+- Currently only with shortcodes, no widgets or blocks
 
-- Filtering and searching the FAQs only work with javascript enabled (but then again, so does most of Wordpress)
+- Filtering and searching the FAQs only work with javascript enabled (but then again, so does most of WordPress)
 
 ## Short codes
 
