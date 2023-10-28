@@ -43,7 +43,7 @@ When there are many entries, a ‘Show more’ button appears automatically (con
 
 You may use the following shortcodes, of course certain combinations do not make sense and may produce erratic behaviour.
 
-**[faq-with-categories]** (use only ONCE) produces the default list with all the faqs and outputs FAQ snippets schema in the head.
+**[faq-with-categories]** produces the default list with all the faqs and outputs FAQ snippets schema in the head. Use only ONCE for central FAQ page, and on pages that are linked to a taxonomy (category) in the plugin.
 
 **[faq-with-categories-filter]** produces a filter menu according to the chosen taxonomy using the specified order (only works when default shortcode is also on that page).
 
