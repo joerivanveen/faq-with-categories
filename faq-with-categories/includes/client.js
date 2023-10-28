@@ -70,7 +70,7 @@ Ruigehond010.prototype.start = function () {
             if (maybe_done) break; // yeah, we’re definitely done
         }
         // remove lists without options, by looping in reverse!
-        for (i = lists.length - 1; i !== 0; --i) {
+        for (i = lists.length - 1; i >= 0; --i) {
             list = lists[i];
             if (list.options.length < 2) list.parentElement.removeChild(list);
         }
