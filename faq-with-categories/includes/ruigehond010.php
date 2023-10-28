@@ -183,10 +183,10 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 	 */
 	public function getDefaultTerm( $post_id ) {
 		$rows    = $this->getTerms();
-		$post_id = strval( $post_id );
+		$post_id = (string) $post_id;
 		foreach ( $rows as $term_id => $arr ) {
 			foreach ( $arr as $index => $term ) {
-				if ( isset( $term['post_id'] ) and $post_id === strval( $term['post_id'] ) ) {
+				if ( isset( $term['post_id'] ) && $post_id === (string) $term['post_id'] ) {
 					return $term['term'];
 				}
 			}
@@ -229,8 +229,9 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 				foreach ( $options as $index => $option ) {
 					echo '<option data-ruigehond010_term_id="';
 					echo $option['term_id'];
-					echo '" data-ruigehond010_count="';
-					echo $option['count'];
+					if (true === $option['has_items']) {
+						echo '" data-ruigehond010_has_items="1';
+					}
 					echo '" value="term-';
 					echo $option['term_id'];
 					//echo htmlentities($term = $option['term']);
@@ -425,27 +426,27 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 		// get the terms for this registered taxonomies from the db
 		$taxonomies = addslashes( sanitize_text_field( $this->taxonomies ) ); // just for the h#ck of it
 		$wp_prefix  = $this->wpdb->prefix;
-		$sql        = "SELECT t.term_id, tt.parent, t.name AS term, o.t, o.post_id, COUNT(tr.object_id) AS quantity
+		$sql        = "SELECT t.term_id, tt.parent, t.name AS term, o.t, o.post_id, p.post_type
                 FROM {$wp_prefix}terms t
                 INNER JOIN {$wp_prefix}term_taxonomy tt ON t.term_id = tt.term_id
                 LEFT OUTER JOIN $this->order_table o ON o.term_id = t.term_id
                 LEFT OUTER JOIN {$wp_prefix}term_relationships tr ON tr.term_taxonomy_id = tt.term_taxonomy_id
-                WHERE tt.taxonomy = '$taxonomies'
-                GROUP BY t.term_id, tt.parent, t.name, o.t, o.post_id, o.o
+                LEFT OUTER JOIN {$wp_prefix}posts p ON tr.object_id = p.ID
+                WHERE tt.taxonomy = '$taxonomies' AND (p.post_type = 'ruigehond010_faq' OR p.post_type IS NULL)
                 ORDER BY o.o, t.name;";
 		$rows       = $this->wpdb->get_results( $sql, OBJECT );
 		$terms      = array();
 		foreach ( $rows as $key => $row ) {
-			$parent   = (int) $row->parent;
+			$parent = (int) $row->parent;
 			if ( false === isset( $terms[ $parent ] ) ) {
 				$terms[ $parent ] = array();
 			}
 			$terms[ $parent ][] = array(
-				'term_id' => (int) $row->term_id,
-				'term'    => $row->term,
-				't'       => $row->t,
-				'post_id' => $row->post_id,
-				'count'   => (int) $row->quantity,
+				'term_id'   => (int) $row->term_id,
+				'term'      => $row->term,
+				't'         => $row->t,
+				'post_id'   => $row->post_id,
+				'has_items' => null !== $row->post_type,
 			);
 		}
 		$this->terms = $terms;

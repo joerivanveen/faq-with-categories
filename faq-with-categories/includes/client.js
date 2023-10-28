@@ -30,30 +30,26 @@ Ruigehond010.prototype.start = function () {
         }
     }
     // TODO use data-ruigehond010_count to only show options with items, and whose descendants have items
-    if ((options = self.cloneShallow(document.querySelectorAll('[data-ruigehond010_term_id]')))) {
-        // count number of items
-        function add(key, value) {
-            if (term_items.hasOwnProperty(key)) {
-                term_items[key] += value;
-            } else {
-                term_items[key] = value;
+    if ((options = document.querySelectorAll('[data-ruigehond010_term_id]'))) {
+        // add category with faq items
+        function add(key) {
+            if (! term_items.hasOwnProperty(key)) {
+                term_items[key] = true;
             }
         }
 
-        for (i in options) {
-            if (false === this.isInt(i)) continue; // only loop over the own options, NOTE: hasOwnProperty doesn't work on old iPad, still returns e.g. 'length'
+        for (i = 0, len = options.length; i < len; ++i) {
             option = options[i];
             if ((term_id = option.getAttribute('data-ruigehond010_term_id'))
-                && (term_count = parseInt(option.getAttribute('data-ruigehond010_count')))) {
-                add(term_id, term_count);
+                && (option.hasAttribute('data-ruigehond010_has_items'))) {
+                add(term_id);
                 if ((parent_id = option.parentElement.getAttribute('data-ruigehond010_parent'))) {
-                    add(parent_id, term_count);
+                    add(parent_id);
                 }
             }
         }
         // remove options without items
-        for (i in options) {
-            if (false === this.isInt(i)) continue; // only loop over the own options, NOTE: hasOwnProperty doesn't work on old iPad, still returns e.g. 'length'
+        for (i = 0, len = options.length; i < len; ++i) {
             option = options[i];
             if (!term_items[option.getAttribute('data-ruigehond010_term_id')]) {
                 option.parentElement.removeChild(option);
@@ -62,8 +58,7 @@ Ruigehond010.prototype.start = function () {
         // sort the lists
         while (true) {
             maybe_done = true; // until proven otherwise
-            for (i in options) {
-                if (false === this.isInt(i)) continue; // only loop over the own options, NOTE: hasOwnProperty doesn't work on old iPad, still returns e.g. 'length'
+            for (i = 0, len = options.length; i < len; ++i) {
                 if ((list = lists_by_parent[(parent_id = options[i].getAttribute('data-ruigehond010_term_id'))])) {
                     // put the list after the list this option is in, only if it's not already later in the DOM, in which case all is ok
                     if ((option = document.querySelector('[data-ruigehond010_parent="' + parent_id + '"] ~ select > [data-ruigehond010_term_id="' + parent_id + '"]'))) {
@@ -74,8 +69,8 @@ Ruigehond010.prototype.start = function () {
             }
             if (maybe_done) break; // yeah, we’re definitely done
         }
-        // remove lists without options
-        for (i = 0, len = lists.length; i < len; ++i) {
+        // remove lists without options, by looping in reverse!
+        for (i = lists.length - 1; i !== 0; --i) {
             list = lists[i];
             if (list.options.length < 2) list.parentElement.removeChild(list);
         }
