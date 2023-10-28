@@ -27,7 +27,7 @@ namespace {
 	}
 }
 
-namespace ruigehond_0_4_0 {
+namespace ruigehond_0_4_1 {
 
 	use stdClass;
 
@@ -252,7 +252,7 @@ namespace ruigehond_0_4_0 {
 		public function insertDb( string $table_name, array $values ): int {
 			$rows_affected = $this->wpdb->insert( $table_name, $values );
 			if ( 1 === $rows_affected ) {
-				return $this->wpdb->insert_id; // var holds the last inserted id
+				return $this->wpdb->insert_id ?: PHP_INT_MAX; // var holds the last inserted id
 			} else {
 				return 0;
 			}
@@ -264,6 +264,7 @@ namespace ruigehond_0_4_0 {
 		 * @param array $where
 		 *
 		 * @return int 0 on failure, > 0 is the insert id, < 0 is the number of rows affected for update
+		 * return value will be PHP_INT_MAX when insert succeeded, but there was no id column updated
 		 */
 		public function upsertDb( string $table_name, array $values, array $where ): int {
 			$where_condition = 'WHERE 1 = 1';
@@ -403,4 +404,4 @@ namespace ruigehond_0_4_0 {
 			// if data is null it means javascript doesn't have to send anything back
 		}
 	}
-} // end of namespace ruigehond_0_4_0
+} // end of namespace ruigehond_0_4_1

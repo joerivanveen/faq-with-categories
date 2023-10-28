@@ -15,7 +15,7 @@ Domain Path: /languages/
 defined( 'ABSPATH' ) or die();
 const RUIGEHOND010_VERSION = '1.2.0';
 // This is plugin nr. 10 by ruige hond. It identifies with: ruigehond010.
-if ( ! class_exists( 'ruigehond_0_4_0\ruigehond', false ) ) {
+if ( ! class_exists( 'ruigehond_0_4_1\ruigehond', false ) ) {
 	include_once( dirname( __FILE__ ) . '/includes/ruigehond.php' ); // base class
 }
 include_once( dirname( __FILE__ ) . '/includes/ruigehond010.php' );

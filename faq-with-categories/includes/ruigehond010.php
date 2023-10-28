@@ -5,11 +5,11 @@ declare( strict_types=1 );
 namespace ruigehond010;
 
 // TODO BUG if you put central faq short_code or any exclusive tag on multiple pages, the $on option keeps getting updated
-use ruigehond_0_4_0;
+use ruigehond_0_4_1;
 
 defined( 'ABSPATH' ) or die();
 
-class ruigehond010 extends ruigehond_0_4_0\ruigehond {
+class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 	private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $table_prefix,
 		$more_button_text, $no_results_warning, $max, $max_ignore_elsewhere,
 		$order_table, $header_tag,
@@ -420,6 +420,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 	}
 
 	private function getTerms(): array {
+		// TODO have o.o sort the same for 1 as null
 		if ( true === isset( $this->terms ) ) {
 			return $this->terms;
 		} // return cached value if available
@@ -436,7 +437,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
                 LEFT OUTER JOIN {$wp_prefix}term_relationships tr ON tr.term_taxonomy_id = tt.term_taxonomy_id
                 WHERE tt.taxonomy = '$taxonomies'
 				GROUP BY t.term_id, tt.parent, t.name, o.t, o.post_id, o.o
-				ORDER BY o.o, t.name;";
+				ORDER BY tt.parent, COALESCE(o.o, 1), t.name;";
 		$rows       = $this->wpdb->get_results( $sql, OBJECT );
 		$terms      = array();
 		foreach ( $rows as $key => $row ) {
@@ -518,7 +519,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 		return $return_arr;
 	}
 
-	public function handle_input( $args ): ruigehond_0_4_0\returnObject {
+	public function handle_input( $args ): ruigehond_0_4_1\returnObject {
 		$returnObject = $this->getReturnObject();
 		$wp_prefix    = $this->wpdb->prefix;
 		if ( isset( $args['id'] ) ) {
@@ -588,7 +589,7 @@ class ruigehond010 extends ruigehond_0_4_0\ruigehond {
 							"$this->table_prefix$table_name", $update,
 							array( $id_column => $id ) );
 						if ( 0 === $rows_affected ) {
-							$returnObject->add_message( __( 'Not updated', 'faq-with-categories' ) );
+							$returnObject->add_message( __( 'Not updated', 'faq-with-categories' ), 'warn' );
 						} else {
 							$returnObject->set_success( true );
 							$args['value'] = $this->wpdb->get_var(
