@@ -5,21 +5,22 @@ declare( strict_types=1 );
 namespace ruigehond010;
 
 // TODO BUG if you put central faq short_code or any exclusive tag on multiple pages, the $on option keeps getting updated
-use ruigehond_0_4_1;
+// TODO FEAT allow different faq snippets on one page...
+use ruigehond_0_5_0;
 
 defined( 'ABSPATH' ) or die();
 
-class ruigehond010 extends ruigehond_0_4_1\ruigehond {
-	private $name, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $table_prefix,
+class ruigehond010 extends ruigehond_0_5_0\ruigehond {
+	private $basename, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $table_prefix,
 		$more_button_text, $no_results_warning, $max, $max_ignore_elsewhere,
 		$order_table, $header_tag,
 		$title_links_to_overview, $schema_on_single_page, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
 	// variables that hold cached items
 	private $terms;
 
-	public function __construct( $title = 'Ruige hond' ) {
+	public function __construct( $basename ) {
 		parent::__construct( 'ruigehond010' );
-		$this->name        = __CLASS__;
+		$this->basename    = $basename;
 		$wp_prefix         = $this->wpdb->prefix;
 		$this->order_table = "{$wp_prefix}ruigehond010_taxonomy_o";
 		// set some options
@@ -27,18 +28,18 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 		$this->taxonomies              = $this->getOption( 'taxonomies', 'category' );
 		$this->slug                    = $this->getOption( 'slug', 'ruigehond010_faq' ); // standard the post_type is used by WP
 		$this->title_links_to_overview = $this->getOption( 'title_links_to_overview', false );
-		$this->choose_option           = $this->getOption( 'choose_option', __( 'Choose option', 'faq-with-categories' ) );
-		$this->choose_all              = $this->getOption( 'choose_all', __( 'All', 'faq-with-categories' ) );
+		$this->choose_option           = $this->getOption( 'choose_option', $this->esc_trans( 'Choose option' ) );
+		$this->choose_all              = $this->getOption( 'choose_all', $this->esc_trans( 'All' ) );
 		$this->header_tag              = $this->getOption( 'header_tag', 'h4' );
 		$this->schema_on_single_page   = $this->getOption( 'schema_on_single_page', false );
-		$this->search_faqs             = $this->getOption( 'search_faqs', __( 'Search faqs', 'faq-with-categories' ) );
+		$this->search_faqs             = $this->getOption( 'search_faqs', $this->esc_trans( 'Search faqs' ) );
 		$this->exclude_from_search     = $this->getOption( 'exclude_from_search', true );
 		$this->exclude_from_count      = $this->getOption( 'exclude_from_count', true );
 		$this->queue_frontend_css      = $this->getOption( 'queue_frontend_css', true );
 		// more_button_text and max are only used in javascript, attach them to the ruigehond010_faq element as data
 		$this->max_ignore_elsewhere = $this->getOption( 'max_ignore_elsewhere', false );
-		$this->more_button_text     = $this->getOption( 'more_button_text', __( 'Show more', 'faq-with-categories' ) );
-		$this->no_results_warning   = $this->getOption( 'no_results_warning', __( 'No results found', 'faq-with-categories' ) );
+		$this->more_button_text     = $this->getOption( 'more_button_text', $this->esc_trans( 'Show more' ) );
+		$this->no_results_warning   = $this->getOption( 'no_results_warning', $this->esc_trans( 'No results found' ) );
 		$this->max                  = $this->getOption( 'max', 5 );
 		// Add custom callback for taxonomy counter, if we do not want the faq posts to be counted towards the total
 		if ( true === $this->exclude_from_count ) {
@@ -66,8 +67,8 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 		register_post_type( 'ruigehond010_faq',
 			array(
 				'labels'              => array(
-					'name'          => __( 'FAQ', 'faq-with-categories' ),
-					'singular_name' => __( 'FAQ', 'faq-with-categories' ),
+					'name'          => $this->esc_trans( 'FAQ' ),
+					'singular_name' => $this->esc_trans( 'FAQ' ),
 				),
 				'public'              => true,
 				'has_archive'         => true,
@@ -92,6 +93,8 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 			) ); // in the box the user set the exclusive value
 			add_action( 'save_post', array( $this, 'meta_box_save' ) );
 			add_action( 'admin_notices', array( $this, 'displayAdminNotices' ) );
+			// settings link on plugins page
+			add_filter( "plugin_action_links_$this->basename", array( $this, 'settingsLink' ) );
 			// styles...
 			wp_enqueue_style( 'ruigehond010_admin_stylesheet', plugin_dir_url( __FILE__ ) . 'admin.css', [], RUIGEHOND010_VERSION );
 			wp_enqueue_style( 'wp-jquery-ui-dialog' );
@@ -229,7 +232,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 				foreach ( $options as $index => $option ) {
 					echo '<option data-ruigehond010_term_id="';
 					echo $option['term_id'];
-					if (true === $option['has_items']) {
+					if ( true === $option['has_items'] ) {
 						echo '" data-ruigehond010_has_items="1';
 					}
 					echo '" value="term-';
@@ -281,10 +284,10 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 									if ( true === $danger ) {
 										ob_start();
 										echo sprintf(
-											__( 'Looks like the tag ‘%s’ is used multiple times.', 'faq-with-categories' ),
+											$this->esc_trans( 'Looks like the tag ‘%s’ is used multiple times.' ),
 											( true === $register ) ? '[faq-with-categories]' : "exclusive=\"$register\"" );
 										echo ' ';
-										echo __( 'Found on', 'faq-with-categories' );
+										echo $this->esc_trans( 'Found on' );
 										echo ': <a href="';
 										echo( ( $perm = get_permalink( $post_id ) ) );
 										echo '">';
@@ -294,7 +297,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 										echo '">';
 										echo $perm;
 										echo '</a><br/>';
-										echo __( 'For this plugin to function properly, you can use the overview or any exclusive tag only once in your entire site.', 'faq-with-categories' );
+										echo $this->esc_trans( 'For this plugin to function properly, you can use the overview or any exclusive tag only once in your entire site.' );
 										update_option( 'ruigehond010_admin_multi_message', ob_get_clean() );
 									}
 								}
@@ -336,7 +339,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 					$slug = $this->getOption( 'faq_page_slug' );
 					if ( is_null( $slug ) ) {
 						echo '<span class="notice">';
-						echo __( 'Please visit the FAQ page once so the plugin knows where to link to.', 'faq-with-categories' );
+						echo $this->esc_trans( 'Please visit the FAQ page once so the plugin knows where to link to.' );
 						echo '</span>';
 					} else {
 						if ( strpos( $slug, '?' ) === false ) {
@@ -368,7 +371,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 			echo '" data-more_button_text="';
 			echo htmlentities( $this->more_button_text );
 			echo '">';
-			// apparently under some circumstances the first time you call apply_filters it doesn’t do anything
+			// todo apparently under some circumstances the first time you call apply_filters it doesn’t do anything
 			apply_filters( 'the_content', 'bug' );
 			// so now apply_filters is ready to apply some filters on the post content in the following loop:
 			$h_open  = "<$this->header_tag class=\"faq-header\">";
@@ -491,7 +494,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
                 {$wp_prefix}terms t ON t.term_id = tt.term_id LEFT OUTER JOIN 
                 {$wp_prefix}postmeta pm ON pm.post_id = p.ID AND pm.meta_key = '_ruigehond010_exclusive' 
                 WHERE p.post_type = 'ruigehond010_faq' AND post_status = 'publish'";
-		// setup the where condition regarding exclusive and term....
+		// set up the where condition regarding exclusive and term....
 		if ( is_array( $term_ids ) ) {
 			echo ' AND t.term_id IN (', implode( ',', $term_ids ), ')';
 		} elseif ( is_string( $exclusive ) ) {
@@ -564,7 +567,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 									$update        = array( 't' => $args['value'], 'post_id' => $post_id );
 								} else {
 									$update = array();
-									$returnObject->add_message( sprintf( __( 'post_id %d not found', 'faq-with-categories' ), $post_id ), 'warn' );
+									$returnObject->add_message( sprintf( $this->esc_trans( 'post_id %d not found' ), $post_id ), 'warn' );
 								}
 							} else {
 								$post_title = $value;
@@ -577,7 +580,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 								} else {
 									$update              = array( 't' => $args['value'], 'post_id' => 0 );
 									$args['nonexistent'] = true;
-									$returnObject->add_message( sprintf( __( 'Could not find post_id based on title: %s', 'faq-with-categories' ), $post_title ), 'warn' );
+									$returnObject->add_message( sprintf( $this->esc_trans( 'Could not find post_id based on title: %s' ), $post_title ), 'warn' );
 								}
 							}
 							break;
@@ -589,7 +592,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 							"$this->table_prefix$table_name", $update,
 							array( $id_column => $id ) );
 						if ( 0 === $rows_affected ) {
-							$returnObject->add_message( __( 'Not updated', 'faq-with-categories' ), 'warn' );
+							$returnObject->add_message( $this->esc_trans( 'Not updated' ), 'warn' );
 						} else {
 							$returnObject->set_success( true );
 							$args['value'] = $this->wpdb->get_var(
@@ -614,7 +617,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 				$returnObject->set_data( array( 'suggestions' => $rows ) );
 				break;
 			default:
-				return $this->getReturnObject( sprintf( __( 'Did not understand handle %s', 'faq-with-categories' ),
+				return $this->getReturnObject( sprintf( $this->esc_trans( 'Did not understand handle %s' ),
 					var_export( $args['handle'], true ) ) );
 		}
 		$returnObject->set_data( $args );
@@ -648,7 +651,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 		echo '<input type="text" id="ruigehond010_exclusive" name="ruigehond010_exclusive" value="';
 		echo $obj['args']['exclusive'];
 		echo '"/> <label for="ruigehond010_exclusive">';
-		echo __( 'The tag this FAQ entry is exclusive to, use it in a shortcode to summon the entry. Note that it will still be displayed for the taxonomies that are checked.', 'faq-with-categories' );
+		echo $this->esc_trans( 'The tag this FAQ entry is exclusive to, use it in a shortcode to summon the entry. Note that it will still be displayed for the taxonomies that are checked.' );
 		echo '</label>';
 	}
 
@@ -675,9 +678,9 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 		echo '<div class="wrap ruigehond010"><h1>';
 		echo esc_html( get_admin_page_title() );
 		echo '</h1><p>';
-		echo __( 'This page only concerns itself with the order. The hierarchy is determined by the taxonomy itself.', 'faq-with-categories' );
+		echo $this->esc_trans( 'This page only concerns itself with the order. The hierarchy is determined by the taxonomy itself.' );
 		echo '<br/>';
-		echo __( 'If you assign a page to a taxonomy, the faq shortcut on that page will display faq-posts from that taxonomy.', 'faq-with-categories' );
+		echo $this->esc_trans( 'If you assign a page to a taxonomy, the faq shortcut on that page will display faq-posts from that taxonomy.' );
 		echo '</p><hr/>';
 		$terms = $this->getTerms(); // these are ordered to the best of the knowledge of the system already, but with parents
 		foreach ( $terms as $index => $sub_terms ) {
@@ -726,35 +729,35 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 		echo '<div class="wrap"><h1>';
 		echo esc_html( get_admin_page_title() );
 		echo '</h1><p>';
-		echo __( 'FAQS are always sorted by published date descending, so newest entries are first. By default they are output as an accordion list with the first one opened.', 'faq-with-categories' );
+		echo $this->esc_trans( 'FAQS are always sorted by published date descending, so newest entries are first. By default they are output as an accordion list with the first one opened.' );
 		echo '<br/>';
 		// #TRANSLATORS: string inserted is an example of a querystring to pre-filter for a category
-		echo sprintf( __( 'You can link to your general faq page with a category in the querystring (e.g. %s) to pre-filter the faqs.', 'faq-with-categories' ), '<strong>?category=test%20category</strong>' );
+		echo sprintf( $this->esc_trans( 'You can link to your general faq page with a category in the querystring (e.g. %s) to pre-filter the faqs.' ), '<strong>?category=test%20category</strong>' );
 		echo '<br/>';
-		echo __( 'You may use the following shortcodes, of course certain combinations do not make sense and may produce erratic behaviour.', 'faq-with-categories' );
+		echo $this->esc_trans( 'You may use the following shortcodes, of course certain combinations do not make sense and may produce erratic behaviour.' );
 		echo '<br/>';
-		echo sprintf( __( '%s produces the default list for the central FAQ page and outputs FAQ snippets schema in the head.', 'faq-with-categories' ), '<strong>[faq-with-categories]</strong>' );
+		echo sprintf( $this->esc_trans( '%s produces the default list for the central FAQ page and outputs FAQ snippets schema in the head.' ), '<strong>[faq-with-categories]</strong>' );
 		echo '<br/>';
-		echo sprintf( __( '%s produces a filter menu according to the chosen taxonomy using the specified order.', 'faq-with-categories' ), '<strong>[faq-with-categories-filter]</strong>' );
+		echo sprintf( $this->esc_trans( '%s produces a filter menu according to the chosen taxonomy using the specified order.' ), '<strong>[faq-with-categories-filter]</strong>' );
 		echo '<br/>';
-		echo sprintf( __( '%s produces a search box that will perform client-side lookup through the faqs.', 'faq-with-categories' ), '<strong>[faq-with-categories-search]</strong>' );
+		echo sprintf( $this->esc_trans( '%s produces a search box that will perform client-side lookup through the faqs.' ), '<strong>[faq-with-categories-search]</strong>' );
 		echo '<br/>';
 		// #TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
-		echo sprintf( __( '%1$s %2$s limits the quantity of the faqs to 5, or use another number.', 'faq-with-categories' ), '[faq-with-categories <strong>quantity="5"</strong>]', '<em>(*)</em>' );
+		echo sprintf( $this->esc_trans( '%1$s %2$s limits the quantity of the faqs to 5, or use another number.' ), '[faq-with-categories <strong>quantity="5"</strong>]', '<em>(*)</em>' );
 		echo ' ';
-		echo __( 'This will NOT output FAQ snippets schema in the head.', 'faq-with-categories' );
+		echo $this->esc_trans( 'This will NOT output FAQ snippets schema in the head.' );
 		echo '<br/>';
 		// #TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
-		echo sprintf( __( '%1$s %2$s display only faqs for the specified category (case insensitive).', 'faq-with-categories' ), '[faq-with-categories <strong>category="category name"</strong>]', '<em>(*)</em>' );
+		echo sprintf( $this->esc_trans( '%1$s %2$s display only faqs for the specified category (case insensitive).' ), '[faq-with-categories <strong>category="category name"</strong>]', '<em>(*)</em>' );
 		echo ' ';
-		echo __( 'This will NOT output FAQ snippets schema in the head.', 'faq-with-categories' );
+		echo $this->esc_trans( 'This will NOT output FAQ snippets schema in the head.' );
 		echo '<br/>';
 		// #TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
-		echo sprintf( __( '%1$s %2$s any tag you specified under a faq entry in the box, will gather all faqs with that tag for display.', 'faq-with-categories' ), '[faq-with-categories <strong>exclusive="your tag"</strong>]', '<em>(*)</em>' );
+		echo sprintf( $this->esc_trans( '%1$s %2$s any tag you specified under a faq entry in the box, will gather all faqs with that tag for display.' ), '[faq-with-categories <strong>exclusive="your tag"</strong>]', '<em>(*)</em>' );
 		echo '<br/>';
-		echo sprintf( __( '%s outputs the list as links rather than as an accordion.', 'faq-with-categories' ), '[faq-with-categories <strong>title-only="any value"</strong>]' );
+		echo sprintf( $this->esc_trans( '%s outputs the list as links rather than as an accordion.' ), '[faq-with-categories <strong>title-only="any value"</strong>]' );
 		echo '<br/><em>(*) ';
-		echo __( 'NOTE: only a limited number of faqs will be present on the page so search and filter will not work.', 'faq-with-categories' );
+		echo $this->esc_trans( 'NOTE: only a limited number of faqs will be present on the page so search and filter will not work.' );
 		echo '</em></p>';
 		echo '<form action="options.php" method="post">';
 		// output security fields for the registered setting
@@ -762,7 +765,7 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 		// output setting sections and their fields
 		do_settings_sections( 'ruigehond010' );
 		// output save settings button
-		submit_button( __( 'Save Settings', 'faq-with-categories' ) );
+		submit_button( $this->esc_trans( 'Save Settings' ) );
 		echo '</form></div>';
 	}
 
@@ -777,27 +780,27 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 		// register a new section in the page
 		add_settings_section(
 			'global_settings', // section id
-			__( 'Options', 'faq-with-categories' ), // title
-			function () {
+			$this->esc_trans( 'Options' ), // title
+			static function () {
 			}, //callback
 			'ruigehond010' // page id
 		);
 		$labels = array(
-			'taxonomies'              => __( 'Type the taxonomy you want to use for the categories.', 'faq-with-categories' ),
-			'slug'                    => __( 'Slug for the individual faq entries (optional).', 'faq-with-categories' ),
-			'title_links_to_overview' => __( 'When using title-only in shortcodes, link to the overview rather than individual FAQ page.', 'faq-with-categories' ),
-			'schema_on_single_page'   => __( 'Output the faq schema on individual page rather than overview.', 'faq-with-categories' ),
-			'choose_option'           => __( 'The ‘choose / show all’ option in top most select list.', 'faq-with-categories' ),
-			'choose_all'              => __( 'The ‘choose / show all’ option in subsequent select lists.', 'faq-with-categories' ),
-			'search_faqs'             => __( 'The placeholder in the search bar for the faqs.', 'faq-with-categories' ),
-			'header_tag'              => __( 'Tag used for the header on faq page (e.g. h4), invalid input may cause errors on your page.', 'faq-with-categories' ),
-			'max'                     => __( 'Number of faqs shown before ‘Show more’ button.', 'faq-with-categories' ),
-			'max_ignore_elsewhere'    => __( 'Only use the more button on the central FAQ page, nowhere else.', 'faq-with-categories' ),
-			'more_button_text'        => __( 'The text on the ‘Show more’ button.', 'faq-with-categories' ),
-			'no_results_warning'      => __( 'Text shown when search or filter results in 0 faqs found.', 'faq-with-categories' ),
-			'exclude_from_search'     => __( 'Will exclude the FAQ posts from site search queries.', 'faq-with-categories' ),
-			'exclude_from_count'      => __( 'FAQ posts will not count towards total posts in taxonomies.', 'faq-with-categories' ),
-			'queue_frontend_css'      => __( 'By default a small css-file is output to the frontend to format the entries. Uncheck to handle the css yourself.', 'faq-with-categories' ),
+			'taxonomies'              => $this->esc_trans( 'Type the taxonomy you want to use for the categories.' ),
+			'slug'                    => $this->esc_trans( 'Slug for the individual faq entries (optional).' ),
+			'title_links_to_overview' => $this->esc_trans( 'When using title-only in shortcodes, link to the overview rather than individual FAQ page.' ),
+			'schema_on_single_page'   => $this->esc_trans( 'Output the faq schema on individual page rather than overview.' ),
+			'choose_option'           => $this->esc_trans( 'The ‘choose / show all’ option in top most select list.' ),
+			'choose_all'              => $this->esc_trans( 'The ‘choose / show all’ option in subsequent select lists.' ),
+			'search_faqs'             => $this->esc_trans( 'The placeholder in the search bar for the faqs.' ),
+			'header_tag'              => $this->esc_trans( 'Tag used for the header on faq page (e.g. h4), invalid input may cause errors on your page.' ),
+			'max'                     => $this->esc_trans( 'Number of faqs shown before ‘Show more’ button.' ),
+			'max_ignore_elsewhere'    => $this->esc_trans( 'Only use the more button on the central FAQ page, nowhere else.' ),
+			'more_button_text'        => $this->esc_trans( 'The text on the ‘Show more’ button.' ),
+			'no_results_warning'      => $this->esc_trans( 'Text shown when search or filter results in 0 faqs found.' ),
+			'exclude_from_search'     => $this->esc_trans( 'Will exclude the FAQ posts from site search queries.' ),
+			'exclude_from_count'      => $this->esc_trans( 'FAQ posts will not count towards total posts in taxonomies.' ),
+			'queue_frontend_css'      => $this->esc_trans( 'By default a small css-file is output to the frontend to format the entries. Uncheck to handle the css yourself.' ),
 		);
 		foreach ( $labels as $setting_name => $explanation ) {
 			add_settings_field(
@@ -892,31 +895,31 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 		);
 		add_submenu_page(
 			$menu_slug,
-			__( 'Settings', 'faq-with-categories' ), // page_title
-			__( 'FAQ', 'faq-with-categories' ), // menu_title
+			$this->esc_trans( 'Settings' ), // page_title
+			$this->esc_trans( 'FAQ' ), // menu_title
 			'edit_posts',
 			$menu_slug,
 			array( $this, 'redirect_to_entries' ) // callback unused
 		);
 		add_submenu_page(
 			$menu_slug,
-			__( 'Settings', 'faq-with-categories' ), // page_title
-			__( 'Settings', 'faq-with-categories' ), // menu_title
+			$this->esc_trans( 'Settings' ), // page_title
+			$this->esc_trans( 'Settings' ), // menu_title
 			'manage_options',
 			"$menu_slug-settings",
 			array( $this, 'settingspage' ) // callback
 		);
 		add_submenu_page(
 			$menu_slug,
-			__( 'Order taxonomy', 'faq-with-categories' ), // page_title
-			__( 'Order taxonomy', 'faq-with-categories' ), // menu_title
+			$this->esc_trans( 'Order taxonomy' ), // page_title
+			$this->esc_trans( 'Order taxonomy' ), // menu_title
 			'manage_options',
 			"$menu_slug-order-taxonomy",
 			array( $this, 'ordertaxonomypage' ) // callback
 		);
 		global $submenu; // make the first entry go to the edit page of the faq post_type
 		$submenu[ $menu_slug ][0] = array(
-			__( 'FAQ', 'faq-with-categories' ),
+			$this->esc_trans( 'FAQ' ),
 			'edit_posts',
 			'edit.php?post_type=ruigehond010_faq',
 			'blub' // WHOA
@@ -925,26 +928,36 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 
 	public function update_when_necessary() {
 		// register current version, but keep incremental updates (for when someone skips a version)
+		// on busy sites this can be called several times, so suppress the errors
+		$this->wpdb->suppress_errors = true;
 		if ( version_compare( $this->database_version, '1.1.0' ) < 0 ) {
-			// on busy sites this can be called several times, so suppress the errors
-			$this->wpdb->suppress_errors = true;
-			$sql                         = "ALTER TABLE {$this->order_table} ADD COLUMN 
+			$sql = "ALTER TABLE {$this->order_table} ADD COLUMN 
 				        t VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_520_ci' NOT NULL DEFAULT '';";
 			// TODO query returns false on error, maybe it never works, what do we do then?
 			$this->wpdb->query( $sql );
 			$sql = "ALTER TABLE {$this->order_table} ADD COLUMN post_id INT;";
 			$this->wpdb->query( $sql );
-			$old_version                 = $this->setOption( 'version', '1.1.0' );
-			$this->wpdb->suppress_errors = false;
+			$old_version = $this->setOption( 'version', '1.1.0' );
 		}
 		if ( version_compare( $this->database_version, '1.1.8' ) < 0 ) {
-			// on busy sites this can be called several times, so suppress the errors
-			$this->wpdb->suppress_errors = true;
-			$sql                         = "ALTER TABLE {$this->order_table} ADD CONSTRAINT ruigehond010_unique_{$this->order_table} UNIQUE (term_id);";
+			$sql = "ALTER TABLE {$this->order_table} ADD CONSTRAINT ruigehond010_unique_{$this->order_table} UNIQUE (term_id);";
 			$this->wpdb->query( $sql );
-			$old_version                 = $this->setOption( 'version', '1.1.8' );
-			$this->wpdb->suppress_errors = false;
+			$old_version = $this->setOption( 'version', '1.1.8' );
 		}
+		$this->wpdb->suppress_errors = false;
+	}
+
+	public function settingsLink( $links ) {
+		$admin_url  = get_admin_url();
+		$__faq      = esc_html__( 'FAQ', 'faq-with-categories' );
+		$__settings = esc_html__( 'Settings', 'faq-with-categories' );
+		array_unshift(
+			$links,
+			"<a href=\"edit.php?post_type=ruigehond010_faq\">{$__faq}</a>",
+			"<a href=\"{$admin_url}admin.php?page=faq-with-categories-with-submenu-settings\">{$__settings}</a>"
+		);
+
+		return $links;
 	}
 
 	public function install() {
@@ -961,10 +974,6 @@ class ruigehond010 extends ruigehond_0_4_1\ruigehond {
 		}
 		// register the current version
 		$this->setOption( 'database_version', RUIGEHOND010_VERSION );
-	}
-
-	public function deactivate() {
-		// nothing to do here
 	}
 
 	public function uninstall() {

@@ -93,6 +93,8 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 
 == Changelog ==
 
+1.3.0: maintenance release, escape all output
+
 1.2.0: only show filter options where there are actual faq items
 
 1.1.8: fix updating ordering table when rows are missing

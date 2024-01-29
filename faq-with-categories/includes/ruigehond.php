@@ -6,28 +6,28 @@ namespace {
 	defined( 'ABSPATH' ) or die();
 
 	if ( WP_DEBUG ) { // When debug display the errors generated during activation (if any).
-		if ( false === function_exists( 'ruigehond_activation_error' ) ) {
-			function ruigehond_activation_error() {
+		if ( false === function_exists( 'ruigehond_ITOEWERKLKVEIR_activation_error' ) ) {
+			function ruigehond_ITOEWERKLKVEIR_activation_error() {
 				if ( ( $contents = ob_get_contents() ) ) {
-					update_option( 'ruigehond_plugin_error', $contents );
+					update_option( 'ruigehond_ITOEWERKLKVEIR_plugin_error', $contents );
 				}
 			}
 
-			add_action( 'activated_plugin', 'ruigehond_activation_error' );
+			add_action( 'activated_plugin', 'ruigehond_ITOEWERKLKVEIR_activation_error' );
 
 			/* Then to display the error message: */
 			add_action( 'admin_notices', static function () {
-				if ( ( $message = get_option( 'ruigehond_plugin_error' ) ) ) {
-					echo "<div class=\"notice notice-error\"><p>$message</p></div>";
+				if ( ( $message = get_option( 'ruigehond_ITOEWERKLKVEIR_plugin_error' ) ) ) {
+					echo '<div class="notice notice-error"><p>', esc_html( $message ), '</p></div>';
 				}
 				/* Remove or it will persist */
-				delete_option( 'ruigehond_plugin_error' );
+				delete_option( 'ruigehond_ITOEWERKLKVEIR_plugin_error' );
 			} );
 		}
 	}
 }
 
-namespace ruigehond_0_4_1 {
+namespace ruigehond_0_5_0 {
 
 	use stdClass;
 
@@ -36,7 +36,7 @@ namespace ruigehond_0_4_1 {
 	 */
 	class ruigehond {
 		public $identifier, $wpdb;
-		private $options, $options_checksum;
+		private $options, $options_checksum, $text_domain;
 
 		public function __construct( string $identifier ) {
 			$this->identifier = $identifier; // must be ruigehond###, the unique identifier for this plugin
@@ -124,6 +124,29 @@ namespace ruigehond_0_4_1 {
 		public function loadTranslations( string $text_domain ) {
 			$path = "$text_domain/languages/";
 			load_plugin_textdomain( $text_domain, false, $path );
+			// @since 5.0.0 remember domain for esc_trans__ method
+			$this->text_domain = $text_domain;
+		}
+
+		/**
+		 * Returns html escaped translated string, safely
+		 *
+		 * @param string $string
+		 * @param mixed ...$vars vars to replace in the translated string with sprintf
+		 *
+		 * @return string
+		 */
+		public function esc_trans( string $string, ...$vars ): string {
+			if ( ! $vars ) {
+				return esc_html( __( $string, $this->text_domain ) );
+			}
+			try {
+				// let’s see if the translator included the right placeholders
+				return esc_html( sprintf( __( $string, $this->text_domain ), ...$vars ) );
+			} catch ( \Throwable $e ) {
+				// my own string can be trusted to have the right placeholders
+				return esc_html( sprintf( $string, ...$vars ) );
+			}
 		}
 
 		/**
@@ -131,7 +154,7 @@ namespace ruigehond_0_4_1 {
 		 * Use floatForHumans to return the intended decimal as a string (floatVal if you want to perform calculations)
 		 * Decimal separator is a . as is standard, use number formatting/ str_replace etc. if you want something else
 		 *
-		 * @param float|null $float float a float that will be formatted to be human-readable
+		 * @param float|null $float will be formatted to be human-readable
 		 *
 		 * @return string the number is returned as a correctly formatted string
 		 *
@@ -161,17 +184,6 @@ namespace ruigehond_0_4_1 {
 			}
 
 			return $sunk;
-		}
-
-		/**
-		 * @return float current max upload in MB
-		 */
-		public function maxUploadLimit(): float {
-			$max_upload   = floatval( ini_get( 'upload_max_filesize' ) );
-			$max_post     = floatval( ini_get( 'post_max_size' ) );
-			$memory_limit = floatval( ini_get( 'memory_limit' ) );
-
-			return min( $max_upload, $max_post, $memory_limit );
 		}
 
 		/**
@@ -267,21 +279,24 @@ namespace ruigehond_0_4_1 {
 		 * return value will be PHP_INT_MAX when insert succeeded, but there was no id column updated
 		 */
 		public function upsertDb( string $table_name, array $values, array $where ): int {
-			$where_condition = 'WHERE 1 = 1';
+			$prepared_values = array( $table_name );
+			$sql_exists      = 'SELECT EXISTS (SELECT 1 FROM %i WHERE 1=1';
 
 			foreach ( $where as $key => $value ) {
-				$key = addslashes( $key );
-				if ( true === is_string( $value ) ) {
-					$value = addslashes( $value );
-				}
-				$where_condition = "$where_condition AND $key = '$value'";
+				$prepared_values[] = $key;
+				$prepared_values[] = $value;
+				$sql_exists        .= ' AND %i = %s';
 				// remove current id from values, so it will not be part of an insert statement later
 				if ( 'id' === $key || "{$table_name}_id" === $key ) {
 					unset( $values[ $key ] );
 				}
 			}
 
-			if ( $this->wpdb->get_var( "SELECT EXISTS (SELECT 1 FROM $table_name $where_condition);" ) ) {
+			$sql_exists .= ');';
+
+			$sql_exists = $this->wpdb->prepare( $sql_exists, $prepared_values );
+			$row_exists = $this->wpdb->get_var( $sql_exists );
+			if ( $row_exists ) {
 				return - $this->wpdb->update( $table_name, $values, $where );
 			}
 
@@ -404,4 +419,4 @@ namespace ruigehond_0_4_1 {
 			// if data is null it means javascript doesn't have to send anything back
 		}
 	}
-} // end of namespace ruigehond_0_4_1
+} // end of namespace ruigehond_0_5_0
