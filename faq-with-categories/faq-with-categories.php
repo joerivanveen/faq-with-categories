@@ -6,6 +6,9 @@ Plugin Name: FAQ with categories
 Plugin URI: https://github.com/joerivanveen/faq-with-categories
 Description: Easy to maintain FAQ and answer plugin with categories.
 Version: 1.3.0
+Requires at least: 4.5
+Tested up to: 6.4
+Requires PHP: 7.4
 Author: Joeri van Veen
 Author URI: https://wp-developer.eu
 License: GPL3
@@ -32,8 +35,12 @@ add_action( 'init', array( $ruigehond010, 'initialize' ) );
  */
 add_action( 'wp_ajax_ruigehond010_handle_input', 'ruigehond010_handle_input' );
 function ruigehond010_handle_input() {
+	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ruigehond010_nonce' ) ) {
+		die(0);
+	}
+
 	global $ruigehond010;
 	$returnObj = $ruigehond010->handle_input( $_POST );
-	echo json_encode( $returnObj );
+	echo wp_json_encode( $returnObj, JSON_PRETTY_PRINT );
 	die(); // prevent any other output
 }

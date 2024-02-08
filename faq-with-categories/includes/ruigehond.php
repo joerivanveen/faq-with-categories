@@ -36,7 +36,7 @@ namespace ruigehond_0_5_0 {
 	 */
 	class ruigehond {
 		public $identifier, $wpdb;
-		private $options, $options_checksum, $text_domain;
+		private $options, $options_checksum;
 
 		public function __construct( string $identifier ) {
 			$this->identifier = $identifier; // must be ruigehond###, the unique identifier for this plugin
@@ -124,29 +124,6 @@ namespace ruigehond_0_5_0 {
 		public function loadTranslations( string $text_domain ) {
 			$path = "$text_domain/languages/";
 			load_plugin_textdomain( $text_domain, false, $path );
-			// @since 5.0.0 remember domain for esc_trans__ method
-			$this->text_domain = $text_domain;
-		}
-
-		/**
-		 * Returns html escaped translated string, safely
-		 *
-		 * @param string $string
-		 * @param mixed ...$vars vars to replace in the translated string with sprintf
-		 *
-		 * @return string
-		 */
-		public function esc_trans( string $string, ...$vars ): string {
-			if ( ! $vars ) {
-				return esc_html( __( $string, $this->text_domain ) );
-			}
-			try {
-				// let’s see if the translator included the right placeholders
-				return esc_html( sprintf( __( $string, $this->text_domain ), ...$vars ) );
-			} catch ( \Throwable $e ) {
-				// my own string can be trusted to have the right placeholders
-				return esc_html( sprintf( $string, ...$vars ) );
-			}
 		}
 
 		/**
