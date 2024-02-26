@@ -13,11 +13,9 @@ function Ruigehond010(list) {
 }
 
 Ruigehond010.prototype.start = function () {
-    var self = this,
-        options, option, i, len, parent_id, list, lists, maybe_done, search_input, header_tag, pos, post, post_id,
-        post_ids = [], term_items = [], term_count, term_id,
-        src, more_btn, lists_by_parent = {}, selected_list = null, list_item, max_height = 300, test_height,
-        test_element;
+    const post_ids = [], term_items = [], lists_by_parent = {}, self = this;
+    let options, option, i, len, parent_id, list, lists, maybe_done, search_input, header_tag, pos, post, post_id,
+        term_id, src, more_btn, selected_list = null, list_item, max_height = 300, test_height, test_element;
     /**
      * first get the lists in order: sort them from parent to child and remember if any is pre-checked by php
      */
@@ -96,9 +94,9 @@ Ruigehond010.prototype.start = function () {
      */
     list = this.list;
     // @since 1.1.3 use test-element to record the highest faq answer and use that for height for the accordion
-    if (!(test_element = document.getElementById('ruigehond010_test'))) {
+    if (!(test_element = this.list.querySelector('.ruigehond010.test'))) {
         test_element = document.createElement('li');
-        test_element.id = 'ruigehond010_test';
+        test_element.classList.add('ruigehond010', 'test');
         list.appendChild(test_element);
     }
     if ((lists = list.querySelectorAll('.ruigehond010_post'))) {
@@ -162,7 +160,8 @@ Ruigehond010.prototype.start = function () {
     self.filter(selected_list);
 }
 Ruigehond010.prototype.search = function (search_string) {
-    var post, posts, i, len, post_ids = [];
+    let post, posts, i, len;
+    const post_ids = [];
     search_string = search_string.toLowerCase();
     posts = this.list.getElementsByClassName('ruigehond010_post');
     // collect the post_ids for displaying
@@ -174,7 +173,8 @@ Ruigehond010.prototype.search = function (search_string) {
     this.showPostsById(post_ids);
 }
 Ruigehond010.prototype.showPostsById = function (post_ids, leave_toggle_state_alone) {
-    var post, posts, i, len, self = this, count = 0;
+    const self = this;
+    let post, posts, i, len, count = 0;
     this.post_ids = post_ids; // cache them
     posts = this.list.getElementsByClassName('ruigehond010_post');
     for (i = 0, len = posts.length; i < len; ++i) {
@@ -242,9 +242,9 @@ Ruigehond010.prototype.hideDomElement = function (element) {
 }
 
 Ruigehond010.prototype.toggleFirst = function () {
-    var posts = this.list.querySelectorAll('.ruigehond010_post'),
-        i, len, post, rect;
-    for (i = 0, len = posts.length; i < len; ++i) {
+    const posts = this.list.querySelectorAll('.ruigehond010_post'), len = posts.length;
+    let i, post, rect;
+    for (i = 0; i < len; ++i) {
         if ((rect = (post = posts[i]).getBoundingClientRect()).top > 0 && rect.left > 0) {
             this.toggle(post);
             return;
@@ -254,9 +254,9 @@ Ruigehond010.prototype.toggleFirst = function () {
 
 Ruigehond010.prototype.toggle = function (li) {
     // walk through all the elements to close them, only open the chosen one (li)
-    var posts = this.list.querySelectorAll('.ruigehond010_post'),
-        i, len, post, post_contents, already_opened = false;
-    for (i = 0, len = posts.length; i < len; ++i) {
+    const posts = this.list.querySelectorAll('.ruigehond010_post'), len = posts.length;
+    let i, post, post_contents, already_opened = false;
+    for (i = 0; i < len; ++i) {
         if ((post = posts[i]) === li) {
             post.classList.add('open');
             already_opened = true;
@@ -273,23 +273,25 @@ Ruigehond010.prototype.toggle = function (li) {
 }
 
 Ruigehond010.prototype.resetLists = function () {
-    var list;
+    const list = document.querySelector('[data-ruigehond010_parent="0"]');
     this.hideSubLists();
     // set the first list to 'choose'
-    if ((list = document.querySelector('[data-ruigehond010_parent="0"]'))) {
+    if (list) {
         list.selectedIndex = 0;
     }
 }
 
 Ruigehond010.prototype.resetSearch = function () {
-    var search_input;
-    if ((search_input = document.getElementById('ruigehond010_search'))) search_input.value = '';
+    const search_input = document.getElementById('ruigehond010_search');
+    if (search_input) search_input.value = '';
 }
 
 Ruigehond010.prototype.hideSubLists = function () {
-    var lists, list, i, len;
-    if ((lists = document.getElementsByClassName('ruigehond010 choose-category'))) {
-        for (i = 0, len = lists.length; i < len; ++i) {
+    const lists = document.getElementsByClassName('ruigehond010 choose-category'),
+        len = lists.length;
+    let list, i;
+    if (lists) {
+        for (i = 0; i < len; ++i) {
             (list = lists[i]).style.display =
                 (list.hasAttribute('data-ruigehond010_parent') &&
                     list.getAttribute('data-ruigehond010_parent') === '0') ? 'block' : 'none';
@@ -298,9 +300,10 @@ Ruigehond010.prototype.hideSubLists = function () {
 }
 
 Ruigehond010.prototype.getAllOptionValues = function (list) {
-    var arr = [], i, len, options, option, parent_id, sub_list;
+    const options = list.options, len = options.length;
+    let arr = [], i, option, parent_id, sub_list;
     // start at i = 1 because you can skip the hidden 'choose' entry
-    for (i = 1, len = (options = list.options).length; i < len; ++i) {
+    for (i = 1; i < len; ++i) {
         arr.push((option = options[i]).value.toLowerCase());
         // if this option has a sublist, get all those options as well
         if (option.hasAttribute('data-ruigehond010_term_id')) {
@@ -314,8 +317,8 @@ Ruigehond010.prototype.getAllOptionValues = function (list) {
 }
 
 Ruigehond010.prototype.filter = function (select) {
-    var list, options, option, parent_id, i, len, terms, posts, post, class_names, count = 0, self = this,
-        post_ids = [];
+    const self = this, post_ids = [];
+    let list, options, option, parent_id, i, len, terms, posts, post, class_names, count = 0;
     this.resetSearch();
     if (null === select) { // only display the parent and set it to first option
         this.resetLists();
@@ -374,11 +377,10 @@ Ruigehond010.prototype.filter = function (select) {
 }
 /* ponyfills */
 Ruigehond010.prototype.isInt = function (value) {
-    var x;
     if (isNaN(value)) {
         return false;
     }
-    x = parseFloat(value);
+    const x = parseFloat(value);
     return (x | 0) === x;
 }
 
@@ -391,9 +393,9 @@ Ruigehond010.prototype.cloneShallow = function (obj) {
 }
 
 function ruigehond010_start() {
-    const accordions = document.querySelectorAll('.ruigehond010.faq.posts');
-    accordions.forEach(function (accordion) {
-        new Ruigehond010(accordion);
+    const lists = document.querySelectorAll('.ruigehond010.faq.posts');
+    lists.forEach(function (list) {
+        new Ruigehond010(list);
     })
 }
 
@@ -401,7 +403,7 @@ function ruigehond010_start() {
 if (document.readyState === 'complete') {
     ruigehond010_start();
 } else {
-    window.addEventListener('load', function (event) {
+    window.addEventListener('load', function () {
         ruigehond010_start();
     });
 }
