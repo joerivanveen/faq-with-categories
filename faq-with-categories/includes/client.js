@@ -1,12 +1,14 @@
-var ruigehond010_FAQWC; // will hold the object when started
-
-function Ruigehond010(max_for_more, max_ignore, more_button_text) {
+function Ruigehond010(list) {
+    const max_for_more = list.getAttribute('data-max'),
+        max_ignore = list.hasAttribute('data-max_ignore'), // the server sends this when relevant
+        more_button_text = list.getAttribute('data-more_button_text');
     this.max = (this.isInt(max_for_more)) ? parseInt(max_for_more) : 5;
     this.max_ignore = max_ignore; // when true ignore the maximum amount, never display the more button
     this.more_button_text = more_button_text || 'Show more';
     this.timeout = null;
     this.showing_more = false;
     this.post_ids = []; // caches the post_ids currently selected for display (used by method showMore());
+    this.list = list;
     this.start();
 }
 
@@ -33,7 +35,7 @@ Ruigehond010.prototype.start = function () {
     if ((options = document.querySelectorAll('[data-ruigehond010_term_id]'))) {
         // add category with faq items
         function add(key) {
-            if (! term_items.hasOwnProperty(key)) {
+            if (!term_items.hasOwnProperty(key)) {
                 term_items[key] = true;
             }
         }
@@ -92,107 +94,102 @@ Ruigehond010.prototype.start = function () {
     /**
      * set up the accordion, this includes the show_more button and the showing of a single post when requested
      */
-    if ((list = document.getElementById('ruigehond010_faq'))) {
-        // @since 1.1.3 use test-element to record the highest faq answer and use that for height for the accordion
-        if (!(test_element = document.getElementById('ruigehond010_test'))) {
-            test_element = document.createElement('li');
-            test_element.id = 'ruigehond010_test';
-            list.appendChild(test_element);
-        }
-        if ((lists = list.querySelectorAll('.ruigehond010_post'))) {
-            // this activates the open / close links and collects the post_ids for displaying
-            for (i = 0, len = lists.length; i < len; ++i) {
-                list_item = lists[i];
-                test_element.innerHTML = list_item.innerHTML;
-                if ((test_height = parseInt(window.getComputedStyle(test_element).getPropertyValue('height'))) > max_height)
-                    max_height = test_height;
-                post_ids.push(list_item.getAttribute('data-post_id'));
-                if ((header_tag = list_item.querySelector('.faq-header'))) {
-                    header_tag.addEventListener('click', function () {
-                        if (self.timeout) clearTimeout(self.timeout);
-                        self.toggle(this.parentElement);
-                    });
-                }
-            }
-            // @since 1.1.3 set the max height style accordingly TODO check again after resize of the window
-            test_height = '#ruigehond010_faq .ruigehond010_post.open .faq-header+div { max-height: ' + max_height + 'px; }';
-            list.removeChild(test_element);
-            var head = document.head,
-                style = document.createElement('style');
-            head.appendChild(style);
-            style.setAttribute('type', 'text/css');
-            style.appendChild(document.createTextNode(test_height));
-            // done adding style to head
-            if (this.max_ignore) {
-                this.showing_more = true;
-            } else {
-                // and the show more button
-                more_btn = document.createElement('button');
-                more_btn.id = 'ruigehond010_more';
-                more_btn.innerText = this.more_button_text;
-                more_btn.addEventListener('click', function () {
-                    self.showMore();
-                });
-                list.insertAdjacentElement('beforeend', more_btn);
-            }
-            // when a post_id is in the querystring, open that one only
-            if ((pos = (src = document.location.search).indexOf('post_id=')) > -1) {
-                post_id = parseInt(src.slice(pos + 8));
-                if ((post = list.querySelector('[data-post_id="' + post_id.toString() + '"]'))) {
-                    self.showDomElement(post);
-                    self.toggle(post);
-                    for (i = 0, len = lists.length; i < len; ++i) {
-                        if ((list = lists[i]) !== post) {
-                            self.hideDomElement(list);
-                        }
-                    }
-                } else {
-                    console.warn('faq-with-categories: requested post_id not found in faqs list.');
-                    pos = -1;
-                }
-            }
-            // show them (only if not a single entry is shown yet)
-            if (-1 === pos) {
-                self.showPostsById(post_ids);
-            }
-        }
-        // run the filter for the first time
-        self.filter(selected_list);
+    list = this.list;
+    // @since 1.1.3 use test-element to record the highest faq answer and use that for height for the accordion
+    if (!(test_element = document.getElementById('ruigehond010_test'))) {
+        test_element = document.createElement('li');
+        test_element.id = 'ruigehond010_test';
+        list.appendChild(test_element);
     }
+    if ((lists = list.querySelectorAll('.ruigehond010_post'))) {
+        // this activates the open / close links and collects the post_ids for displaying
+        for (i = 0, len = lists.length; i < len; ++i) {
+            list_item = lists[i];
+            test_element.innerHTML = list_item.innerHTML;
+            if ((test_height = parseInt(window.getComputedStyle(test_element).getPropertyValue('height'))) > max_height)
+                max_height = test_height;
+            post_ids.push(list_item.getAttribute('data-post_id'));
+            if ((header_tag = list_item.querySelector('.faq-header'))) {
+                header_tag.addEventListener('click', function () {
+                    if (self.timeout) clearTimeout(self.timeout);
+                    self.toggle(this.parentElement);
+                });
+            }
+        }
+        // @since 1.1.3 set the max height style accordingly TODO check again after resize of the window
+        test_height = '.ruigehond010.faq.posts .ruigehond010_post.open .faq-header+div { max-height: ' + max_height + 'px; }';
+        list.removeChild(test_element);
+        const head = document.head,
+            style = document.createElement('style');
+        head.appendChild(style);
+        style.setAttribute('type', 'text/css');
+        style.appendChild(document.createTextNode(test_height));
+        // done adding style to head
+        if (this.max_ignore) {
+            this.showing_more = true;
+        } else {
+            // and the show more button
+            more_btn = document.createElement('button');
+            more_btn.classList.add('ruigehond010', 'more');
+            more_btn.innerText = this.more_button_text;
+            more_btn.addEventListener('click', function () {
+                self.showMore(this);
+            });
+            list.insertAdjacentElement('beforeend', more_btn);
+        }
+        // when a post_id is in the querystring, open that one only
+        if ((pos = (src = document.location.search).indexOf('post_id=')) > -1) {
+            post_id = parseInt(src.slice(pos + 8));
+            if ((post = list.querySelector('[data-post_id="' + post_id.toString() + '"]'))) {
+                self.showDomElement(post);
+                self.toggle(post);
+                for (i = 0, len = lists.length; i < len; ++i) {
+                    if ((list = lists[i]) !== post) {
+                        self.hideDomElement(list);
+                    }
+                }
+            } else {
+                console.warn('faq-with-categories: requested post_id not found in faqs list.');
+                pos = -1;
+            }
+        }
+        // show them (only if not a single entry is shown yet)
+        if (-1 === pos) {
+            self.showPostsById(post_ids);
+        }
+    }
+    // run the filter for the first time
+    self.filter(selected_list);
 }
 Ruigehond010.prototype.search = function (search_string) {
     var post, posts, i, len, post_ids = [];
     search_string = search_string.toLowerCase();
-    if ((posts = document.getElementById('ruigehond010_faq'))) {
-        posts = posts.getElementsByClassName('ruigehond010_post');
-        // collect the post_ids for displaying
-        for (i = 0, len = posts.length; i < len; ++i) {
-            if ((post = posts[i]).innerText.toLowerCase().indexOf(search_string) !== -1) {
-                post_ids.push(post.getAttribute('data-post_id'))
-            }
+    posts = this.list.getElementsByClassName('ruigehond010_post');
+    // collect the post_ids for displaying
+    for (i = 0, len = posts.length; i < len; ++i) {
+        if ((post = posts[i]).innerText.toLowerCase().indexOf(search_string) !== -1) {
+            post_ids.push(post.getAttribute('data-post_id'))
         }
-        this.showPostsById(post_ids);
     }
+    this.showPostsById(post_ids);
 }
 Ruigehond010.prototype.showPostsById = function (post_ids, leave_toggle_state_alone) {
     var post, posts, i, len, self = this, count = 0;
     this.post_ids = post_ids; // cache them
-    if ((posts = document.getElementById('ruigehond010_faq'))) {
-        posts = posts.getElementsByClassName('ruigehond010_post');
-        for (i = 0, len = posts.length; i < len; ++i) {
-            if (post_ids.indexOf((post = posts[i]).getAttribute('data-post_id')) === -1) {
-                this.hideDomElement(post);
+    posts = this.list.getElementsByClassName('ruigehond010_post');
+    for (i = 0, len = posts.length; i < len; ++i) {
+        if (post_ids.indexOf((post = posts[i]).getAttribute('data-post_id')) === -1) {
+            this.hideDomElement(post);
+        } else {
+            if (this.showing_more || count < this.max) {
+                this.showDomElement(post);
             } else {
-                if (this.showing_more || count < this.max) {
-                    this.showDomElement(post);
-                } else {
-                    this.hideDomElement(post);
-                }
-                count++;
+                this.hideDomElement(post);
             }
+            count++;
         }
     }
-    if ((len = document.getElementById('ruigehond010_more'))) {
+    if ((len = this.list.querySelector('.ruigehond010.more'))) {
         if (count <= this.max) {
             len.style.display = 'none';
         } else {
@@ -216,15 +213,15 @@ Ruigehond010.prototype.showPostsById = function (post_ids, leave_toggle_state_al
     }
 }
 Ruigehond010.prototype.toggleNoResultsWarning = function (show) {
-    var el;
-    if ((el = document.getElementById('ruigehond010_no_results_warning')) && (el.style.display === 'none') === show) {
+    const el = this.list.querySelector('.no_results_warning');
+    if (el && (el.style.display === 'none') === show) {
         show ? this.showDomElement(el) : this.hideDomElement(el);
     }
 }
-Ruigehond010.prototype.showMore = function () {
+Ruigehond010.prototype.showMore = function (button) {
     this.showing_more = true;
     this.showPostsById(this.post_ids, true); // true means don’t toggle the first one perse
-    document.getElementById('ruigehond010_more').style.display = 'none';
+    button.style.display = 'none';
 }
 
 Ruigehond010.prototype.showDomElement = function (element) {
@@ -245,7 +242,7 @@ Ruigehond010.prototype.hideDomElement = function (element) {
 }
 
 Ruigehond010.prototype.toggleFirst = function () {
-    var posts = document.getElementById('ruigehond010_faq').querySelectorAll('.ruigehond010_post'),
+    var posts = this.list.querySelectorAll('.ruigehond010_post'),
         i, len, post, rect;
     for (i = 0, len = posts.length; i < len; ++i) {
         if ((rect = (post = posts[i]).getBoundingClientRect()).top > 0 && rect.left > 0) {
@@ -257,8 +254,7 @@ Ruigehond010.prototype.toggleFirst = function () {
 
 Ruigehond010.prototype.toggle = function (li) {
     // walk through all the elements to close them, only open the chosen one (li)
-    var faq = document.getElementById('ruigehond010_faq'),
-        posts = faq.querySelectorAll('.ruigehond010_post'),
+    var posts = this.list.querySelectorAll('.ruigehond010_post'),
         i, len, post, post_contents, already_opened = false;
     for (i = 0, len = posts.length; i < len; ++i) {
         if ((post = posts[i]) === li) {
@@ -362,22 +358,18 @@ Ruigehond010.prototype.filter = function (select) {
             }
         }
         // filter the faqs
-        if ((posts = document.getElementById('ruigehond010_faq'))) {
-            posts = posts.getElementsByClassName('ruigehond010_post');
-            for (i = 0, len = posts.length; i < len; ++i) {
-                post = posts[i];
-                class_names = post.className;
-                // check if there are overlapping classes
-                if (terms.filter(function (n) {
-                    return class_names.indexOf(n) !== -1;
-                }).length > 0) {
-                    post_ids.push(post.getAttribute('data-post_id'));
-                }
+        posts = this.list.getElementsByClassName('ruigehond010_post');
+        for (i = 0, len = posts.length; i < len; ++i) {
+            post = posts[i];
+            class_names = post.className;
+            // check if there are overlapping classes
+            if (terms.filter(function (n) {
+                return class_names.indexOf(n) !== -1;
+            }).length > 0) {
+                post_ids.push(post.getAttribute('data-post_id'));
             }
-            this.showPostsById(post_ids);
-        } else {
-            console.error('faq-with-categories: #ruigehond010_faq not found for filtering...');
         }
+        this.showPostsById(post_ids);
     }
 }
 /* ponyfills */
@@ -399,14 +391,10 @@ Ruigehond010.prototype.cloneShallow = function (obj) {
 }
 
 function ruigehond010_start() {
-    var el;
-    if ((el = document.getElementById('ruigehond010_faq'))) {
-        ruigehond010_FAQWC = new Ruigehond010(
-            el.getAttribute('data-max'),
-            el.hasAttribute('data-max_ignore'), // the server sends this when relevant
-            el.getAttribute('data-more_button_text')
-        );
-    }
+    const accordions = document.querySelectorAll('.ruigehond010.faq.posts');
+    accordions.forEach(function (accordion) {
+        new Ruigehond010(accordion);
+    })
 }
 
 /* only after everything is locked and loaded we’re initialising */
