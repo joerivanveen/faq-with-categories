@@ -42,7 +42,7 @@ When there are many entries, a ‘Show more’ button appears automatically (con
 
 - Only 1 central FAQ list is supported (though you can display subsets of the FAQs anywhere you want)
 
-- Currently only with shortcodes, no widgets yet
+- Currently only with shortcodes, no widgets
 
 - Filtering and searching the FAQs only work with javascript enabled (but then again, so does most of WordPress)
 
@@ -64,7 +64,7 @@ You may use the following shortcodes, of course certain combinations do not make
 
 [faq-with-categories **title-only="any value"**] outputs the list as links rather than as an accordion.
 
-*(1)* NOTE: only a limited number of faqs will be present on the page so search and filter will not work.
+*(1)* NOTE: only a limited number of faqs will be present on the page, searching and filtering will be limited to those.
 
 = Template =
 
@@ -93,7 +93,7 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 
 == Changelog ==
 
-1.3.0: maintenance release, best practices security fixes
+1.3.0: allow multiple lists on one page, best practices security fixes
 
 1.2.0: only show filter options where there are actual faq items
 
