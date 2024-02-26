@@ -28,18 +28,18 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 		$this->taxonomies              = $this->getOption( 'taxonomies', 'category' );
 		$this->slug                    = $this->getOption( 'slug', 'ruigehond010_faq' ); // standard the post_type is used by WP
 		$this->title_links_to_overview = $this->getOption( 'title_links_to_overview', false );
-		$this->choose_option           = $this->getOption( 'choose_option', esc_html__( 'Choose option' ) );
-		$this->choose_all              = $this->getOption( 'choose_all', esc_html__( 'All' ) );
+		$this->choose_option           = $this->getOption( 'choose_option', esc_html__( 'Choose option', 'faq-with-categories' ) );
+		$this->choose_all              = $this->getOption( 'choose_all', esc_html__( 'All', 'faq-with-categories' ) );
 		$this->header_tag              = $this->getOption( 'header_tag', 'h4' );
 		$this->schema_on_single_page   = $this->getOption( 'schema_on_single_page', false );
-		$this->search_faqs             = $this->getOption( 'search_faqs', esc_html__( 'Search faqs' ) );
+		$this->search_faqs             = $this->getOption( 'search_faqs', esc_html__( 'Search faqs', 'faq-with-categories' ) );
 		$this->exclude_from_search     = $this->getOption( 'exclude_from_search', true );
 		$this->exclude_from_count      = $this->getOption( 'exclude_from_count', true );
 		$this->queue_frontend_css      = $this->getOption( 'queue_frontend_css', true );
 		// more_button_text and max are only used in javascript, attach them to the ruigehond010_faq element as data
 		$this->max_ignore_elsewhere = $this->getOption( 'max_ignore_elsewhere', false );
-		$this->more_button_text     = $this->getOption( 'more_button_text', esc_html__( 'Show more' ) );
-		$this->no_results_warning   = $this->getOption( 'no_results_warning', esc_html__( 'No results found' ) );
+		$this->more_button_text     = $this->getOption( 'more_button_text', esc_html__( 'Show more', 'faq-with-categories' ) );
+		$this->no_results_warning   = $this->getOption( 'no_results_warning', esc_html__( 'No results found', 'faq-with-categories' ) );
 		$this->max                  = $this->getOption( 'max', 5 );
 		// Add custom callback for taxonomy counter, if we do not want the faq posts to be counted towards the total
 		if ( true === $this->exclude_from_count ) {
@@ -118,7 +118,6 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 			echo '</div>';
 		}
 		delete_option( 'ruigehond010_admin_multi_message' );
-		//
 	}
 
 	public function update_count_callback( $terms, $taxonomy ) {
@@ -220,8 +219,8 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 			ob_start();
 			foreach ( $rows as $parent => $options ) {
 				echo '<select class="ruigehond010 faq choose-category" data-ruigehond010_parent="';
-				echo $parent;
-				if ( $parent === 0 ) {
+				echo (int) $parent;
+				if ( 0 === $parent ) {
 					echo '" style="display: block"><option>'; // display block to prevent repainting default situation
 					echo $this->choose_option;
 				} else {
@@ -230,19 +229,20 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 				}
 				echo '</option>';
 				foreach ( $options as $index => $option ) {
+					$term_id = (int) $option['term_id'];
 					echo '<option data-ruigehond010_term_id="';
-					echo $option['term_id'];
+					echo $term_id;
 					if ( true === $option['has_items'] ) {
 						echo '" data-ruigehond010_has_items="1';
 					}
 					echo '" value="term-';
-					echo $option['term_id'];
+					echo $term_id;
 					//echo htmlentities($term = $option['term']);
 					if ( strtolower( ( $term = $option['term'] ) ) === $filter_term ) {
 						echo '" selected="selected';
 					}
 					echo '">';
-					echo $term;
+					echo esc_html( $term );
 					echo '</option>';
 				}
 				echo '</select>';
@@ -250,7 +250,9 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 
 			return ob_get_clean();
 		} elseif ( 'faq-with-categories-search' === $short_code ) {
-			return "<input type=\"text\" name=\"search\" class=\"search-field ruigehond010 faq\" id=\"ruigehond010_search\" placeholder=\"$this->search_faqs\"/>";
+			$__search_faqs = esc_html( $this->search_faqs );
+
+			return "<input type='text' name='search' class='search-field ruigehond010 faq' id='ruigehond010_search' placeholder='$__search_faqs'/>";
 		} else { // 2) all the posts, filtered by 'exclusive' or 'term'
 			// only do the whole registering if you output schema on any of those pages
 			if ( ! $this->schema_on_single_page ) {
@@ -359,7 +361,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 			}
 			echo '<ul id="ruigehond010_faq" class="ruigehond010 faq posts ';
 			if ( $chosen_exclusive ) {
-				echo strtolower( htmlentities( $chosen_exclusive ) );
+				echo sanitize_title( $chosen_exclusive );
 			}
 			if ( true === $this->max_ignore_elsewhere &&
 			     ( null !== $chosen_term || null !== $chosen_exclusive )
@@ -367,9 +369,9 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 				echo '" data-max_ignore="1'; // set the max to be ignored on pages that display subsets of the faq
 			}
 			echo '" data-max="';
-			echo $this->max;
+			echo (int) $this->max;
 			echo '" data-more_button_text="';
-			echo htmlentities( $this->more_button_text );
+			echo esc_html( $this->more_button_text );
 			echo '">';
 			$h_open  = "<$this->header_tag class=\"faq-header\">";
 			$h_close = "</$this->header_tag>";
@@ -381,10 +383,10 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 				echo strtolower( implode( ' term-', $post->term_ids ) );
 				if ( $post->exclusive ) {
 					echo '" data-exclusive="';
-					echo $post->exclusive;
+					echo esc_html( $post->exclusive );
 				}
 				echo '" data-post_id="';
-				echo $post->ID;
+				echo (int) $post->ID;
 				echo '">';
 				if ( false === $title_only ) {
 					echo $h_open;
@@ -401,14 +403,14 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 						echo "/$slug/$post->post_name";
 					}
 					echo '">';
-					echo $post->post_title;
+					echo esc_html( $post->post_title );
 					echo '</a>';
 				}
 				echo '</li>';
 			}
 			// no results warning
 			echo '<li id="ruigehond010_no_results_warning" style="display: none;">';
-			echo $this->no_results_warning;
+			echo esc_html( $this->no_results_warning );
 			echo '</li>';
 			// end list
 			echo '</ul>';
@@ -420,7 +422,6 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 	}
 
 	private function getTerms(): array {
-		// TODO have o.o sort the same for 1 as null
 		if ( true === isset( $this->terms ) ) {
 			return $this->terms;
 		} // return cached value if available
@@ -490,15 +491,27 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
                 {$wp_prefix}term_taxonomy tt ON tt.term_taxonomy_id = tr.term_taxonomy_id LEFT OUTER JOIN 
                 {$wp_prefix}terms t ON t.term_id = tt.term_id LEFT OUTER JOIN 
                 {$wp_prefix}postmeta pm ON pm.post_id = p.ID AND pm.meta_key = '_ruigehond010_exclusive' 
-                WHERE p.post_type = 'ruigehond010_faq' AND post_status = 'publish'";
+                WHERE p.post_type = %s AND post_status = %s";
 		// set up the where condition regarding exclusive and term....
+		$values = array( 'ruigehond010_faq', 'publish' );
 		if ( is_array( $term_ids ) ) {
-			echo ' AND t.term_id IN (', implode( ',', $term_ids ), ')';
+			echo ' AND t.term_id IN (';
+			foreach ( $term_ids as $index => $term_id ) {
+				$values[] = $term_id;
+				if ( 0 === $index ) {
+					echo '%d';
+				} else {
+					echo ',%d';
+				}
+			}
+			echo ')';
+			//echo ' AND t.term_id IN (', implode( ',', $term_ids ), ')';
 		} elseif ( is_string( $exclusive ) ) {
-			echo ' AND pm.meta_value = \'', addslashes( sanitize_text_field( $exclusive ) ), '\'';
+			$values[] = $exclusive;
+			echo ' AND pm.meta_value = %s';
 		}
 		echo ' ORDER BY p.post_date DESC;';
-		$sql        = ob_get_clean();
+		$sql        = $this->wpdb->prepare( ob_get_clean(), $values );
 		$rows       = $this->wpdb->get_results( $sql, OBJECT );
 		$return_arr = array();
 		$current_id = 0;
@@ -570,14 +583,16 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 								$post_title = $value;
 								if ( '' === $value ) {
 									$update = array( 't' => '', 'post_id' => null );
-								} elseif ( $post_id = $this->wpdb->get_var( "SELECT ID 
-										FROM {$wp_prefix}posts WHERE post_title = '" . addslashes( $post_title ) . "';" ) ) {
-									$args['value'] = "$post_title ($post_id)";
-									$update        = array( 't' => $args['value'], 'post_id' => $post_id );
 								} else {
-									$update              = array( 't' => $args['value'], 'post_id' => 0 );
-									$args['nonexistent'] = true;
-									$returnObject->add_message( sprintf( esc_html__( 'Could not find post_id based on title: %s', 'faq-with-categories' ), $post_title ), 'warn' );
+									$sql = $this->wpdb->prepare( 'SELECT ID FROM %i WHERE post_title = %s;', "{$wp_prefix}posts", $post_title );
+									if ( $post_id = $this->wpdb->get_var( $sql ) ) {
+										$args['value'] = "$post_title ($post_id)";
+										$update        = array( 't' => $args['value'], 'post_id' => $post_id );
+									} else {
+										$update              = array( 't' => $args['value'], 'post_id' => 0 );
+										$args['nonexistent'] = true;
+										$returnObject->add_message( sprintf( esc_html__( 'Could not find post_id based on title: %s', 'faq-with-categories' ), $post_title ), 'warn' );
+									}
 								}
 							}
 							break;
@@ -592,8 +607,8 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 							$returnObject->add_message( esc_html__( 'Not updated', 'faq-with-categories' ), 'warn' );
 						} else {
 							$returnObject->set_success( true );
-							$args['value'] = $this->wpdb->get_var(
-								"SELECT $column_name FROM {$this->table_prefix}$table_name WHERE $id_column = $id;" );
+							$sql           = $this->wpdb->prepare( "SELECT %i FROM %i WHERE %i = %d;", $column_name, "{$this->table_prefix}$table_name", $id_column, $id );
+							$args['value'] = $this->wpdb->get_var( $sql );
 							if ( $column_name === 'rating_criteria' ) {
 								$args['value'] = implode( PHP_EOL, json_decode( $args['value'] ) );
 							}
@@ -646,7 +661,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 	function meta_box( $post, $obj ) {
 		wp_nonce_field( 'ruigehond010_save', 'ruigehond010_nonce' );
 		echo '<input type="text" id="ruigehond010_exclusive" name="ruigehond010_exclusive" value="';
-		echo $obj['args']['exclusive'];
+		echo esc_html( $obj['args']['exclusive'] );
 		echo '"/> <label for="ruigehond010_exclusive">';
 		echo esc_html__( 'The tag this FAQ entry is exclusive to, use it in a shortcode to summon the entry. Note that it will still be displayed for the taxonomies that are checked.', 'faq-with-categories' );
 		echo '</label>';
@@ -690,17 +705,17 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 				$term_id = $term['term_id'];
 				$t       = $term['t'] ?? '';
 				echo '<div class="ruigehond010-order-term" data-id="';
-				echo $term_id;
+				echo (int) $term_id;
 				echo '" data-inferred_order="';
-				echo $o;
+				echo (int) $o;
 				echo '">';
 				// ajax input to link a page to the taxonomy / explaining the taxonomy
 				echo '<input type="text" data-id_column="term_id" data-id="';
-				echo $term_id;
+				echo (int) $term_id;
 				echo '" data-handle="update" data-table_name="taxonomy_o" data-column_name="t" data-value="';
-				echo htmlentities( $t );
+				echo esc_html( $t );
 				echo '" value="';
-				echo htmlentities( $t );
+				echo esc_html( $t );
 				echo '"	class="ruigehond010 input post_title ajaxupdate ajaxsuggest tabbed';
 				if ( '0' === $term['post_id'] ) {
 					echo ' nonexistent';
@@ -708,7 +723,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 				echo '"/>';
 				// ordering handle
 				echo '<div class="sortable-handle">';
-				echo $term['term'];
+				echo esc_html( $term['term'] );
 				echo '</div></div>';
 			}
 			echo '</section><hr/>';
@@ -771,7 +786,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 	}
 
 	public function settings() {
-		if ( false === $this->onSettingsPage( 'faq-with-categories', 'faq-with-categories' ) ) {
+		if ( false === $this->onSettingsPage( 'faq-with-categories' ) ) {
 			return;
 		}
 		if ( false === current_user_can( 'manage_options', 'faq-with-categories' ) ) {

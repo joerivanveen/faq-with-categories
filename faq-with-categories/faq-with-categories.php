@@ -6,7 +6,7 @@ Plugin Name: FAQ with categories
 Plugin URI: https://github.com/joerivanveen/faq-with-categories
 Description: Easy to maintain FAQ and answer plugin with categories.
 Version: 1.3.0
-Requires at least: 4.5
+Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 7.4
 Author: Joeri van Veen
@@ -16,7 +16,7 @@ Text Domain: faq-with-categories
 Domain Path: /languages/
 */
 defined( 'ABSPATH' ) or die();
-const RUIGEHOND010_VERSION = '1.2.0';
+const RUIGEHOND010_VERSION = '1.3.0';
 $ruigehond010_basename = plugin_basename( __FILE__ );
 $ruigehond010_dirname  = dirname( __FILE__ );
 if ( ! class_exists( 'ruigehond_0_5_0\ruigehond', false ) ) {

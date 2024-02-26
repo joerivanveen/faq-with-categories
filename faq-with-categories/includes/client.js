@@ -76,7 +76,7 @@ Ruigehond010.prototype.start = function () {
         }
     }
     /**
-     * setup the search field
+     * set up the search field
      */
     if ((search_input = document.getElementById('ruigehond010_search'))) {
         search_input.addEventListener('keyup', function () {
@@ -90,7 +90,7 @@ Ruigehond010.prototype.start = function () {
         });
     }
     /**
-     * setup the accordion, this includes the show_more button and the showing of a single post when requested
+     * set up the accordion, this includes the show_more button and the showing of a single post when requested
      */
     if ((list = document.getElementById('ruigehond010_faq'))) {
         // @since 1.1.3 use test-element to record the highest faq answer and use that for height for the accordion

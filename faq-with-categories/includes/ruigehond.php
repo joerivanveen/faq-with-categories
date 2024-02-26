@@ -6,22 +6,22 @@ namespace {
 	defined( 'ABSPATH' ) or die();
 
 	if ( WP_DEBUG ) { // When debug display the errors generated during activation (if any).
-		if ( false === function_exists( 'ruigehond_ITOEWERKLKVEIR_activation_error' ) ) {
-			function ruigehond_ITOEWERKLKVEIR_activation_error() {
+		if ( false === function_exists( 'ruigehond_activation_error' ) ) {
+			function ruigehond_activation_error() {
 				if ( ( $contents = ob_get_contents() ) ) {
-					update_option( 'ruigehond_ITOEWERKLKVEIR_plugin_error', $contents );
+					update_option( 'ruigehond_plugin_error', $contents );
 				}
 			}
 
-			add_action( 'activated_plugin', 'ruigehond_ITOEWERKLKVEIR_activation_error' );
+			add_action( 'activated_plugin', 'ruigehond_activation_error' );
 
 			/* Then to display the error message: */
 			add_action( 'admin_notices', static function () {
-				if ( ( $message = get_option( 'ruigehond_ITOEWERKLKVEIR_plugin_error' ) ) ) {
+				if ( ( $message = get_option( 'ruigehond_plugin_error' ) ) ) {
 					echo '<div class="notice notice-error"><p>', esc_html( $message ), '</p></div>';
 				}
 				/* Remove or it will persist */
-				delete_option( 'ruigehond_ITOEWERKLKVEIR_plugin_error' );
+				delete_option( 'ruigehond_plugin_error' );
 			} );
 		}
 	}
@@ -138,7 +138,7 @@ namespace ruigehond_0_5_0 {
 		 * @since    0.3.2
 		 * @added input check in 0.3.3
 		 */
-		function floatForHumans( $float ): string {
+		function floatForHumans( ?float $float ): string {
 			if ( null === $float or '' === ( $sunk = (string) $float ) ) {
 				return '';
 			}
@@ -257,21 +257,22 @@ namespace ruigehond_0_5_0 {
 		 */
 		public function upsertDb( string $table_name, array $values, array $where ): int {
 			$prepared_values = array( $table_name );
-			$sql_exists      = 'SELECT EXISTS (SELECT 1 FROM %i WHERE 1=1';
+			ob_start();
+			echo 'SELECT EXISTS (SELECT 1 FROM %i WHERE 1=1';
 
 			foreach ( $where as $key => $value ) {
+				echo ' AND %i = %s';
 				$prepared_values[] = $key;
 				$prepared_values[] = $value;
-				$sql_exists        .= ' AND %i = %s';
 				// remove current id from values, so it will not be part of an insert statement later
 				if ( 'id' === $key || "{$table_name}_id" === $key ) {
 					unset( $values[ $key ] );
 				}
 			}
 
-			$sql_exists .= ');';
+			echo ');';
 
-			$sql_exists = $this->wpdb->prepare( $sql_exists, $prepared_values );
+			$sql_exists = $this->wpdb->prepare( ob_get_clean(), $prepared_values );
 			$row_exists = $this->wpdb->get_var( $sql_exists );
 			if ( $row_exists ) {
 				return - $this->wpdb->update( $table_name, $values, $where );
