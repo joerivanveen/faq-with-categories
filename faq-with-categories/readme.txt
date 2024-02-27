@@ -58,7 +58,7 @@ You may use the following shortcodes, of course certain combinations do not make
 
 [faq-with-categories **quantity="5"**] *(1)* limits the quantity of the faqs to 5, or use another number. Can be combined with the other settings.
 
-[faq-with-categories **category="category name"**] *(1)* display only faqs for the specified category (case insensitive). This will NOT output FAQ snippets schema in the head.
+[faq-with-categories **category="category name"**] *(1)* display only faqs for the specified category (case-insensitive). This will NOT output FAQ snippets schema in the head.
 
 [faq-with-categories **exclusive="your tag"**] *(1)* (use only ONCE for every tag) any tag you specified under a faq entry in the box, will gather all faqs with that tag for display.
 
@@ -131,3 +131,11 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 
 1.0.0: Release
 
+== Upgrade Notice ==
+
+= 1.3.0 =
+
+IMPORTANT if you target FAQ elements with CSS, the following elements have changed, because multiple lists are now possible on the same page:
+- `#ruigehond010_faq` -> `.ruigehond010.faq`
+- `#ruigehond010_more` -> `.ruigehond010.more`
+- `#ruigehond010_no_results_warning` -> `.ruigehond010.no_results_warning`
