@@ -16,7 +16,6 @@ Text Domain: faq-with-categories
 Domain Path: /languages/
 */
 defined( 'ABSPATH' ) || die();
-// TODO make option not to open the first faq post of a list automatically, CLS...
 const RUIGEHOND010_VERSION = '1.3.0';
 $ruigehond010_basename = plugin_basename( __FILE__ );
 $ruigehond010_dirname  = dirname( __FILE__ );

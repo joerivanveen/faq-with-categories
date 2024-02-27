@@ -5,7 +5,8 @@ declare( strict_types=1 );
 namespace ruigehond010;
 
 // TODO BUG if you put central faq short_code or any exclusive tag on multiple pages, the $on option keeps getting updated
-// TODO FEAT allow different faq snippets on one page...
+// TODO make option not to open the first faq post of a list automatically, CLS...
+// TODO have querystring selection of category work without filter being present on the page
 use ruigehond_0_5_0;
 
 defined( 'ABSPATH' ) or die();
@@ -413,7 +414,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 				echo '</li>';
 			}
 			// no results warning
-			echo '<li class="ruigehond010 no_results_warning" style="display: none;">';
+			echo '<li class="ruigehond010 no-results-warning" style="display: none;">';
 			echo esc_html( $this->no_results_warning );
 			echo '</li>';
 			// end list

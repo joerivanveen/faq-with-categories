@@ -213,7 +213,7 @@ Ruigehond010.prototype.showPostsById = function (post_ids, leave_toggle_state_al
     }
 }
 Ruigehond010.prototype.toggleNoResultsWarning = function (show) {
-    const el = this.list.querySelector('.no_results_warning');
+    const el = this.list.querySelector('.no-results-warning');
     if (el && (el.style.display === 'none') === show) {
         show ? this.showDomElement(el) : this.hideDomElement(el);
     }

@@ -138,4 +138,6 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 IMPORTANT if you target FAQ elements with CSS, the following elements have changed, because multiple lists are now possible on the same page:
 - `#ruigehond010_faq` -> `.ruigehond010.faq`
 - `#ruigehond010_more` -> `.ruigehond010.more`
-- `#ruigehond010_no_results_warning` -> `.ruigehond010.no_results_warning`
+- `#ruigehond010_no_results_warning` -> `.ruigehond010.no-results-warning`
+In addition, the `choose-category` select list dropped the `faq` class and you can now target it with `.ruigehond010.choose-category`
+If you use a single and / or archive template, you may need to update the id’s to classes there as well.
