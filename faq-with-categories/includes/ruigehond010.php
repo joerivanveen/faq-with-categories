@@ -218,7 +218,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 			// write the html lists
 			ob_start();
 			foreach ( $rows as $parent => $options ) {
-				echo '<select class="ruigehond010 faq choose-category" data-ruigehond010_parent="';
+				echo '<select class="ruigehond010 choose-category" data-ruigehond010_parent="';
 				echo (int) $parent;
 				if ( 0 === $parent ) {
 					echo '" style="display: block"><option>'; // display block to prevent repainting default situation
@@ -252,7 +252,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 		} elseif ( 'faq-with-categories-search' === $short_code ) {
 			$__search_faqs = esc_html( $this->search_faqs );
 
-			return "<input type='text' name='search' class='search-field ruigehond010 faq' id='ruigehond010_search' placeholder='$__search_faqs'/>";
+			return "<input type='text' name='search' class='search-field ruigehond010' id='ruigehond010_search' placeholder='$__search_faqs'/>";
 		} else { // 2) all the posts, filtered by 'exclusive' or 'term'
 			// only do the whole registering if you output schema on any of those pages
 			if ( ! $this->schema_on_single_page ) {
