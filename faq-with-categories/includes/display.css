@@ -15,7 +15,7 @@
 }
 .ruigehond010.faq.posts .ruigehond010_post .faq-header {
     margin-bottom: 0;
-    color: #333;
+    color: currentColor;
 }
 .ruigehond010.faq.posts .ruigehond010_post .faq-header+div {
     height: auto;
@@ -27,13 +27,15 @@
 .ruigehond010.faq.posts .ruigehond010_post:not(.open) .faq-header {
     cursor: pointer;
 }
-#ruigehond010_test { /* element used to determine max height in the carousel */
+
+.ruigehond010.test { /* element used to determine max height in the carousel */
     display: block;
     visibility: hidden;
 }
 
 .ruigehond010.faq.posts .ruigehond010_post .faq-header:before {
     content: '▼';
+    color: currentColor;
     float: right;
     transition: all .4s;
 }

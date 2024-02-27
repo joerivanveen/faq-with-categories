@@ -28,18 +28,18 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 		$this->taxonomies              = $this->getOption( 'taxonomies', 'category' );
 		$this->slug                    = $this->getOption( 'slug', 'ruigehond010_faq' ); // standard the post_type is used by WP
 		$this->title_links_to_overview = $this->getOption( 'title_links_to_overview', false );
-		$this->choose_option           = $this->getOption( 'choose_option',   __( 'Choose option', 'faq-with-categories' ) );
-		$this->choose_all              = $this->getOption( 'choose_all',  __( 'All', 'faq-with-categories' ) );
+		$this->choose_option           = $this->getOption( 'choose_option', __( 'Choose option', 'faq-with-categories' ) );
+		$this->choose_all              = $this->getOption( 'choose_all', __( 'All', 'faq-with-categories' ) );
 		$this->header_tag              = $this->getOption( 'header_tag', 'h4' );
 		$this->schema_on_single_page   = $this->getOption( 'schema_on_single_page', false );
-		$this->search_faqs             = $this->getOption( 'search_faqs',  __( 'Search faqs', 'faq-with-categories' ) );
+		$this->search_faqs             = $this->getOption( 'search_faqs', __( 'Search faqs', 'faq-with-categories' ) );
 		$this->exclude_from_search     = $this->getOption( 'exclude_from_search', true );
 		$this->exclude_from_count      = $this->getOption( 'exclude_from_count', true );
 		$this->queue_frontend_css      = $this->getOption( 'queue_frontend_css', true );
 		// more_button_text and max are only used in javascript, attach them to the ruigehond010_faq element as data
 		$this->max_ignore_elsewhere = $this->getOption( 'max_ignore_elsewhere', false );
 		$this->more_button_text     = $this->getOption( 'more_button_text', __( 'Show more', 'faq-with-categories' ) );
-		$this->no_results_warning   = $this->getOption( 'no_results_warning',  __( 'No results found', 'faq-with-categories' ) );
+		$this->no_results_warning   = $this->getOption( 'no_results_warning', __( 'No results found', 'faq-with-categories' ) );
 		$this->max                  = $this->getOption( 'max', 5 );
 		// Add custom callback for taxonomy counter, if we do not want the faq posts to be counted towards the total
 		if ( true === $this->exclude_from_count ) {
@@ -152,7 +152,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 			if ( ( $temp_post = get_post( $post_id ) )->post_type === 'ruigehond010_faq' ) {
 				echo $this->getSchemaFromPosts( array( $temp_post ) );
 			}
-		} elseif ( ( $on = $this->getOption( 'post_ids' ) ) and isset( $on[ $post_id ] ) ) {
+		} elseif ( ( $on = $this->getOption( 'post_ids' ) ) && isset( $on[ $post_id ] ) ) {
 			// output the exclusive ones and main faq only when not on single page
 			echo $this->getSchemaFromPosts( $this->getPosts( $on[ $post_id ] ) );
 		}
@@ -222,10 +222,10 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 				echo (int) $parent;
 				if ( 0 === $parent ) {
 					echo '" style="display: block"><option>'; // display block to prevent repainting default situation
-					echo esc_html($this->choose_option);
+					echo esc_html( $this->choose_option );
 				} else {
 					echo '"><option>';
-					echo esc_html($this->choose_all);
+					echo esc_html( $this->choose_all );
 				}
 				echo '</option>';
 				foreach ( $options as $index => $option ) {
@@ -462,7 +462,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 	}
 
 	/**
-	 * @param string|null $exclusive
+	 * @param string|bool|null $exclusive
 	 * @param null $term
 	 *
 	 * @return array the rows from db as \stdClasses in an indexed array
@@ -471,12 +471,11 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 		$term_ids  = null; // we are going to collect all the term_ids that fall under the requested $term
 		$wp_prefix = $this->wpdb->prefix;
 		if ( is_string( $term ) ) {
-			$sql_term = addslashes( $term );
-			$sql      = "SELECT term_id FROM {$wp_prefix}terms t WHERE lower(t.name) = '$sql_term';";
+			$sql = $this->wpdb->prepare( "SELECT term_id FROM {$wp_prefix}terms t WHERE lower(t.name) = %s;", $term );
 			// now for as long as rows with term_ids are returned, keep building the array
 			while ( ( $rows = $this->wpdb->get_results( $sql ) ) ) {
 				foreach ( $rows as $index => $row ) {
-					$term_ids[] = $row->term_id;
+					$term_ids[] = (int) $row->term_id;
 				}
 				// new sql selects all the children from the term_ids that are in the array
 				$str_term_ids = implode( ',', $term_ids );

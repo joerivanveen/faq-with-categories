@@ -15,7 +15,8 @@ License: GPL3
 Text Domain: faq-with-categories
 Domain Path: /languages/
 */
-defined( 'ABSPATH' ) or die();
+defined( 'ABSPATH' ) || die();
+// TODO make option not to open the first faq post of a list automatically, CLS...
 const RUIGEHOND010_VERSION = '1.3.0';
 $ruigehond010_basename = plugin_basename( __FILE__ );
 $ruigehond010_dirname  = dirname( __FILE__ );
@@ -30,7 +31,7 @@ $ruigehond010 = new ruigehond010\ruigehond010( $ruigehond010_basename );
 add_action( "activate_$ruigehond010_basename", array( $ruigehond010, 'activate' ) );
 add_action( 'init', array( $ruigehond010, 'initialize' ) );
 /**
- * setup ajax for admin interface, ajax call javascript needs to call whatever
+ * set up ajax for admin interface, ajax call javascript needs to call whatever
  * comes after wp_ajax_ (so in this case: ruigehond010_handle_input)
  */
 add_action( 'wp_ajax_ruigehond010_handle_input', 'ruigehond010_handle_input' );

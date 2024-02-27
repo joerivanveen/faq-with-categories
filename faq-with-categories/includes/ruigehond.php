@@ -3,7 +3,7 @@
 declare( strict_types=1 );
 
 namespace {
-	defined( 'ABSPATH' ) or die();
+	defined( 'ABSPATH' ) || die();
 
 	if ( WP_DEBUG ) { // When debug display the errors generated during activation (if any).
 		if ( false === function_exists( 'ruigehond_activation_error' ) ) {
