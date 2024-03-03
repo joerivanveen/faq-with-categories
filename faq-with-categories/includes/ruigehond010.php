@@ -978,7 +978,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 		return $links;
 	}
 
-	public function install() {
+	public function activate() {
 		$table_name = $this->order_table;
 		if ( $this->wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) != $table_name ) {
 			$sql = "CREATE TABLE $table_name (

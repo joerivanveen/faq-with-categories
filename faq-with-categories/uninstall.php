@@ -7,7 +7,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	die();
 }
 
-include_once( 'compare-table.php' );
+include_once( 'faq-with-categories.php' );
 
 global $ruigehond010;
 $ruigehond010->uninstall();
