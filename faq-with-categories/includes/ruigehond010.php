@@ -5,7 +5,6 @@ declare( strict_types=1 );
 namespace ruigehond010;
 
 // TODO BUG if you put central faq short_code or any exclusive tag on multiple pages, the $on option keeps getting updated
-// TODO make option not to open the first faq post of a list automatically, CLS...
 // TODO have querystring selection of category work without filter being present on the page
 use ruigehond_0_5_1;
 
@@ -15,7 +14,8 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 	private $basename, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $table_prefix,
 		$more_button_text, $no_results_warning, $max, $max_ignore_elsewhere,
 		$order_table, $header_tag,
-		$title_links_to_overview, $schema_on_single_page, $exclude_from_search, $exclude_from_count, $queue_frontend_css;
+		$title_links_to_overview, $schema_on_single_page, $exclude_from_search, $exclude_from_count, $queue_frontend_css,
+		$open_first_faq_on_page;
 	// variables that hold cached items
 	private $terms;
 
@@ -37,6 +37,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		$this->exclude_from_search     = $this->getOption( 'exclude_from_search', true );
 		$this->exclude_from_count      = $this->getOption( 'exclude_from_count', true );
 		$this->queue_frontend_css      = $this->getOption( 'queue_frontend_css', true );
+		$this->open_first_faq_on_page  = $this->getOption( 'open_first_faq_on_page', true );
 		// more_button_text and max are only used in javascript, attach them to the ruigehond010_faq element as data
 		$this->max_ignore_elsewhere = $this->getOption( 'max_ignore_elsewhere', false );
 		$this->more_button_text     = $this->getOption( 'more_button_text', __( 'Show more', 'faq-with-categories' ) );
@@ -373,6 +374,10 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			echo (int) $this->max;
 			echo '" data-more_button_text="';
 			echo esc_html( $this->more_button_text );
+			echo '" data-open_first_faq_on_page="';
+			if ( true === $this->open_first_faq_on_page ) {
+				echo '1';
+			}
 			echo '">';
 			$h_tag = $this->header_tag;
 			if ( ! in_array( $h_tag, array( 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ) ) ) {
@@ -807,6 +812,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			'taxonomies'              => esc_html__( 'Type the taxonomy you want to use for the categories.', 'faq-with-categories' ),
 			'slug'                    => esc_html__( 'Slug for the individual faq entries (optional).', 'faq-with-categories' ),
 			'title_links_to_overview' => esc_html__( 'When using title-only in shortcodes, link to the overview rather than individual FAQ page.', 'faq-with-categories' ),
+			'open_first_faq_on_page'  => esc_html__( 'Open the first FAQ in a list automatically.', 'faq-with-categories' ),
 			'schema_on_single_page'   => esc_html__( 'Output the faq schema on individual page rather than overview.', 'faq-with-categories' ),
 			'choose_option'           => esc_html__( 'The ‘choose / show all’ option in top most select list.', 'faq-with-categories' ),
 			'choose_all'              => esc_html__( 'The ‘choose / show all’ option in subsequent select lists.', 'faq-with-categories' ),
@@ -844,6 +850,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			case 'title_links_to_overview':
 			case 'max_ignore_elsewhere':
 			case 'schema_on_single_page':
+			case 'open_first_faq_on_page':
 			case 'exclude_from_search': // make checkbox that transmits 1 or 0, depending on status
 				echo '<label><input type="hidden" name="ruigehond010[', $setting_name, ']" value="';
 				if ( $this->$setting_name ) {
@@ -857,7 +864,19 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			default: // make text input
 				echo '<input type="text" name="ruigehond010[', $setting_name, ']" value="';
 				echo htmlentities( (string) $this->$setting_name );
-				echo '" style="width: 162px" class="', $args['class_name'], '"/> <label>', $args['label_for'], '</label>';
+				echo '" style="width: ';
+				if ( in_array( $setting_name, array(
+					'choose_option',
+					'choose_all',
+					'search_faqs',
+					'more_button_text',
+					'no_results_warning',
+				) ) ) {
+					echo '312';
+				} else {
+					echo '162';
+				}
+				echo 'px" class="', $args['class_name'], '"/> <label>', $args['label_for'], '</label>';
 		}
 	}
 

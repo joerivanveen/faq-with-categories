@@ -5,6 +5,7 @@ function Ruigehond010(list) {
     this.max = (this.isInt(max_for_more)) ? parseInt(max_for_more) : 5;
     this.max_ignore = max_ignore; // when true ignore the maximum amount, never display the more button
     this.more_button_text = more_button_text || 'Show more';
+    this.open_first_faq_on_page = '1' === list.getAttribute('data-open_first_faq_on_page')
     this.timeout = null;
     this.showing_more = false;
     this.post_ids = []; // caches the post_ids currently selected for display (used by method showMore());
@@ -201,7 +202,7 @@ Ruigehond010.prototype.showPostsById = function (post_ids, leave_toggle_state_al
         this.toggleNoResultsWarning(true);
     } else {
         this.toggleNoResultsWarning(false);
-        if (!leave_toggle_state_alone) {
+        if (!leave_toggle_state_alone && this.open_first_faq_on_page) {
             // open the first faq item
             self.timeout = setTimeout(function () {
                 if (self.timeout) clearTimeout(self.timeout);
