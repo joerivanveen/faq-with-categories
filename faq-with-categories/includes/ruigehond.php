@@ -27,7 +27,7 @@ namespace {
 	}
 }
 
-namespace ruigehond_0_5_0 {
+namespace ruigehond_0_5_1 {
 
 	use stdClass;
 
@@ -280,6 +280,20 @@ namespace ruigehond_0_5_0 {
 
 			return $this->insertDb( $table_name, $values + $where );
 		}
+
+		public static function randomString(
+			int    $length,
+			string $key_space = '0123456789abcdefghijklmnopqrstuvwxyz'
+		): string
+		{
+			$pieces = [];
+			$max = strlen($key_space) - 1;
+			for ($i = 0; $i < $length; ++$i) {
+				$pieces [] = $key_space[\random_int(0, $max)];
+			}
+
+			return implode('', $pieces);
+		}
 	}
 
 	/**
@@ -397,4 +411,4 @@ namespace ruigehond_0_5_0 {
 			// if data is null it means javascript doesn't have to send anything back
 		}
 	}
-} // end of namespace ruigehond_0_5_0
+} // end of namespace ruigehond_0_5_1

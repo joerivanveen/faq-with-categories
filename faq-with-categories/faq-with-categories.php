@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || die();
 const RUIGEHOND010_VERSION = '1.3.1';
 $ruigehond010_basename = plugin_basename( __FILE__ );
 $ruigehond010_dirname  = dirname( __FILE__ );
-if ( ! class_exists( 'ruigehond_0_5_0\ruigehond', false ) ) {
+if ( ! class_exists( 'ruigehond_0_5_1\ruigehond', false ) ) {
 	include_once( "$ruigehond010_dirname/includes/ruigehond.php" ); // base class
 }
 include_once( "$ruigehond010_dirname/includes/ruigehond010.php" );

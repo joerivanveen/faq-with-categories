@@ -7,11 +7,11 @@ namespace ruigehond010;
 // TODO BUG if you put central faq short_code or any exclusive tag on multiple pages, the $on option keeps getting updated
 // TODO make option not to open the first faq post of a list automatically, CLS...
 // TODO have querystring selection of category work without filter being present on the page
-use ruigehond_0_5_0;
+use ruigehond_0_5_1;
 
 defined( 'ABSPATH' ) or die();
 
-class ruigehond010 extends ruigehond_0_5_0\ruigehond {
+class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 	private $basename, $database_version, $taxonomies, $slug, $choose_option, $choose_all, $search_faqs, $table_prefix,
 		$more_button_text, $no_results_warning, $max, $max_ignore_elsewhere,
 		$order_table, $header_tag,
@@ -534,7 +534,7 @@ class ruigehond010 extends ruigehond_0_5_0\ruigehond {
 		return $return_arr;
 	}
 
-	public function handle_input( $args ): ruigehond_0_5_0\returnObject {
+	public function handle_input( $args ): ruigehond_0_5_1\returnObject {
 		$returnObject = $this->getReturnObject();
 		$wp_prefix    = $this->wpdb->prefix;
 		if ( isset( $args['id'] ) ) {
