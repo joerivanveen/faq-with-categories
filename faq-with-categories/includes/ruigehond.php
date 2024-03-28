@@ -215,7 +215,6 @@ namespace ruigehond_0_5_1 {
 				}
 				$this->options_checksum = md5( json_encode( $this->options ) );
 			}
-
 			return $this->options;
 		}
 

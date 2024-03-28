@@ -67,3 +67,9 @@ ul.ruigehond.datalist li.selecting::before {
     margin-top: .15em;
 }
 
+table.ruigehond010 {
+    border-collapse: collapse;
+}
+table.ruigehond010 td {
+    padding: .2em 1.39em .2em 0;
+}

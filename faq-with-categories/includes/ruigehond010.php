@@ -256,81 +256,81 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 
 			return "<input type='text' name='search' class='search-field ruigehond010' id='ruigehond010_search' placeholder='$__search_faqs'/>";
 		} else { // 2) all the posts, filtered by 'exclusive' or 'term'
-			// only do the whole registering if you output schema on any of those pages
-			if ( ! $this->schema_on_single_page ) {
-				// only register exclusive displays and the full faq page for outputting schema
-				if ( is_null( $chosen_term ) ) {
-					// register the shortcode being used here, for outputSchema method :-)
-					// don’t update if it’s all faqs but with a quantity
-					$register = ( is_string( $chosen_exclusive ) ) ? $chosen_exclusive : null === $quantity;
-					if ( ( $on = $this->getOption( 'post_ids' ) ) ) {
-						// remove any reference for this $register (exclusive or ‘true’ for overview), it will be set to the correct one later
-						//if (false === isset($on[$post_id])) {
-						// remove the original id if any
-						foreach ( $on as $on_post_id => $value ) {
-							if ( $value === $register ) {
-								// check for duplicate tags, you may need to warn the admin about it
-								if ( $post_id !== $on_post_id ) {
-									$temps  = get_the_content( null, false, $on_post_id );
-									$danger = false;
-									if ( true === $register ) { // disallowed is [faq-with-categories without ‘exclusive’ or ‘category’
-										if ( false !== ( $pos = strpos( $temps, '[faq-with-categories' ) ) ) {
-											if ( false === strpos( $temps, ' exclusive="', $pos ) &&
-											     false === strpos( $temps, ' category="', $pos ) ) {
-												$danger = true;
-											}
-										}
-									} else {
-										if ( false !== strpos( $temps, "exclusive=\"$register\"" ) ) {
-											$danger = true;
-										}
-									}
-									if ( true === $danger ) {
-										ob_start();
-										echo sprintf(
-											esc_html__( 'Looks like the tag ‘%s’ is used multiple times.', 'faq-with-categories' ),
-											( true === $register ) ? '[faq-with-categories]' : "exclusive=\"$register\"" );
-										echo ' ';
-										echo esc_html__( 'Found on', 'faq-with-categories' );
-										echo ': <a href="';
-										echo( ( $perm = get_permalink( $post_id ) ) );
-										echo '">';
-										echo $perm;
-										echo '</a> &amp; <a href="';
-										echo( ( $perm = get_permalink( $on_post_id ) ) );
-										echo '">';
-										echo $perm;
-										echo '</a><br/>';
-										echo esc_html__( 'For this plugin to function properly, you can use the overview or any exclusive tag only once in your entire site.', 'faq-with-categories' );
-										update_option( 'ruigehond010_admin_multi_message', ob_get_clean() );
-									}
-								}
-								unset( $on[ $on_post_id ] );
-							}
-						}
-						//} else { // remove this one, it will be set later if applicable
-						//    unset($on[$post_id]);
-						//}
-						// register this id (also updates if e.g. the exclusive value changes)
-						if ( false !== $register ) {
-							$on[ $post_id ] = $register;
-						}
-					} else { // set it for the first time
-						$on = [ $post_id => true ];
-					}
-					$this->setOption( 'post_ids', $on );
-					if ( true === $register && false === $title_only ) {
-						$this->setOption( 'faq_page_slug', get_post_field( 'post_name', $post_id ) );
-					}
-				} else {
-					if ( ( $on = $this->getOption( 'post_ids' ) ) ) {
-						if ( isset( $on[ $post_id ] ) ) {
-							unset( $on[ $post_id ] );
-							$this->setOption( 'post_ids', $on );
-						}
-					}
-				}
-			}
+//			// only do the whole registering if you output schema on any of those pages
+//			if ( ! $this->schema_on_single_page ) {
+//				// only register exclusive displays and the full faq page for outputting schema
+//				if ( is_null( $chosen_term ) ) {
+//					// register the shortcode being used here, for outputSchema method :-)
+//					// don’t update if it’s all faqs but with a quantity
+//					$register = ( is_string( $chosen_exclusive ) ) ? $chosen_exclusive : null === $quantity;
+//					if ( ( $on = $this->getOption( 'post_ids' ) ) ) {
+//						// remove any reference for this $register (exclusive or ‘true’ for overview), it will be set to the correct one later
+//						//if (false === isset($on[$post_id])) {
+//						// remove the original id if any
+//						foreach ( $on as $on_post_id => $value ) {
+//							if ( $value === $register ) {
+//								// check for duplicate tags, you may need to warn the admin about it
+//								if ( $post_id !== $on_post_id ) {
+//									$temps  = get_the_content( null, false, $on_post_id );
+//									$danger = false;
+//									if ( true === $register ) { // disallowed is [faq-with-categories without ‘exclusive’ or ‘category’
+//										if ( false !== ( $pos = strpos( $temps, '[faq-with-categories' ) ) ) {
+//											if ( false === strpos( $temps, ' exclusive="', $pos ) &&
+//											     false === strpos( $temps, ' category="', $pos ) ) {
+//												$danger = true;
+//											}
+//										}
+//									} else {
+//										if ( false !== strpos( $temps, "exclusive=\"$register\"" ) ) {
+//											$danger = true;
+//										}
+//									}
+//									if ( true === $danger ) {
+//										ob_start();
+//										echo sprintf(
+//											esc_html__( 'Looks like the tag ‘%s’ is used multiple times.', 'faq-with-categories' ),
+//											( true === $register ) ? '[faq-with-categories]' : "exclusive=\"$register\"" );
+//										echo ' ';
+//										echo esc_html__( 'Found on', 'faq-with-categories' );
+//										echo ': <a href="';
+//										echo( ( $perm = get_permalink( $post_id ) ) );
+//										echo '">';
+//										echo $perm;
+//										echo '</a> &amp; <a href="';
+//										echo( ( $perm = get_permalink( $on_post_id ) ) );
+//										echo '">';
+//										echo $perm;
+//										echo '</a><br/>';
+//										echo esc_html__( 'For this plugin to function properly, you can use the overview or any exclusive tag only once in your entire site.', 'faq-with-categories' );
+//										update_option( 'ruigehond010_admin_multi_message', ob_get_clean() );
+//									}
+//								}
+//								unset( $on[ $on_post_id ] );
+//							}
+//						}
+//						//} else { // remove this one, it will be set later if applicable
+//						//    unset($on[$post_id]);
+//						//}
+//						// register this id (also updates if e.g. the exclusive value changes)
+//						if ( false !== $register ) {
+//							$on[ $post_id ] = $register;
+//						}
+//					} else { // set it for the first time
+//						$on = [ $post_id => true ];
+//					}
+//					$this->setOption( 'post_ids', $on );
+//					if ( true === $register && false === $title_only ) {
+//						$this->setOption( 'faq_page_slug', get_post_field( 'post_name', $post_id ) );
+//					}
+//				} else {
+//					if ( ( $on = $this->getOption( 'post_ids' ) ) ) {
+//						if ( isset( $on[ $post_id ] ) ) {
+//							unset( $on[ $post_id ] );
+//							$this->setOption( 'post_ids', $on );
+//						}
+//					}
+//				}
+//			}
 			// [faq-with-categories exclusive="homepage"], or /url?category=blah
 			// load the posts, will return row data: ID = id of the post, exclusive = meta value for exclusive (null when none)
 			// term = category: this will multiply rows if multiple categories are attached,
@@ -474,7 +474,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 	 * @return array the rows from db as \stdClasses in an indexed array
 	 */
 	private function getPosts( $exclusive = null, $term = null ): array {
-		$term_ids  = null; // we are going to collect all the term_ids that fall under the requested $term
+		$term_ids  = array(); // we are going to collect all the term_ids that fall under the requested $term
 		$wp_prefix = $this->wpdb->prefix;
 		if ( is_string( $term ) ) {
 			$sql = $this->wpdb->prepare( "SELECT term_id FROM {$wp_prefix}terms t WHERE lower(t.name) = %s;", $term );
@@ -492,7 +492,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			}
 		}
 		ob_start();
-		echo "SELECT p.ID, p.post_title, p.post_content, p.post_date, p.post_name, t.term_id, pm.meta_value AS exclusive from
+		echo "SELECT p.ID, p.post_title, p.post_content, p.post_date, p.post_name, t.term_id, pm.meta_value AS exclusive FROM
                 {$wp_prefix}posts p LEFT OUTER JOIN 
                 {$wp_prefix}term_relationships tr ON tr.object_id = p.ID LEFT OUTER JOIN 
                 {$wp_prefix}term_taxonomy tt ON tt.term_taxonomy_id = tr.term_taxonomy_id LEFT OUTER JOIN 
@@ -501,7 +501,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
                 WHERE p.post_type = %s AND post_status = %s";
 		// set up the where condition regarding exclusive and term....
 		$values = array( 'ruigehond010_faq', 'publish' );
-		if ( is_array( $term_ids ) ) {
+		if ( count( $term_ids ) > 0 ) {
 			echo ' AND t.term_id IN (';
 			foreach ( $term_ids as $index => $term_id ) {
 				$values[] = $term_id;
@@ -738,6 +738,81 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		echo '</div>';
 	}
 
+	public function per_page_settings() {
+		// check user capabilities
+		if ( false === current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		echo '<div class="wrap"><h1>';
+		echo esc_html( get_admin_page_title() );
+		echo '</h1><p>';
+		echo esc_html__( 'Settings for pages the shortcode is used on.', 'faq-with-categories' );
+		echo '</p>';
+
+		global $wpdb;
+		$rows     = $wpdb->get_results( "SELECT ID, post_title, post_name, post_content, post_status FROM $wpdb->posts WHERE post_type NOT IN ('revision');", OBJECT );
+		$edit     = get_admin_url();
+		$main     = $this->getOption( 'faq_page_slug' );
+		$post_ids = $this->getOption( 'post_ids' );
+
+		$process = static function ( $content ) {
+			/* stolen from have-searchwp-index-wpbakery-rawhtml */
+			while ( false !== strpos( $content, '[/vc_raw_html]' ) ) {
+				$start = strpos( $content, '[vc_raw_html' );
+				if ( false === $start ) {
+					return $content;
+				}
+				$stop = strpos( $content, ']', $start );
+				if ( false === $stop ) {
+					return $content;
+				}
+				$stop += 1;
+				$end  = strpos( $content, '[/vc_raw_html]', $stop );
+				if ( false === $end ) {
+					return $content;
+				}
+				$chunk   = substr( $content, $start, $end - $start ) . '[/vc_raw_html]';
+				$encoded = substr( $content, $stop, $end - $stop );
+				$decoded = rawurldecode( base64_decode( $encoded ) );
+				$content = str_replace( $chunk, $decoded, $content );
+			}
+
+			return $content;
+		};
+
+		echo '<form action="options.php" method="post">';
+		// output security fields for the registered setting
+		settings_fields( 'ruigehond010' );
+		// output setting sections and their fields
+		echo '<table class="ruigehond010"><thead><tr><td>Post title / edit link</td><td>&nbsp;</td><td colspan="2" style="text-align:right">Main FAQ page</td></tr></thead><tbody>';
+		foreach ( $rows as $index => $row ) {
+			$post_id = (int) $row->ID;
+			$content = $process( $row->post_content );
+			if ( false !== strpos( $content, '[faq-with-categories' ) ) {
+				echo '<tr>';
+				echo '<td><a href="', $edit, '/post.php?action=edit&post=', $post_id, '">', $row->post_title, '</a></td>';
+				//echo '<td>', $main, ', ', $row->post_name, '</td>';
+				echo '<td><a href="', $row->post_name, '">View</a></td>';
+				echo '<td><label><input type="checkbox" name="ruigehond010[output_schema][]" value="', $post_id, '"';
+				if ( isset( $post_ids[ $post_id ] ) ) {
+					echo ' checked="checked"';
+				}
+				echo '/> ', esc_html__( 'Output schema', 'faq-with-categories' ), '</label></td>';
+				echo '<td style="text-align:center"><input type="radio" name="ruigehond010[main_faq_page]" value="', $post_id, '"';
+				if ( $main === $row->post_name ) {
+					echo ' checked="checked"';
+				}
+				echo '/></td>';
+				echo '</tr>';
+			}
+		}
+		echo '</tbody></table>';
+		submit_button( esc_html__( 'Save Settings', 'faq-with-categories' ) );
+		echo '</form>';
+
+		$rows = null;
+	}
+
 	public function settingspage() {
 		// check user capabilities
 		if ( false === current_user_can( 'manage_options' ) ) {
@@ -846,11 +921,11 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		$setting_name = $args['setting_name'];
 		switch ( $setting_name ) {
 			case 'queue_frontend_css':
-			case 'exclude_from_count':
 			case 'title_links_to_overview':
 			case 'max_ignore_elsewhere':
 			case 'schema_on_single_page':
 			case 'open_first_faq_on_page':
+			case 'exclude_from_count':
 			case 'exclude_from_search': // make checkbox that transmits 1 or 0, depending on status
 				echo '<label><input type="hidden" name="ruigehond010[', $setting_name, ']" value="';
 				if ( $this->$setting_name ) {
@@ -886,10 +961,12 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			switch ( $key ) {
 				// on / off flags (1 vs 0 on form submit, true / false otherwise
 				case 'queue_frontend_css':
-				case 'exclude_from_search':
 				case 'title_links_to_overview':
 				case 'max_ignore_elsewhere':
+				case 'schema_on_single_page':
+				case 'open_first_faq_on_page':
 				case 'exclude_from_count':
+				case 'exclude_from_search':
 					$options[ $key ] = ( $value === '1' || $value === true );
 					break;
 				case 'slug':
@@ -902,6 +979,19 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 				case 'max':
 					if ( abs( intval( $value ) ) > 0 ) {
 						$options[ $key ] = abs( intval( $value ) );
+					}
+					break;
+				case 'output_schema': // this is an array of post id’s (can be empty) where you want to output schema
+					$values   = array_map( 'intval', $value );
+					$post_ids = array();
+					foreach ( $values as $post_id ) {
+						$post_ids[ $post_id ] = true; // TODO register exclusive or terms here
+					}
+					$options['post_ids'] = $post_ids;
+					break;
+				case 'main_faq_page': // int which is a post->ID
+					if ( ( $slug = get_post_field( 'post_name', (int) $value ) ) ) {
+						$options['faq_page_slug'] = $slug;
 					}
 					break;
 				case 'taxonomies': // check if it's an existing taxonomy
@@ -954,6 +1044,16 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			"$menu_slug-order-taxonomy",
 			array( $this, 'ordertaxonomypage' ) // callback
 		);
+		if ( false === $this->schema_on_single_page ) {
+			add_submenu_page(
+				$menu_slug,
+				esc_html__( 'Page settings', 'faq-with-categories' ), // page_title
+				esc_html__( 'Page settings', 'faq-with-categories' ), // menu_title
+				'manage_options',
+				"$menu_slug-page-settings",
+				array( $this, 'per_page_settings' ) // callback
+			);
+		}
 		global $submenu; // make the first entry go to the edit page of the faq post_type
 		$submenu[ $menu_slug ][0] = array(
 			esc_html__( 'FAQ', 'faq-with-categories' ),
