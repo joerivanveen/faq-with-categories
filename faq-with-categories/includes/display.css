@@ -33,7 +33,7 @@
     visibility: hidden;
 }
 
-.ruigehond010.faq .ruigehond010_post .faq-header:before {
+.ruigehond010.faq:not(.title-only) .ruigehond010_post .faq-header:before {
     content: '▼';
     color: currentColor;
     float: right;

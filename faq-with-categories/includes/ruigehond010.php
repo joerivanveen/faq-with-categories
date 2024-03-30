@@ -296,6 +296,9 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			if ( $chosen_exclusive ) {
 				echo sanitize_title( $chosen_exclusive );
 			}
+			if ($title_only) {
+				echo ' title-only';
+			}
 			if ( true === $this->max_ignore_elsewhere &&
 			     ( null !== $chosen_term || null !== $chosen_exclusive )
 			) {
