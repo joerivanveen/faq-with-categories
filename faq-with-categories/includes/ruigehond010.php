@@ -682,7 +682,11 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 
 	function saveForPost( $post_id ) {
 		// update this particular post in the post_ids option regarding term / category shortcode
-		$this->setOption( 'post_ids', $this->doodoo( $this->getOption( 'post_ids' ), $post_id ) );
+		$post_ids = $this->getOption( 'post_ids' );
+		// only update (remove) them, do not assume the user wants schema always so don’t automatically add them
+		if (isset($post_ids[$post_id])) {
+			$this->setOption( 'post_ids', $this->doodoo( $this->getOption( 'post_ids' ), $post_id ) );
+		}
 		// save meta box:
 		if ( ! isset( $_POST['ruigehond010_nonce'] ) || ! wp_verify_nonce( $_POST['ruigehond010_nonce'], 'ruigehond010_save' ) ) {
 			return;
