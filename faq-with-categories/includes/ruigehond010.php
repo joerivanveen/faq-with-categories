@@ -156,7 +156,13 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			}
 		} elseif ( ( $on = $this->getOption( 'post_ids' ) ) && isset( $on[ $post_id ] ) ) {
 			// output the exclusive ones and main faq only when not on single page
-			echo $this->getSchemaFromPosts( $this->getPosts( $on[ $post_id ] ) );
+			if ( is_array( $on[ $post_id ] ) ) {
+				$exclusive = $on[ $post_id ]['exclusive'] ?? null;
+				$term      = $on[ $post_id ]['term'] ?? null;
+				echo $this->getSchemaFromPosts( $this->getPosts( $exclusive, $term ) );
+			} else {
+				echo $this->getSchemaFromPosts( $this->getPosts() );
+			}
 		}
 	}
 
@@ -755,31 +761,6 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		$main     = $this->getOption( 'faq_page_slug' );
 		$post_ids = $this->getOption( 'post_ids' );
 
-		$process = static function ( $content ) {
-			/* stolen from have-searchwp-index-wpbakery-rawhtml */
-			while ( false !== strpos( $content, '[/vc_raw_html]' ) ) {
-				$start = strpos( $content, '[vc_raw_html' );
-				if ( false === $start ) {
-					return $content;
-				}
-				$stop = strpos( $content, ']', $start );
-				if ( false === $stop ) {
-					return $content;
-				}
-				$stop += 1;
-				$end  = strpos( $content, '[/vc_raw_html]', $stop );
-				if ( false === $end ) {
-					return $content;
-				}
-				$chunk   = substr( $content, $start, $end - $start ) . '[/vc_raw_html]';
-				$encoded = substr( $content, $stop, $end - $stop );
-				$decoded = rawurldecode( base64_decode( $encoded ) );
-				$content = str_replace( $chunk, $decoded, $content );
-			}
-
-			return $content;
-		};
-
 		echo '<form action="options.php" method="post">';
 		// output security fields for the registered setting
 		settings_fields( 'ruigehond010' );
@@ -787,7 +768,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		echo '<table class="ruigehond010"><thead><tr><td>Post title / edit link</td><td>&nbsp;</td><td colspan="2" style="text-align:right">Main FAQ page</td></tr></thead><tbody>';
 		foreach ( $rows as $index => $row ) {
 			$post_id = (int) $row->ID;
-			$content = $process( $row->post_content );
+			$content = $this->decodePostContent( $row->post_content );
 			if ( false !== strpos( $content, '[faq-with-categories' ) ) {
 				echo '<tr>';
 				echo '<td><a href="', $edit, '/post.php?action=edit&post=', $post_id, '">', $row->post_title, '</a></td>';
@@ -811,6 +792,34 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		echo '</form>';
 
 		$rows = null;
+	}
+
+	private function decodePostContent( $content ) {
+		if ( ! $content ) {
+			return $content;
+		}
+		/* stolen from have-searchwp-index-wpbakery-rawhtml */
+		while ( false !== strpos( $content, '[/vc_raw_html]' ) ) {
+			$start = strpos( $content, '[vc_raw_html' );
+			if ( false === $start ) {
+				return $content;
+			}
+			$stop = strpos( $content, ']', $start );
+			if ( false === $stop ) {
+				return $content;
+			}
+			$stop += 1;
+			$end  = strpos( $content, '[/vc_raw_html]', $stop );
+			if ( false === $end ) {
+				return $content;
+			}
+			$chunk   = substr( $content, $start, $end - $start ) . '[/vc_raw_html]';
+			$encoded = substr( $content, $stop, $end - $stop );
+			$decoded = rawurldecode( base64_decode( $encoded ) );
+			$content = str_replace( $chunk, $decoded, $content );
+		}
+
+		return $content;
 	}
 
 	public function settingspage() {
@@ -985,8 +994,41 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 					$values   = array_map( 'intval', $value );
 					$post_ids = array();
 					foreach ( $values as $post_id ) {
-						$post_ids[ $post_id ] = true; // TODO register exclusive or terms here
+						// find out what kind...
+						$content = $this->decodePostContent( get_post_field( 'post_content', $post_id ) );
+						if ( $content ) {
+							$chunks = explode( '[faq-with-categories', $content );
+							unset( $chunks[0] ); // first chunk never contains the attributes
+							if ( 0 === count( $chunks ) ) { // shortcode is not present
+								unset( $post_ids[ $post_id ] );
+								continue;
+							}
+							foreach ( $chunks as $index => $chunk ) {
+								$attributes = substr( $chunk, 0, strpos( $chunk, ']' ) );
+								// you can ignore title-only="any value" (assume it is never added more than once per shortcode)
+								if ( false !== ( $pos = strpos( $attributes, ' title-only="' ) )
+								     && false !== ( $end = strpos( $attributes, '"', $pos + 13 ) ) ) {
+									$attributes = substr( $attributes, 0, $pos ) . substr( $attributes, $end );
+								}
+								if ( '' === $attributes ) {
+									if ( ( $term = $this->getDefaultTerm( $post_id ) ) ) {
+										$post_ids[ $post_id ] = array( 'term' => $term );
+									} else {
+										$post_ids[ $post_id ] = true;
+									}
+									break;
+								} elseif ( false !== ( $pos = strpos( $attributes, ' exclusive="' ) )
+								           && false !== ( $end = strpos( $attributes, '"', $pos + 12 ) ) ) {
+									// only handle exclusive terms
+									$pos                  += 12;
+									$post_ids[ $post_id ] = array( 'exclusive' => substr( $attributes, $pos, $end - $pos ) );
+									echo "$attributes\n";
+								}
+							}
+						}
 					}
+//					var_dump( $post_ids );
+//					die( "\nopa snot" );
 					$options['post_ids'] = $post_ids;
 					break;
 				case 'main_faq_page': // int which is a post->ID

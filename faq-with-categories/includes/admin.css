@@ -50,8 +50,7 @@ ul.ruigehond.datalist li input {
     background-color: inherit;
     color: inherit;
     border: 0;
-    padding: .15em;
-    padding-left: 1em;
+    padding: .15em .15em .15em 1em;
     cursor: pointer;
 }
 
