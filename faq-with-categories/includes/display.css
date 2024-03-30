@@ -33,14 +33,14 @@
     visibility: hidden;
 }
 
-.ruigehond010.faq:not(.title-only) .ruigehond010_post .faq-header:before {
+.ruigehond010.faq .ruigehond010_post .faq-header:before {
     content: '▼';
     color: currentColor;
     float: right;
     transition: all .4s;
 }
 
-.ruigehond010.faq .ruigehond010_post.open .faq-header:before {
+.ruigehond010.faq .ruigehond010_post.open .faq-header:not(.title-only):before {
     transform: rotate(90deg);
 }
 
