@@ -274,7 +274,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 					$slug = $this->getOption( 'faq_page_slug' );
 					if ( is_null( $slug ) ) {
 						echo '<span class="notice">';
-						echo esc_html__( 'Please visit the FAQ page once so the plugin knows where to link to.', 'faq-with-categories' );
+						echo esc_html__( 'Please indicate the main FAQ page in page settings.', 'faq-with-categories' );
 						echo '</span>';
 					} else {
 						if ( strpos( $slug, '?' ) === false ) {
@@ -296,7 +296,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			if ( $chosen_exclusive ) {
 				echo sanitize_title( $chosen_exclusive );
 			}
-			if ($title_only) {
+			if ( $title_only ) {
 				echo ' title-only';
 			}
 			if ( true === $this->max_ignore_elsewhere &&
@@ -612,7 +612,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		// update this particular post in the post_ids option regarding term / category shortcode
 		$post_ids = $this->getOption( 'post_ids' );
 		// only update (remove) them, do not assume the user wants schema always so don’t automatically add them
-		if (isset($post_ids[$post_id])) {
+		if ( isset( $post_ids[ $post_id ] ) ) {
 			$this->setOption( 'post_ids', $this->doodoo( $this->getOption( 'post_ids' ), $post_id ) );
 		}
 		// save meta box:
@@ -709,11 +709,15 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 				echo '<td><a href="', $edit, '/post.php?action=edit&post=', $post_id, '">', $row->post_title, '</a></td>';
 				//echo '<td>', $main, ', ', $row->post_name, '</td>';
 				echo '<td><a href="', $row->post_name, '">View</a></td>';
-				echo '<td><label><input type="checkbox" name="ruigehond010[output_schema][]" value="', $post_id, '"';
-				if ( isset( $post_ids[ $post_id ] ) ) {
-					echo ' checked="checked"';
+				if ($this->schema_on_single_page) {
+					echo '<td>&nbsp;</td>';
+				} else {
+					echo '<td><label><input type="checkbox" name="ruigehond010[output_schema][]" value="', $post_id, '"';
+					if ( isset( $post_ids[ $post_id ] ) ) {
+						echo ' checked="checked"';
+					}
+					echo '/> ', esc_html__( 'Output schema', 'faq-with-categories' ), '</label></td>';
 				}
-				echo '/> ', esc_html__( 'Output schema', 'faq-with-categories' ), '</label></td>';
 				echo '<td style="text-align:center"><input type="radio" name="ruigehond010[main_faq_page]" value="', $post_id, '"';
 				if ( $main === $row->post_name ) {
 					echo ' checked="checked"';
@@ -1000,7 +1004,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			'edit_posts',
 			$menu_slug,
 			array( $this, 'redirect_to_entries' ), // callback unused
-			'dashicons-lightbulb',
+			"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAxNy4yMiI+DQogIDxkZWZzPg0KICAgIDxzdHlsZT4NCiAgICAgIC5jbHMtMSB7DQogICAgICAgIGZpbGw6ICNhN2FhYWQ7DQogICAgICB9DQogICAgPC9zdHlsZT4NCiAgPC9kZWZzPg0KICA8Zz4NCiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Im04LjE2LDEzLjQ4djIuMzljMCwuNzQuODIsMS4zNCwxLjg0LDEuMzRzMS44NC0uNiwxLjg0LTEuMzR2LTIuMzljLS41NC4zMi0xLjE2LjUxLTEuODQuNTFzLTEuMjktLjE5LTEuODQtLjUxWiIvPg0KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0ibTEwLjQ4LDYuMzljLS4xNi0uMDItLjMxLS4wNS0uNDgtLjA1LS4xNSwwLS4yOS4wMy0uNDQuMDQtMS44MS4yMi0zLjIyLDEuNzQtMy4yMiwzLjYyLDAsMS4zNS43NCwyLjUyLDEuODMsMy4xNS41NC4zMiwxLjE2LjUxLDEuODQuNTFzMS4yOS0uMTksMS44NC0uNTFjMS4wOS0uNjMsMS44My0xLjgsMS44My0zLjE1LDAtMS44Ni0xLjM5LTMuMzgtMy4xOC0zLjYxWiIvPg0KICA8L2c+DQogIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0ibTE0LjI0LDEwLjQ4bDUuMTIuMjMuNjQtLjcxLS42NC0uNzEtNS4xMi4yN2MuMDEuMTUuMDMuMjkuMDMuNDQsMCwuMTYtLjAyLjMyLS4wNC40OFoiLz4NCiAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJtNS43Niw5LjUybC01LjEyLS4yMy0uNjQuNzEuNjQuNzEsNS4xMi0uMjdjLS4wMS0uMTUtLjAzLS4yOS0uMDMtLjQ0LDAtLjE2LjAyLS4zMi4wNC0uNDhaIi8+DQogIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0ibTEwLjQ4LDUuNzZsLjIzLTUuMTItLjcxLS42NC0uNzEuNjQuMjcsNS4xMmMuMTUtLjAxLjI5LS4wMy40NC0uMDMuMTYsMCwuMzIuMDIuNDguMDRaIi8+DQogIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0ibTEzLjM0LDcuMzRsMy43OC0zLjQ1LS4wNS0uOTUtLjk1LS4wNS0zLjQzLDMuODFjLjExLjA5LjIzLjE4LjMzLjI5LjEyLjEyLjIxLjI0LjMxLjM2WiIvPg0KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Im02LjY2LDEyLjY2bC0zLjc4LDMuNDUuMDUuOTUuOTUuMDUsMy40My0zLjgxYy0uMTEtLjA5LS4yMy0uMTgtLjMzLS4yOS0uMTItLjEyLS4yMS0uMjQtLjMxLS4zNloiLz4NCiAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJtNy4zNCw2LjY2bC0zLjQ1LTMuNzgtLjk1LjA1LS4wNS45NSwzLjgxLDMuNDNjLjA5LS4xMS4xOC0uMjMuMjktLjMzLjEyLS4xMi4yNC0uMjEuMzYtLjMxWiIvPg0KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Im0xMi42NiwxMy4zNGwzLjQ1LDMuNzguOTUtLjA1LjA1LS45NS0zLjgxLTMuNDNjLS4wOS4xMS0uMTguMjMtLjI5LjMzLS4xMi4xMi0uMjQuMjEtLjM2LjMxWiIvPg0KPC9zdmc+",
 			27 // just under comments / reacties
 		);
 		add_submenu_page(
@@ -1027,16 +1031,14 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			"$menu_slug-order-taxonomy",
 			array( $this, 'ordertaxonomypage' ) // callback
 		);
-		if ( false === $this->schema_on_single_page ) {
-			add_submenu_page(
-				$menu_slug,
-				esc_html__( 'Page settings', 'faq-with-categories' ), // page_title
-				esc_html__( 'Page settings', 'faq-with-categories' ), // menu_title
-				'manage_options',
-				"$menu_slug-page-settings",
-				array( $this, 'per_page_settings' ) // callback
-			);
-		}
+		add_submenu_page(
+			$menu_slug,
+			esc_html__( 'Page settings', 'faq-with-categories' ), // page_title
+			esc_html__( 'Page settings', 'faq-with-categories' ), // menu_title
+			'manage_options',
+			"$menu_slug-page-settings",
+			array( $this, 'per_page_settings' ) // callback
+		);
 		global $submenu; // make the first entry go to the edit page of the faq post_type
 		$submenu[ $menu_slug ][0] = array(
 			esc_html__( 'FAQ', 'faq-with-categories' ),
