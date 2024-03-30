@@ -93,7 +93,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 				$this,
 				'meta_box_add'
 			) ); // in the box the user set the exclusive value
-			add_action( 'save_post', array( $this, 'meta_box_save' ) );
+			add_action( 'save_post', array( $this, 'saveForPost' ) );
 			add_action( 'admin_notices', array( $this, 'displayAdminNotices' ) );
 			// settings link on plugins page
 			add_filter( "plugin_action_links_$this->basename", array( $this, 'settingsLink' ) );
@@ -680,7 +680,10 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		echo '</label>';
 	}
 
-	function meta_box_save( $post_id ) {
+	function saveForPost( $post_id ) {
+		// update this particular post in the post_ids option regarding term / category shortcode
+		$this->setOption( 'post_ids', $this->doodoo( $this->getOption( 'post_ids' ), $post_id ) );
+		// save meta box:
 		if ( ! isset( $_POST['ruigehond010_nonce'] ) || ! wp_verify_nonce( $_POST['ruigehond010_nonce'], 'ruigehond010_save' ) ) {
 			return;
 		}
@@ -994,38 +997,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 					$values   = array_map( 'intval', $value );
 					$post_ids = array();
 					foreach ( $values as $post_id ) {
-						// find out what kind...
-						$content = $this->decodePostContent( get_post_field( 'post_content', $post_id ) );
-						if ( $content ) {
-							$chunks = explode( '[faq-with-categories', $content );
-							unset( $chunks[0] ); // first chunk never contains the attributes
-							if ( 0 === count( $chunks ) ) { // shortcode is not present
-								unset( $post_ids[ $post_id ] );
-								continue;
-							}
-							foreach ( $chunks as $index => $chunk ) {
-								$attributes = substr( $chunk, 0, strpos( $chunk, ']' ) );
-								// you can ignore title-only="any value" (assume it is never added more than once per shortcode)
-								if ( false !== ( $pos = strpos( $attributes, ' title-only="' ) )
-								     && false !== ( $end = strpos( $attributes, '"', $pos + 13 ) ) ) {
-									$attributes = substr( $attributes, 0, $pos ) . substr( $attributes, $end );
-								}
-								if ( '' === $attributes ) {
-									if ( ( $term = $this->getDefaultTerm( $post_id ) ) ) {
-										$post_ids[ $post_id ] = array( 'term' => $term );
-									} else {
-										$post_ids[ $post_id ] = true;
-									}
-									break;
-								} elseif ( false !== ( $pos = strpos( $attributes, ' exclusive="' ) )
-								           && false !== ( $end = strpos( $attributes, '"', $pos + 12 ) ) ) {
-									// only handle exclusive terms
-									$pos                  += 12;
-									$post_ids[ $post_id ] = array( 'exclusive' => substr( $attributes, $pos, $end - $pos ) );
-									echo "$attributes\n";
-								}
-							}
-						}
+						$post_ids = $this->doodoo( $post_ids, $post_id );
 					}
 //					var_dump( $post_ids );
 //					die( "\nopa snot" );
@@ -1048,6 +1020,43 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		}
 
 		return $options;
+	}
+
+	private function doodoo( array $post_ids, int $post_id ): array {
+		// find out what kind...
+		$content = $this->decodePostContent( get_post_field( 'post_content', $post_id ) );
+		if ( $content ) {
+			$chunks = explode( '[faq-with-categories', $content );
+			unset( $chunks[0] ); // first chunk never contains the attributes
+			if ( 0 === count( $chunks ) ) { // shortcode is not present
+				unset( $post_ids[ $post_id ] );
+
+				return $post_ids;
+			}
+			foreach ( $chunks as $index => $chunk ) {
+				$attributes = substr( $chunk, 0, strpos( $chunk, ']' ) );
+				// you can ignore title-only="any value" (assume it is never added more than once per shortcode)
+				if ( false !== ( $pos = strpos( $attributes, ' title-only="' ) )
+				     && false !== ( $end = strpos( $attributes, '"', $pos + 13 ) ) ) {
+					$attributes = substr( $attributes, 0, $pos ) . substr( $attributes, $end );
+				}
+				if ( '' === $attributes ) {
+					if ( ( $term = $this->getDefaultTerm( $post_id ) ) ) {
+						$post_ids[ $post_id ] = array( 'term' => $term );
+					} else {
+						$post_ids[ $post_id ] = true;
+					}
+					break;
+				} elseif ( false !== ( $pos = strpos( $attributes, ' exclusive="' ) )
+				           && false !== ( $end = strpos( $attributes, '"', $pos + 12 ) ) ) {
+					// only handle exclusive terms
+					$pos                  += 12;
+					$post_ids[ $post_id ] = array( 'exclusive' => substr( $attributes, $pos, $end - $pos ) );
+				}
+			}
+		}
+
+		return $post_ids;
 	}
 
 	public function menuitem() {
