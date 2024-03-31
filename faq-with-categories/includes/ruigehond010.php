@@ -4,7 +4,6 @@ declare( strict_types=1 );
 
 namespace ruigehond010;
 
-// TODO BUG if you put central faq short_code or any exclusive tag on multiple pages, the $on option keeps getting updated
 // TODO have querystring selection of category work without filter being present on the page
 use ruigehond_0_5_1;
 
