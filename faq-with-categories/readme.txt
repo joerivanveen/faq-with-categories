@@ -5,7 +5,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=hallo
 Requires at least: 6.2
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.3.1
+Stable tag: 1.4.0
 License: GPLv3
 
 Easy to manage FAQ with categories, including accordion, filter, search and show more functionality.
@@ -92,6 +92,8 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 4. The categories can be coupled to a page, and you can order them as well
 
 == Changelog ==
+
+1.4.0: control output schema in settings, add option to not open first FAQ in list
 
 1.3.1: prevent error during activation or uninstalling
 
