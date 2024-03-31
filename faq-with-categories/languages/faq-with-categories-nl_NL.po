@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: faq-with-categories\n"
 "POT-Creation-Date: 2024-03-31 16:39+0200\n"
-"PO-Revision-Date: 2024-03-31 16:40+0200\n"
+"PO-Revision-Date: 2024-03-31 17:05+0200\n"
 "Last-Translator: \n"
 "Language-Team: ruige hond\n"
 "Language: nl\n"
@@ -139,10 +139,7 @@ msgstr ""
 
 #. TRANSLATORS: string inserted is an example of a querystring to pre-filter for a category
 #: includes/ruigehond010.php:787
-#, fuzzy, php-format
-#| msgid ""
-#| "You can link to your general faq page with a category in the querystring "
-#| "(e.g. %s) to pre-filter the faqs."
+#, php-format
 msgid ""
 "You can link to your general FAQ page with a category in the querystring (e."
 "g. %s) to pre-filter the faqs."
