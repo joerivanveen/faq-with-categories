@@ -613,7 +613,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		$post_ids = $this->getOption( 'post_ids' );
 		// only update (remove) them, do not assume the user wants schema always so don’t automatically add them
 		if ( isset( $post_ids[ $post_id ] ) ) {
-			$this->setOption( 'post_ids', $this->doodoo( $this->getOption( 'post_ids' ), $post_id ) );
+			$this->setOption( 'post_ids', $this->registerPostByShortcode( $this->getOption( 'post_ids' ), $post_id ) );
 		}
 		// save meta box:
 		if ( ! isset( $_POST['ruigehond010_nonce'] ) || ! wp_verify_nonce( $_POST['ruigehond010_nonce'], 'ruigehond010_save' ) ) {
@@ -627,6 +627,34 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			add_post_meta( $post_id, '_ruigehond010_exclusive',
 				sanitize_title( $_POST['ruigehond010_exclusive'] ), true );
 		}
+	}
+
+	private function decodePostContent( $content ) {
+		if ( ! $content ) {
+			return $content;
+		}
+		/* stolen from have-searchwp-index-wpbakery-rawhtml */
+		while ( false !== strpos( $content, '[/vc_raw_html]' ) ) {
+			$start = strpos( $content, '[vc_raw_html' );
+			if ( false === $start ) {
+				return $content;
+			}
+			$stop = strpos( $content, ']', $start );
+			if ( false === $stop ) {
+				return $content;
+			}
+			$stop += 1;
+			$end  = strpos( $content, '[/vc_raw_html]', $stop );
+			if ( false === $end ) {
+				return $content;
+			}
+			$chunk   = substr( $content, $start, $end - $start ) . '[/vc_raw_html]';
+			$encoded = substr( $content, $stop, $end - $stop );
+			$decoded = rawurldecode( base64_decode( $encoded ) );
+			$content = str_replace( $chunk, $decoded, $content );
+		}
+
+		return $content;
 	}
 
 	public function ordertaxonomypage() {
@@ -644,7 +672,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		echo '</h1><p>';
 		echo esc_html__( 'This page only concerns itself with the order. The hierarchy is determined by the taxonomy itself.', 'faq-with-categories' );
 		echo '<br/>';
-		echo esc_html__( 'If you assign a page to a taxonomy, the faq shortcut on that page will display faq-posts from that taxonomy.', 'faq-with-categories' );
+		echo esc_html__( 'If you assign a page to a taxonomy, the FAQ shortcode on that page will display FAQ-posts from that taxonomy.', 'faq-with-categories' );
 		echo '</p><hr/>';
 		$terms = $this->getTerms(); // these are ordered to the best of the knowledge of the system already, but with parents
 		foreach ( $terms as $index => $sub_terms ) {
@@ -688,6 +716,12 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		echo esc_html( get_admin_page_title() );
 		echo '</h1><p>';
 		echo esc_html__( 'Settings for pages the shortcode is used on.', 'faq-with-categories' );
+		echo '<br/>';
+		echo esc_html__( 'If you do not output schema on single FAQ pages you can check here which pages should output schema.', 'faq-with-categories' );
+		echo '<br/>';
+		echo esc_html__( 'Note that outputting duplicate FAQs in schema may result in them not being considered at all.', 'faq-with-categories' );
+		echo '<br/>';
+		echo esc_html__( 'Some pages may not be able to output schema, check if you use a specific category or limited quantity on those pages.', 'faq-with-categories' );
 		echo '</p>';
 
 		global $wpdb;
@@ -733,34 +767,6 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		$rows = null;
 	}
 
-	private function decodePostContent( $content ) {
-		if ( ! $content ) {
-			return $content;
-		}
-		/* stolen from have-searchwp-index-wpbakery-rawhtml */
-		while ( false !== strpos( $content, '[/vc_raw_html]' ) ) {
-			$start = strpos( $content, '[vc_raw_html' );
-			if ( false === $start ) {
-				return $content;
-			}
-			$stop = strpos( $content, ']', $start );
-			if ( false === $stop ) {
-				return $content;
-			}
-			$stop += 1;
-			$end  = strpos( $content, '[/vc_raw_html]', $stop );
-			if ( false === $end ) {
-				return $content;
-			}
-			$chunk   = substr( $content, $start, $end - $start ) . '[/vc_raw_html]';
-			$encoded = substr( $content, $stop, $end - $stop );
-			$decoded = rawurldecode( base64_decode( $encoded ) );
-			$content = str_replace( $chunk, $decoded, $content );
-		}
-
-		return $content;
-	}
-
 	public function settingspage() {
 		// check user capabilities
 		if ( false === current_user_can( 'manage_options' ) ) {
@@ -778,7 +784,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		echo esc_html__( 'FAQS are always sorted by published date descending, so newest entries are first. By default they are output as an accordion list with the first one opened.', 'faq-with-categories' );
 		echo '<br/>';
 		// #TRANSLATORS: string inserted is an example of a querystring to pre-filter for a category
-		echo sprintf( esc_html__( 'You can link to your general faq page with a category in the querystring (e.g. %s) to pre-filter the faqs.', 'faq-with-categories' ), '<strong>?category=test%20category</strong>' );
+		echo sprintf( esc_html__( 'You can link to your general FAQ page with a category in the querystring (e.g. %s) to pre-filter the faqs.', 'faq-with-categories' ), '<strong>?category=test%20category</strong>' );
 		echo '<br/>';
 		echo esc_html__( 'You may use the following shortcodes, of course certain combinations do not make sense and may produce erratic behaviour.', 'faq-with-categories' );
 		echo '<br/>';
@@ -933,10 +939,8 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 					$values   = array_map( 'intval', $value );
 					$post_ids = array();
 					foreach ( $values as $post_id ) {
-						$post_ids = $this->doodoo( $post_ids, $post_id );
+						$post_ids = $this->registerPostByShortcode( $post_ids, $post_id );
 					}
-//					var_dump( $post_ids );
-//					die( "\nopa snot" );
 					$options['post_ids'] = $post_ids;
 					break;
 				case 'main_faq_page': // int which is a post->ID
@@ -958,7 +962,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		return $options;
 	}
 
-	private function doodoo( array $post_ids, int $post_id ): array {
+	private function registerPostByShortcode( array $post_ids, int $post_id ): array {
 		// find out what kind...
 		$content = $this->decodePostContent( get_post_field( 'post_content', $post_id ) );
 		if ( $content ) {
