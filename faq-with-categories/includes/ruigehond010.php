@@ -945,6 +945,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 				case 'main_faq_page': // int which is a post->ID
 					if ( ( $slug = get_post_field( 'post_name', (int) $value ) ) ) {
 						$options['faq_page_slug'] = $slug;
+						$options['faq_page_id'] = (int) $value;
 					}
 					break;
 				case 'taxonomies': // check if it's an existing taxonomy
