@@ -20,9 +20,10 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 
 	public function __construct( $basename ) {
 		parent::__construct( 'ruigehond010' );
-		$this->basename    = $basename;
-		$wp_prefix         = $this->wpdb->prefix;
-		$this->order_table = "{$wp_prefix}ruigehond010_taxonomy_o";
+		$this->basename     = $basename;
+		$wp_prefix          = $this->wpdb->prefix;
+		$this->table_prefix = "{$wp_prefix}ruigehond010_";
+		$this->order_table  = "{$wp_prefix}ruigehond010_taxonomy_o";
 		// set some options
 		$this->database_version        = $this->getOption( 'database_version', '0.0.0' );
 		$this->taxonomies              = $this->getOption( 'taxonomies', 'category' );
@@ -52,8 +53,6 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 				return $args;
 			}, 20, 2 );
 		}
-		// table names
-		$this->table_prefix = "{$wp_prefix}ruigehond010_";
 	}
 
 	public function initialize() {
@@ -67,6 +66,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		 */
 		register_post_type( 'ruigehond010_faq',
 			array(
+				'supports'            => array( 'title', 'editor', 'author', 'excerpt' ),
 				'labels'              => array(
 					'name'          => esc_html__( 'FAQ', 'faq-with-categories' ),
 					'singular_name' => esc_html__( 'FAQ', 'faq-with-categories' ),
@@ -742,7 +742,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 				echo '<td><a href="', $edit, '/post.php?action=edit&post=', $post_id, '">', $row->post_title, '</a></td>';
 				//echo '<td>', $main, ', ', $row->post_name, '</td>';
 				echo '<td><a href="', $row->post_name, '">View</a></td>';
-				if ($this->schema_on_single_page) {
+				if ( $this->schema_on_single_page ) {
 					echo '<td>&nbsp;</td>';
 				} else {
 					echo '<td><label><input type="checkbox" name="ruigehond010[output_schema][]" value="', $post_id, '"';
@@ -945,7 +945,7 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 				case 'main_faq_page': // int which is a post->ID
 					if ( ( $slug = get_post_field( 'post_name', (int) $value ) ) ) {
 						$options['faq_page_slug'] = $slug;
-						$options['faq_page_id'] = (int) $value;
+						$options['faq_page_id']   = (int) $value;
 					}
 					break;
 				case 'taxonomies': // check if it's an existing taxonomy
