@@ -739,9 +739,9 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 			$content = $this->decodePostContent( $row->post_content );
 			if ( false !== strpos( $content, '[faq-with-categories' ) ) {
 				echo '<tr>';
-				echo '<td><a href="', $edit, '/post.php?action=edit&post=', $post_id, '">', $row->post_title, '</a></td>';
+				echo '<td><a href="', $edit, 'post.php?action=edit&post=', $post_id, '">', $row->post_title, '</a></td>';
 				//echo '<td>', $main, ', ', $row->post_name, '</td>';
-				echo '<td><a href="', $row->post_name, '">View</a></td>';
+				echo '<td><a href="', get_permalink($post_id), '">View</a></td>';
 				if ( $this->schema_on_single_page ) {
 					echo '<td>&nbsp;</td>';
 				} else {
