@@ -139,6 +139,10 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 
 == Upgrade Notice ==
 
+= 1.5.0 =
+
+If you use a single FAQ template, you can now get the `faq_page_id` from the options (`get_option( 'ruigehond010' )[ 'faq_page_id' ]`) if you want, to link to the overview page.
+
 = 1.3.0 =
 
 IMPORTANT if you target FAQ elements with CSS, the following elements have changed, because multiple lists are now possible on the same page:
