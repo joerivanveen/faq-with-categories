@@ -93,6 +93,8 @@ Upon uninstall FAQ with categories removes its own options and taxonomy sorting 
 
 == Changelog ==
 
+1.5.1: prevent upgrade statement to run for every admin request
+
 1.5.0: expose FAQ page id in code and allow author + excerpt for FAQ post type
 
 1.4.0: control output schema in settings, add option to not open first FAQ in list
