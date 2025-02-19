@@ -1057,18 +1057,18 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 		// on busy sites this can be called several times, so suppress the errors
 		$this->wpdb->suppress_errors = true;
 		if ( version_compare( $this->database_version, '1.1.0' ) < 0 ) {
-			$sql = "ALTER TABLE {$this->order_table} ADD COLUMN 
+			$sql = "ALTER TABLE $this->order_table ADD COLUMN 
 				        t VARCHAR(255) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_520_ci' NOT NULL DEFAULT '';";
 			// TODO query returns false on error, maybe it never works, what do we do then?
 			$this->wpdb->query( $sql );
-			$sql = "ALTER TABLE {$this->order_table} ADD COLUMN post_id INT;";
+			$sql = "ALTER TABLE $this->order_table ADD COLUMN post_id INT;";
 			$this->wpdb->query( $sql );
-			$old_version = $this->setOption( 'version', '1.1.0' );
+			$old_version = $this->setOption( 'database_version', '1.1.0' );
 		}
 		if ( version_compare( $this->database_version, '1.1.8' ) < 0 ) {
-			$sql = "ALTER TABLE {$this->order_table} ADD CONSTRAINT ruigehond010_unique_{$this->order_table} UNIQUE (term_id);";
+			$sql = "ALTER TABLE $this->order_table ADD CONSTRAINT ruigehond010_unique_$this->order_table UNIQUE (term_id);";
 			$this->wpdb->query( $sql );
-			$old_version = $this->setOption( 'version', '1.1.8' );
+			$old_version = $this->setOption( 'database_version', '1.1.8' );
 		}
 		$this->wpdb->suppress_errors = false;
 	}
