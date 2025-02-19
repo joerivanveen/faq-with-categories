@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: faq-with-categories\n"
-"POT-Creation-Date: 2024-03-31 16:39+0200\n"
-"PO-Revision-Date: 2024-03-31 17:05+0200\n"
+"POT-Creation-Date: 2025-02-19 17:32+0100\n"
+"PO-Revision-Date: 2025-02-19 17:32+0100\n"
 "Last-Translator: \n"
 "Language-Team: ruige hond\n"
 "Language: nl\n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.5\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: __;esc_html__\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -36,36 +36,36 @@ msgstr "Toon meer"
 msgid "No results found"
 msgstr "Geen resultaten"
 
-#: includes/ruigehond010.php:72 includes/ruigehond010.php:73
+#: includes/ruigehond010.php:71 includes/ruigehond010.php:72
 #: includes/ruigehond010.php:1017 includes/ruigehond010.php:1048
 #: includes/ruigehond010.php:1078
 msgid "FAQ"
 msgstr "Veelgestelde vragen"
 
-#: includes/ruigehond010.php:277
+#: includes/ruigehond010.php:276
 msgid "Please indicate the main FAQ page in page settings."
 msgstr "Geef de hoofdpagina voor FAQ aan in de pagina instellingen."
 
-#: includes/ruigehond010.php:521
+#: includes/ruigehond010.php:520
 #, php-format
 msgid "post_id %d not found"
 msgstr "post_id %d niet gevonden"
 
-#: includes/ruigehond010.php:535
+#: includes/ruigehond010.php:534
 #, php-format
 msgid "Could not find post_id based on title: %s"
 msgstr "Kon geen post_id vinden op basis van titel: %s"
 
-#: includes/ruigehond010.php:548
+#: includes/ruigehond010.php:547
 msgid "Not updated"
 msgstr "Niet bijgewerkt"
 
-#: includes/ruigehond010.php:573
+#: includes/ruigehond010.php:572
 #, php-format
 msgid "Did not understand handle %s"
 msgstr "Begreep handle %s niet"
 
-#: includes/ruigehond010.php:607
+#: includes/ruigehond010.php:606
 msgid ""
 "The tag this FAQ entry is exclusive to, use it in a shortcode to summon the "
 "entry. Note that it will still be displayed for the taxonomies that are "
@@ -75,7 +75,7 @@ msgstr ""
 "in een shortcode om de vermelding op te roepen. Let op dat hij ook nog wordt "
 "weergegeven bij aangevinkte taxonomieën."
 
-#: includes/ruigehond010.php:673
+#: includes/ruigehond010.php:672
 msgid ""
 "This page only concerns itself with the order. The hierarchy is determined "
 "by the taxonomy itself."
@@ -83,7 +83,7 @@ msgstr ""
 "Deze pagina bepaalt alleen de volgorde. De hiërarchie wordt bepaald door de "
 "taxonomy zelf."
 
-#: includes/ruigehond010.php:675
+#: includes/ruigehond010.php:674
 msgid ""
 "If you assign a page to a taxonomy, the FAQ shortcode on that page will "
 "display FAQ-posts from that taxonomy."
@@ -91,11 +91,11 @@ msgstr ""
 "Wanneer je een pagina aan een taxonomy toewijst toont de FAQ shortcode op "
 "die pagina standaard FAQ-berichten van die taxonomy."
 
-#: includes/ruigehond010.php:718
+#: includes/ruigehond010.php:717
 msgid "Settings for pages the shortcode is used on."
 msgstr "Instellingen voor pagina’s met de shortcode."
 
-#: includes/ruigehond010.php:720
+#: includes/ruigehond010.php:719
 msgid ""
 "If you do not output schema on single FAQ pages you can check here which "
 "pages should output schema."
@@ -103,7 +103,7 @@ msgstr ""
 "Als je de schema niet op enkele FAQ pagina’s uitvoert kan je hieronder "
 "aangeven welke pagina’s schema moeten uitvoeren."
 
-#: includes/ruigehond010.php:722
+#: includes/ruigehond010.php:721
 msgid ""
 "Note that outputting duplicate FAQs in schema may result in them not being "
 "considered at all."
@@ -111,7 +111,7 @@ msgstr ""
 "Let op dat FAQs meerdere keren genereren in de schema kan resulteren in dat "
 "ze helemaal niet opgenomen worden."
 
-#: includes/ruigehond010.php:724
+#: includes/ruigehond010.php:723
 msgid ""
 "Some pages may not be able to output schema, check if you use a specific "
 "category or limited quantity on those pages."
@@ -119,15 +119,15 @@ msgstr ""
 "Sommige pagina’s kunnen mogelijk geen schema genereren, controleer of je een "
 "specifieke categorie of beperkte hoeveelheid gebruikt op die pagina’s."
 
-#: includes/ruigehond010.php:753
+#: includes/ruigehond010.php:752
 msgid "Output schema"
 msgstr "Schema genereren"
 
-#: includes/ruigehond010.php:764 includes/ruigehond010.php:820
+#: includes/ruigehond010.php:763 includes/ruigehond010.php:819
 msgid "Save Settings"
 msgstr "Instellingen opslaan"
 
-#: includes/ruigehond010.php:784
+#: includes/ruigehond010.php:783
 msgid ""
 "FAQS are always sorted by published date descending, so newest entries are "
 "first. By default they are output as an accordion list with the first one "
@@ -138,7 +138,7 @@ msgstr ""
 "de eerste geopend."
 
 #. TRANSLATORS: string inserted is an example of a querystring to pre-filter for a category
-#: includes/ruigehond010.php:787
+#: includes/ruigehond010.php:786
 #, php-format
 msgid ""
 "You can link to your general FAQ page with a category in the querystring (e."
@@ -147,7 +147,7 @@ msgstr ""
 "Je kunt naar je algemene veelgestelde vragen pagina linken met een categorie "
 "in de querystring (bv. %s) om de vragen alvast te filteren."
 
-#: includes/ruigehond010.php:789
+#: includes/ruigehond010.php:788
 msgid ""
 "You may use the following shortcodes, of course certain combinations do not "
 "make sense and may produce erratic behaviour."
@@ -155,7 +155,7 @@ msgstr ""
 "Je kunt de volgende shortcodes gebruiken, sommige combinaties slaan nergens "
 "op en zullen grillig gedrag veroorzaken."
 
-#: includes/ruigehond010.php:791
+#: includes/ruigehond010.php:790
 #, php-format
 msgid ""
 "%s produces the default list for the central FAQ page and outputs FAQ "
@@ -164,7 +164,7 @@ msgstr ""
 "%s toont te hele lijst voor de centrale veelgestelde vragen pagina en "
 "plaatst FAQ snippets schema in de head."
 
-#: includes/ruigehond010.php:793
+#: includes/ruigehond010.php:792
 #, php-format
 msgid ""
 "%s produces a filter menu according to the chosen taxonomy using the "
@@ -173,7 +173,7 @@ msgstr ""
 "%s produceert een filter menu voor de gekozen taxonomy in de gespecificeerde "
 "rangschikking."
 
-#: includes/ruigehond010.php:795
+#: includes/ruigehond010.php:794
 #, php-format
 msgid ""
 "%s produces a search box that will perform client-side lookup through the "
@@ -182,19 +182,19 @@ msgstr ""
 "%s produceert een zoekvak dat client-side door de veelgestelden vragen zoekt."
 
 #. TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
-#: includes/ruigehond010.php:798
+#: includes/ruigehond010.php:797
 #, php-format
 msgid "%1$s %2$s limits the quantity of the faqs to 5, or use another number."
 msgstr ""
 "%1$s %2$s beperkt het aantal veelgestelde vragen tot 5, of gebruik een ander "
 "getal."
 
-#: includes/ruigehond010.php:800 includes/ruigehond010.php:805
+#: includes/ruigehond010.php:799 includes/ruigehond010.php:804
 msgid "This will NOT output FAQ snippets schema in the head."
 msgstr "Dit zal GEEN FAQ snippets schema in de head plaatsen."
 
 #. TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
-#: includes/ruigehond010.php:803
+#: includes/ruigehond010.php:802
 #, php-format
 msgid ""
 "%1$s %2$s display only faqs for the specified category (case insensitive)."
@@ -203,7 +203,7 @@ msgstr ""
 "(niet hoofdlettergevoelig)."
 
 #. TRANSLATORS: 1 is a tag, 2 indicates the NOTE at the bottom with an asterisk (*)
-#: includes/ruigehond010.php:808
+#: includes/ruigehond010.php:807
 #, php-format
 msgid ""
 "%1$s %2$s any tag you specified under a faq entry in the box, will gather "
@@ -212,12 +212,12 @@ msgstr ""
 "%1$s %2$s een tag die je onder een veelgestelde vragen bericht hebt "
 "gespecificeerd, zal alle vragen met die tag weergeven."
 
-#: includes/ruigehond010.php:810
+#: includes/ruigehond010.php:809
 #, php-format
 msgid "%s outputs the list as links rather than as an accordion."
 msgstr "%s geeft de lijst weer als links in plaats van accordion."
 
-#: includes/ruigehond010.php:812
+#: includes/ruigehond010.php:811
 msgid ""
 "NOTE: only a limited number of faqs will be present on the page so search "
 "and filter will not work."
@@ -225,19 +225,19 @@ msgstr ""
 "NB: een beperkt aantal vragen is op de pagina aanwezig zodat zoeken en "
 "filteren niet werken."
 
-#: includes/ruigehond010.php:835
+#: includes/ruigehond010.php:834
 msgid "Options"
 msgstr "Opties"
 
-#: includes/ruigehond010.php:841
+#: includes/ruigehond010.php:840
 msgid "Type the taxonomy you want to use for the categories."
 msgstr "Typ de taxonomy-naam die je wilt gebruiken voor de categorieën."
 
-#: includes/ruigehond010.php:842
+#: includes/ruigehond010.php:841
 msgid "Slug for the individual faq entries (optional)."
 msgstr "Slug voor de losse veelgestelde vragen pagina (optioneel)."
 
-#: includes/ruigehond010.php:843
+#: includes/ruigehond010.php:842
 msgid ""
 "When using title-only in shortcodes, link to the overview rather than "
 "individual FAQ page."
@@ -245,27 +245,27 @@ msgstr ""
 "Bij gebruik van title-only in shortcodes, link naar de Veelgestelde Vragen "
 "pagina ipv de post zelf."
 
-#: includes/ruigehond010.php:844
+#: includes/ruigehond010.php:843
 msgid "Open the first FAQ in a list automatically."
 msgstr "Open de eerste FAQ in een lijst vanzelf."
 
-#: includes/ruigehond010.php:845
+#: includes/ruigehond010.php:844
 msgid "Output the faq schema on individual page rather than overview."
 msgstr "Genereer faq schema op individuele pagina in plaats van overzicht."
 
-#: includes/ruigehond010.php:846
+#: includes/ruigehond010.php:845
 msgid "The ‘choose / show all’ option in top most select list."
 msgstr "De ‘kies / toon alles’ optie in de eerste keuzelijst."
 
-#: includes/ruigehond010.php:847
+#: includes/ruigehond010.php:846
 msgid "The ‘choose / show all’ option in subsequent select lists."
 msgstr "De ‘kies / toon alles’ optie in opvolgende keuzelijsten."
 
-#: includes/ruigehond010.php:848
+#: includes/ruigehond010.php:847
 msgid "The placeholder in the search bar for the faqs."
 msgstr "De placeholder in de veelgestelde vragen zoekbalk."
 
-#: includes/ruigehond010.php:849
+#: includes/ruigehond010.php:848
 msgid ""
 "Tag used for the header on faq page (e.g. h4), invalid input may cause "
 "errors on your page."
@@ -273,36 +273,36 @@ msgstr ""
 "Html tag gebruikt voor de header op de fax pagina (bv h4), ongeldige waarde "
 "kan een fout op de pagina geven."
 
-#: includes/ruigehond010.php:850
+#: includes/ruigehond010.php:849
 msgid "Number of faqs shown before ‘Show more’ button."
 msgstr "Aantal vragen die worden getoond voor de ‘Toon meer’ knop."
 
-#: includes/ruigehond010.php:851
+#: includes/ruigehond010.php:850
 msgid "Only use the more button on the central FAQ page, nowhere else."
 msgstr ""
 "Gebruik de meer-knop alleen op de centrale veelgestelde vragen pagina, "
 "verder nergens."
 
-#: includes/ruigehond010.php:852
+#: includes/ruigehond010.php:851
 msgid "The text on the ‘Show more’ button."
 msgstr "De tekst op de ‘Toon meer’ knop."
 
-#: includes/ruigehond010.php:853
+#: includes/ruigehond010.php:852
 msgid "Text shown when search or filter results in 0 faqs found."
 msgstr "Tekst wordt getoond wanneer zoek of filter resulteert in 0 resultaten."
 
-#: includes/ruigehond010.php:854
+#: includes/ruigehond010.php:853
 msgid "Will exclude the FAQ posts from site search queries."
 msgstr ""
 "Sluit de Veelgestelde Vragen berichten uit van de standaard zoekfunctie."
 
-#: includes/ruigehond010.php:855
+#: includes/ruigehond010.php:854
 msgid "FAQ posts will not count towards total posts in taxonomies."
 msgstr ""
 "Veelgestelde Vragen tellen niet mee in het totaal van de berichten bij een "
 "taxonomy."
 
-#: includes/ruigehond010.php:856
+#: includes/ruigehond010.php:855
 msgid ""
 "By default a small css-file is output to the frontend to format the entries. "
 "Uncheck to handle the css yourself."
