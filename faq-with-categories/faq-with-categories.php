@@ -7,7 +7,7 @@ Plugin URI: https://github.com/joerivanveen/faq-with-categories
 Description: Easy to maintain FAQ and answer plugin with categories.
 Version: 1.5.1
 Requires at least: 6.0
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.4
 Author: Joeri van Veen
 Author URI: https://wp-developer.eu

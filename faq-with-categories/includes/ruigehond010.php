@@ -56,11 +56,6 @@ class ruigehond010 extends ruigehond_0_5_1\ruigehond {
 	}
 
 	public function initialize() {
-//        if (current_user_can('administrator')) {
-//            error_reporting(E_ALL);
-//            ini_set('display_errors', '1');
-//        }
-		$this->loadTranslations( 'faq-with-categories' );
 		/**
 		 * register custom post type for faqs
 		 */
